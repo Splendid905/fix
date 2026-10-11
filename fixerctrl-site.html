@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FixerCtrl | Cybersecurity and development</title>
+<meta name="description" content="Portfolio, study notes and blog of a final-year IT student heading into cybersecurity and development.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script>
+  // Apply a saved theme before first paint to avoid a flash.
+  try { var t = localStorage.getItem('fixerctrl-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+</script>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #000000;
+    --muted: #4a4a4a;
+    --line: #d6d6d6;
+    --surface: #f3f3f3;
+    --field: #767676;
+    --accent: #00f6ff;
+    --link: #006b73;
+    --focus: #006b73;
+    --btn-border: #000000;
+    --term-bg: #000000;
+    --term-fg: #e9e9e9;
+    --term-dim: #8f8f8f;
+    --term-line: #2a2a2a;
+    --font: "Ubuntu", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "Ubuntu Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    --wide: 1080px;
+    --gutter: clamp(1rem, 4vw, 2rem);
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #000000; --fg: #ffffff; --muted: #a8a8a8; --line: #2b2b2b; --surface: #121212;
+      --field: #8a8a8a; --link: #00f6ff; --focus: #00f6ff; --btn-border: #00f6ff;
+      --term-line: #2a2a2a; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #000000; --fg: #ffffff; --muted: #a8a8a8; --line: #2b2b2b; --surface: #121212;
+    --field: #8a8a8a; --link: #00f6ff; --focus: #00f6ff; --btn-border: #00f6ff;
+    --term-line: #2a2a2a; color-scheme: dark;
+  }
+
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    display: flex; flex-direction: column;
+    background: var(--bg); color: var(--fg);
+    font-family: var(--font); font-size: 1.0625rem; line-height: 1.65;
+  }
+  main { flex: 1; }
+  main:focus { outline: none; }
+  .wrap { max-width: var(--wide); margin: 0 auto; padding-inline: var(--gutter); }
+
+  h1, h2, h3 { line-height: 1.15; letter-spacing: -0.015em; margin: 0 0 .6em; }
+  h1 { font-size: clamp(2.1rem, 1.3rem + 3.2vw, 3.6rem); font-weight: 700; letter-spacing: -0.025em; }
+  h2 { font-size: clamp(1.45rem, 1.15rem + 1.2vw, 2rem); font-weight: 700; }
+  h3 { font-size: 1.25rem; font-weight: 700; }
+  p { margin: 0 0 1em; }
+  a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  a:hover { text-decoration-thickness: 2px; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
+  ul, ol { padding-left: 1.25rem; }
+
+  .skip { position: absolute; left: -999px; top: 0; background: var(--accent); color: #000; padding: .6rem 1rem; z-index: 50; font-weight: 700; }
+  .skip:focus { left: 0; }
+
+  /* Header */
+  .site-header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .bar { max-width: var(--wide); margin: 0 auto; padding: .6rem var(--gutter); display: flex; align-items: center; gap: 1rem; }
+  .brand { font-weight: 700; font-size: 1.2rem; letter-spacing: -0.01em; color: var(--fg); text-decoration: none; display: inline-flex; align-items: flex-end; gap: .2em; }
+  .brand:hover { text-decoration: none; }
+  .brand .cur { display: inline-block; width: .55em; height: .17em; background: var(--link); margin-bottom: .22em; }
+  .main-nav { margin-left: auto; }
+  .main-nav ul { list-style: none; display: flex; gap: .15rem; margin: 0; padding: 0; }
+  .main-nav a { display: block; padding: .45rem .75rem; color: var(--fg); text-decoration: none; border-radius: 6px; font-weight: 500; }
+  .main-nav a:hover { background: var(--surface); }
+  .main-nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 3px; text-decoration-color: var(--link); text-underline-offset: 7px; }
+  .tools { display: flex; gap: .25rem; }
+  .icon-btn { width: 2.5rem; height: 2.5rem; display: inline-grid; place-items: center; background: transparent; color: var(--fg); border: 0; border-radius: 6px; cursor: pointer; }
+  .icon-btn:hover { background: var(--surface); }
+  .menu-btn { display: none; }
+  .menu-btn .x { display: none; }
+  .site-header.open .menu-btn .bars { display: none; }
+  .site-header.open .menu-btn .x { display: block; }
+  @media (max-width: 780px) {
+    .menu-btn { display: inline-grid; }
+    .tools { margin-left: auto; }
+    .main-nav { display: none; margin: 0; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg); border-bottom: 1px solid var(--line); padding: .5rem var(--gutter) 1rem; }
+    .site-header.open .main-nav { display: block; }
+    .main-nav ul { flex-direction: column; }
+    .main-nav a { padding: .75rem .5rem; }
+  }
+
+  /* Buttons */
+  .btn { display: inline-block; font: inherit; font-weight: 700; padding: .7rem 1.15rem; border-radius: 6px; text-decoration: none; cursor: pointer;
+         border: 2px solid var(--btn-border); background: var(--accent); color: #000; }
+  .btn:hover { background: #66f9ff; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--fg); border-color: var(--fg); }
+  .btn.ghost:hover { background: var(--surface); }
+  .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+  .linkbtn { font: inherit; background: none; border: 0; padding: 0; color: var(--link); text-decoration: underline; cursor: pointer; }
+
+  /* Hero */
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; padding: clamp(2rem, 6vw, 4.5rem) 0; }
+  @media (max-width: 900px) { .hero { grid-template-columns: 1fr; } }
+  .lead { font-size: 1.2rem; color: var(--muted); max-width: 36rem; }
+
+  /* Terminal */
+  .term { background: var(--term-bg); color: var(--term-fg); border: 1px solid var(--term-line); border-radius: 10px; font-family: var(--mono); font-size: 1.05rem; line-height: 1.5; overflow: hidden; }
+  .term-top { padding: .55rem 1rem; border-bottom: 1px solid var(--term-line); color: var(--term-dim); }
+  .term-body { padding: .9rem 1rem; height: 21rem; overflow-y: auto; }
+  @media (max-width: 600px) { .term-body { height: 19rem; } }
+  .tl { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .tl.dim { color: var(--term-dim); }
+  .tl .pr, .term-row .pr { color: var(--accent); }
+  .term-row { display: flex; gap: .6rem; margin: 0; }
+  .term-row input { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--term-fg); font: inherit; padding: 0; caret-color: var(--accent); }
+  .term :focus-visible { outline-color: var(--accent); }
+  .term-row input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .chips { display: flex; flex-wrap: wrap; gap: .5rem; padding: .7rem 1rem .9rem; border-top: 1px solid var(--term-line); }
+  .chips button { font: inherit; font-size: .98rem; background: transparent; color: var(--term-fg); border: 1px solid #444; border-radius: 6px; padding: .2rem .65rem; cursor: pointer; }
+  .chips button:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Blocks and lists */
+  .block { padding: clamp(2rem, 5vw, 3.25rem) 0; border-top: 1px solid var(--line); }
+  .block-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1rem; margin-bottom: 1rem; }
+  .block-head h2 { margin: 0; }
+  .page-head { padding: clamp(2rem, 5vw, 3.5rem) 0 1.5rem; }
+  .now { margin: 0; }
+  .now > div { display: grid; grid-template-columns: 10rem 1fr; gap: 1rem; padding: 1rem 0; border-top: 1px solid var(--line); }
+  .now dt { font-weight: 700; }
+  .now dd { margin: 0; }
+  @media (max-width: 600px) { .now > div { grid-template-columns: 1fr; gap: .1rem; } }
+
+  .project { padding: 2rem 0; border-top: 1px solid var(--line); }
+  .project p { max-width: 66ch; }
+  .project-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1rem; margin-bottom: .5rem; }
+  .project-head h2, .project-head h3 { margin: 0; }
+  .status { margin: 0; font-size: .92rem; font-weight: 500; padding: .1rem .6rem; border: 1px solid var(--line); border-radius: 6px; }
+  .status.live { color: var(--link); border-color: var(--link); }
+  .facts { margin: 1rem 0 0; display: grid; gap: .3rem; }
+  .facts > div { display: grid; grid-template-columns: 6.5rem 1fr; gap: 1rem; }
+  .facts dt { color: var(--muted); }
+  .facts dd { margin: 0; }
+
+  .post-row { padding: 1.4rem 0; border-top: 1px solid var(--line); }
+  .post-row h2, .post-row h3 { font-size: 1.4rem; margin: 0 0 .35rem; }
+  .post-row h2 a, .post-row h3 a { color: var(--fg); text-decoration: none; }
+  .post-row h2 a:hover, .post-row h3 a:hover { text-decoration: underline; }
+  .post-row p { max-width: 66ch; margin-bottom: .6rem; }
+  .meta { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; color: var(--muted); font-size: .95rem; margin-bottom: .6rem; }
+  .tags { list-style: none; display: flex; flex-wrap: wrap; gap: .4rem; padding: 0; margin: 0; }
+  .tags li { font-size: .88rem; padding: .05rem .55rem; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: end; margin-bottom: .5rem; }
+  .field { display: grid; gap: .35rem; margin-bottom: 1rem; }
+  .field label { font-weight: 500; }
+  input[type="text"], input[type="email"], input[type="search"], textarea {
+    font: inherit; padding: .65rem .8rem; border: 2px solid var(--field); background: var(--bg); color: var(--fg); border-radius: 6px; width: 100%; }
+  textarea { min-height: 9rem; resize: vertical; }
+  .search { width: min(22rem, 100%); }
+  .filters { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .chip { font: inherit; border: 2px solid var(--line); background: transparent; color: var(--fg); padding: .25rem .85rem; border-radius: 6px; cursor: pointer; }
+  .chip:hover { border-color: var(--fg); }
+  .chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .count { color: var(--muted); margin: .5rem 0 0; font-size: .95rem; }
+  .empty { padding: 1.5rem 0; border-top: 1px solid var(--line); }
+
+  /* Articles */
+  .prose { max-width: 66ch; }
+  .prose h2 { margin-top: 2.2rem; }
+  .prose h3 { margin-top: 1.6rem; }
+  .prose pre { background: var(--surface); padding: 1rem; border-radius: 6px; overflow-x: auto; font-family: var(--mono); font-size: 1rem; line-height: 1.5; margin: 0 0 1.25em; }
+  .prose code { font-family: var(--mono); background: var(--surface); padding: .1em .35em; border-radius: 4px; font-size: .95em; }
+  .prose pre code { background: none; padding: 0; }
+  .prose li { margin-bottom: .5rem; }
+  .table-wrap { overflow-x: auto; margin: 0 0 1.5em; }
+  .table-wrap table { border-collapse: collapse; width: 100%; min-width: 34rem; font-size: .98rem; line-height: 1.45; }
+  .table-wrap th { text-align: left; border-bottom: 2px solid var(--fg); padding: .55rem .75rem; }
+  .table-wrap td { border-bottom: 1px solid var(--line); padding: .6rem .75rem; vertical-align: top; }
+  .back { display: inline-block; margin: 2rem 0 1rem; }
+  .article-head { max-width: 66ch; margin-bottom: 2rem; }
+  .article-head h1 { font-size: clamp(1.9rem, 1.2rem + 2.6vw, 3rem); }
+  .pager { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--line); margin-top: 3rem; padding-top: 1.5rem; max-width: 66ch; }
+  .pager a { max-width: 20rem; }
+  .pager small { display: block; color: var(--muted); }
+
+  /* Skills */
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 2rem; }
+  .cols h3 { margin-bottom: .1rem; }
+  .cols .sub { color: var(--muted); margin-bottom: .75rem; font-size: .95rem; }
+  .plain { list-style: none; padding: 0; margin: 0; }
+  .plain li { padding: .55rem 0; border-top: 1px solid var(--line); }
+  .roadmap { list-style: none; margin: 1rem 0 0; padding: 0 0 0 1.75rem; border-left: 2px solid var(--line); max-width: 44rem; }
+  .roadmap li { position: relative; padding: 0 0 2rem; }
+  .roadmap li::before { content: ""; position: absolute; left: calc(-1.75rem - 9px); top: .4rem; width: 16px; height: 16px; border-radius: 50%; border: 3px solid var(--link); background: var(--bg); }
+  .roadmap li.active::before { background: var(--accent); }
+  .roadmap h3 { margin-bottom: .1rem; }
+  .roadmap .st { font-weight: 500; color: var(--link); margin-bottom: .4rem; }
+
+  /* Contact */
+  .contact-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: clamp(2rem, 5vw, 4rem); }
+  @media (max-width: 800px) { .contact-grid { grid-template-columns: 1fr; } }
+  .note { color: var(--muted); font-size: .95rem; }
+  .sent { margin-top: 1rem; padding: .9rem 1rem; border-left: 4px solid var(--link); background: var(--surface); }
+
+  /* Footer */
+  .site-footer { border-top: 1px solid var(--line); margin-top: 3rem; }
+  .foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; padding-block: 1.5rem; color: var(--muted); font-size: .95rem; }
+  .foot p { margin: 0; }
+  .foot-links { list-style: none; display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin: 0; padding: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header" id="siteHeader">
+  <div class="bar">
+    <a class="brand" href="#/" aria-label="fixerctrl, home">fixerctrl<span class="cur" aria-hidden="true"></span></a>
+    <nav class="main-nav" id="mainNav" aria-label="Main">
+      <ul>
+        <li><a href="#/" data-nav="home">Home</a></li>
+        <li><a href="#/about" data-nav="about">About</a></li>
+        <li><a href="#/projects" data-nav="projects">Projects</a></li>
+        <li><a href="#/skills" data-nav="skills">Skills</a></li>
+        <li><a href="#/blog" data-nav="blog">Blog</a></li>
+        <li><a href="#/contact" data-nav="contact">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="tools">
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch theme">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mainNav">
+        <svg class="bars" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="x" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+  <noscript><div class="wrap"><p>This site needs JavaScript to show its pages.</p></div></noscript>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap foot">
+    <p>&copy; <span id="yr"></span> FixerCtrl</p>
+    <ul class="foot-links" id="footLinks"></ul>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ----- Edit these to personalise the site ----- */
+  var CONFIG = {
+    handle: 'fixerctrl',
+    email: 'your-email@example.com',
+    github: 'https://github.com/fixerctrl',
+    linkedin: ''            // add your LinkedIn URL to show it on the Contact page and footer
+  };
+
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var main = $('#main');
+
+  /* ----- Blog posts (newest first). Add a new object to publish a post. ----- */
+  var posts = [
+    {
+      slug: 'osi-model-attack-map',
+      title: 'The OSI model is also a map of attacks',
+      date: '2026-09-18',
+      tags: ['Networking', 'Security'],
+      summary: 'Each network layer has its own typical attacks and its own defences. This is the map I use while studying for Network+.',
+      body: '' +
+        '<p>When I started the networking chapters for Network+, the OSI model felt like a list to memorise. It clicked when I paired each layer with the way it gets attacked and the control that stops that attack. Now the seven layers double as a checklist for where to look when something goes wrong.</p>' +
+        '<div class="table-wrap"><table>' +
+        '<thead><tr><th>Layer</th><th>What it does</th><th>Typical attack</th><th>A defence that fits</th></tr></thead><tbody>' +
+        '<tr><td>7 Application</td><td>Where apps and users meet the network</td><td>SQL injection, cross-site scripting</td><td>Input validation, patching, a web application firewall</td></tr>' +
+        '<tr><td>6 Presentation</td><td>Formats and encrypts data</td><td>SSL stripping, downgrade attacks</td><td>Modern TLS, HSTS</td></tr>' +
+        '<tr><td>5 Session</td><td>Opens, maintains and closes conversations</td><td>Session hijacking</td><td>Unpredictable session tokens, short timeouts</td></tr>' +
+        '<tr><td>4 Transport</td><td>Delivers data between hosts</td><td>SYN flood, port scanning</td><td>SYN cookies, stateful firewalls</td></tr>' +
+        '<tr><td>3 Network</td><td>Routes packets between networks</td><td>IP spoofing, ICMP floods</td><td>Ingress filtering, access control lists</td></tr>' +
+        '<tr><td>2 Data link</td><td>Moves frames on the local network</td><td>ARP spoofing, MAC flooding</td><td>Dynamic ARP inspection, port security</td></tr>' +
+        '<tr><td>1 Physical</td><td>Sends signals over cable or radio</td><td>Wiretapping, rogue devices</td><td>Locked cabinets, disabled unused ports</td></tr>' +
+        '</tbody></table></div>' +
+        '<h2>Why the layers matter</h2>' +
+        '<p>A fix at one layer rarely covers another. A firewall tuned for layer 4 will not stop SQL injection, and a well-written web application will not help if someone can plug a rogue switch into an open wall port.</p>' +
+        '<h2>How I use it</h2>' +
+        '<p>When I read about a breach, I ask two questions: which layer did the attacker actually work at, and which layer\'s control failed? Often the answer is not the layer that makes the headlines.</p>' +
+        '<p>A study tip that helped: quiz yourself in both directions. Go from an attack to its layer, then from a layer to the attacks that live there.</p>'
+    },
+    {
+      slug: 'linux-distribution-families',
+      title: 'Why Kali is built on Debian, and why distribution families matter',
+      date: '2026-09-11',
+      tags: ['Linux', 'Security'],
+      summary: 'Linux is a kernel; what you install is a distribution. The family a distribution belongs to decides how you patch it, harden it and audit it.',
+      body: '' +
+        '<p>Linux is technically just a kernel. What you actually install is a distribution: the kernel plus tools, a package manager, default settings and a release policy. Distributions cluster into families, and the family tells you a lot about how a system will behave.</p>' +
+        '<h2>The families I keep meeting</h2>' +
+        '<ul>' +
+        '<li><strong>Debian family</strong> (Debian, Ubuntu, Kali): <code>.deb</code> packages, managed with <code>apt</code>.</li>' +
+        '<li><strong>Red Hat family</strong> (RHEL, Fedora, Rocky Linux, AlmaLinux): <code>.rpm</code> packages, managed with <code>dnf</code>.</li>' +
+        '<li><strong>Others</strong> such as Arch and SUSE, each with their own tools.</li>' +
+        '</ul>' +
+        '<p>Kali Linux is built on Debian, so what you learn about <code>apt</code>, file locations and services on Debian carries straight over to it.</p>' +
+        '<h2>The same job in two dialects</h2>' +
+        '<pre><code># Debian family\nsudo apt update\nsudo apt upgrade\n\n# Red Hat family\nsudo dnf upgrade</code></pre>' +
+        '<h2>Why this matters for security</h2>' +
+        '<p>Patching is the first line of defence, and the tool you patch with depends on the family. Default hardening differs too: Red Hat family systems ship with SELinux enforcing, while Ubuntu leans on AppArmor. Knowing which one you are looking at tells you where to look when a service is blocked, or when an attack has been contained.</p>' +
+        '<h2>Where the certifications fit</h2>' +
+        '<p>RHCSA and RHCE are built around the Red Hat family. CompTIA Linux+ is vendor neutral and touches both. Kali is where a lot of penetration testing happens and Red Hat systems are common in enterprises, so I am learning both dialects.</p>'
+    },
+    {
+      slug: 'seven-jobs-of-an-os',
+      title: 'Seven jobs of an operating system, and how each one gets attacked',
+      date: '2026-09-04',
+      tags: ['Linux', 'Security'],
+      summary: 'Every core function of an operating system doubles as an attack surface. Here is the list I walk through when I look at a Linux machine.',
+      body: '' +
+        '<p>Textbooks slice the responsibilities of an operating system in slightly different ways. This is the version I use, because each job maps neatly onto something an attacker wants.</p>' +
+        '<ul>' +
+        '<li><strong>Process management</strong> decides which programs run and with what privileges. Attackers look for privilege escalation, for example through misconfigured setuid programs.</li>' +
+        '<li><strong>Memory management</strong> keeps processes out of each other\'s memory. Buffer overflows are what happens when that wall has a hole.</li>' +
+        '<li><strong>The file system</strong> organises data and permissions. Loose permissions and path traversal are the classic problems.</li>' +
+        '<li><strong>Device management</strong> talks to hardware. A malicious USB device is an attack on this layer.</li>' +
+        '<li><strong>Networking</strong> opens sockets and runs services. Exposed ports and unencrypted traffic are the attack surface.</li>' +
+        '<li><strong>Security and access control</strong> covers users, groups and authentication. Weak passwords and over-broad sudo rules live here.</li>' +
+        '<li><strong>The user interface</strong>, mostly the shell on a server. Command injection through unsanitised input is the main risk.</li>' +
+        '</ul>' +
+        '<h2>Turning the list into a habit</h2>' +
+        '<p>For any Linux system I walk the list and ask what I would check at each step. On Linux the answers mostly start at the command line, which is why the shell and filesystem chapters come before the desktop ones in my study plan.</p>' +
+        '<pre><code>ps aux                          # what is running, and as whom\nls -l /etc/passwd /etc/shadow   # who can read the sensitive files\nss -tulpn                       # which ports are listening\nfind / -perm -4000 2>/dev/null  # setuid programs to review</code></pre>' +
+        '<p>Only run checks like these on machines you own or have permission to audit.</p>'
+    },
+    {
+      slug: 'how-i-study',
+      title: 'How I study: analogy, attack, practice',
+      date: '2026-08-28',
+      tags: ['Study'],
+      summary: 'The three-step pattern behind my Network+ and Linux notes, and why I order chapters by career relevance instead of page number.',
+      body: '' +
+        '<p>My goal is to be useful in a real security role, not only to pass an exam. So every set of notes I write follows the same three steps.</p>' +
+        '<h2>Start with an analogy</h2>' +
+        '<p>Abstract ideas stick when they are attached to something familiar. A firewall becomes a building\'s front desk; a routing table becomes a set of road signs. If I cannot explain a concept with an analogy, I do not understand it well enough yet.</p>' +
+        '<h2>Attach a real attack or defence</h2>' +
+        '<p>Next I connect the concept to something that has actually gone wrong, or to the control that prevents it. This is what turns a definition into something I can use when reading about a breach or looking at a system.</p>' +
+        '<h2>Finish with practice</h2>' +
+        '<p>Each part ends with practice questions, including a few scenario-style ones where there is no menu of answers to pick from, and a hands-on lab where the topic allows it. Reading alone gives me a false sense of progress; questions and terminals do not.</p>' +
+        '<h2>Order by relevance, not page number</h2>' +
+        '<p>A book\'s chapter order is not my career\'s order. Command-line and filesystem chapters come first for me, and the desktop chapters can wait. Notes are released one part at a time so I do not skim ahead.</p>'
+    }
+  ];
+
+  /* ----- Helpers ----- */
+  function fmtDate(d) {
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  function strip(html) { return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); }
+  function mins(html) { return Math.max(1, Math.ceil(strip(html).split(' ').length / 200)); }
+  function tagList(tags) { return '<ul class="tags" aria-label="Tags">' + tags.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>'; }
+  function postRow(p, level) {
+    level = level || 'h3';
+    return '<article class="post-row">' +
+      '<' + level + '><a href="#/blog/' + p.slug + '">' + p.title + '</a></' + level + '>' +
+      '<p class="meta"><time datetime="' + p.date + '">' + fmtDate(p.date) + '</time><span>' + mins(p.body) + ' min read</span></p>' +
+      '<p>' + p.summary + '</p>' + tagList(p.tags) + '</article>';
+  }
+
+  /* ----- Pages ----- */
+  var NEURO_URL = 'https://fixerctrl.github.io/Neuroband-Intelligence-Hub/';
+
+  function projectNeuro(level) {
+    level = level || 'h2';
+    return '<article class="project">' +
+      '<div class="project-head"><' + level + '>Neuroband Intelligence Hub</' + level + '><p class="status live">Live</p></div>' +
+      '<p>A full-stack web app I built with my group, Insight Consulting, for a competitive intelligence assignment. It keeps the whole research effort in one place: an intelligence taxonomy, an editable collection plan, a source repository with file uploads and filters, team task tracking, and an append-only activity log.</p>' +
+      '<dl class="facts">' +
+      '<div><dt>Stack</dt><dd>HTML, CSS and vanilla JavaScript, Supabase (PostgreSQL, Auth, Storage), GitHub Pages</dd></div>' +
+      '<div><dt>Role</dt><dd>Design and development</dd></div>' +
+      '</dl>' +
+      '<div class="actions"><a class="btn" href="' + NEURO_URL + '" target="_blank" rel="noopener">Open the live app</a></div>' +
+      '</article>';
+  }
+
+  function home() {
+    return {
+      title: 'Home',
+      html:
+        '<section class="hero">' +
+          '<div>' +
+            '<h1>I build software and I\'m learning to secure it.</h1>' +
+            '<p class="lead">I\'m a final-year IT student heading into cybersecurity and development. This site holds my projects, my study notes and what I\'m learning along the way.</p>' +
+            '<div class="actions"><a class="btn" href="#/projects">See my projects</a><a class="btn ghost" href="#/blog">Read the blog</a></div>' +
+          '</div>' +
+          '<section class="term" aria-label="Interactive terminal">' +
+            '<div class="term-top">visitor@fixerctrl: ~</div>' +
+            '<div class="term-body" id="termBody">' +
+              '<div id="termLog" role="log" aria-live="polite"></div>' +
+              '<form id="termForm" class="term-row" autocomplete="off"><span class="pr" aria-hidden="true">$</span><input id="termInput" type="text" aria-label="Terminal command" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go"></form>' +
+            '</div>' +
+            '<div class="chips" role="group" aria-label="Try a command">' +
+              '<button type="button" data-cmd="help">help</button>' +
+              '<button type="button" data-cmd="whoami">whoami</button>' +
+              '<button type="button" data-cmd="cat now">cat now</button>' +
+              '<button type="button" data-cmd="open projects">open projects</button>' +
+              '<button type="button" data-cmd="open blog">open blog</button>' +
+            '</div>' +
+          '</section>' +
+        '</section>' +
+
+        '<section class="block" aria-labelledby="now-h">' +
+          '<h2 id="now-h">What I\'m doing now</h2>' +
+          '<dl class="now">' +
+            '<div><dt>Studying</dt><dd>CompTIA Network+, chapter by chapter, with a lab and practice questions for each part.</dd></div>' +
+            '<div><dt>Reading</dt><dd>The Linux Bible, 10th edition, on the way to a Linux certification.</dd></div>' +
+            '<div><dt>Building</dt><dd>Neuroband Intelligence Hub, a competitive intelligence web app that doubles as a portfolio piece.</dd></div>' +
+          '</dl>' +
+        '</section>' +
+
+        '<section class="block" aria-labelledby="feat-h">' +
+          '<div class="block-head"><h2 id="feat-h">Featured project</h2><a href="#/projects">All projects</a></div>' +
+          projectNeuro('h3') +
+        '</section>' +
+
+        '<section class="block" aria-labelledby="latest-h">' +
+          '<div class="block-head"><h2 id="latest-h">Latest from the blog</h2><a href="#/blog">All posts</a></div>' +
+          posts.slice(0, 3).map(function (p) { return postRow(p, 'h3'); }).join('') +
+        '</section>',
+      after: initTerminal
+    };
+  }
+
+  function about() {
+    return {
+      title: 'About',
+      html:
+        '<div class="page-head"><h1>About me</h1><p class="lead">I\'m a final-year IT student who wants a career in cybersecurity and development.</p></div>' +
+        '<div class="prose">' +
+          '<p>I like understanding how systems work well enough to build them and to see where they can fail. That is why I study networking and Linux alongside web development, and why security ends up shaping the decisions I make in my own projects.</p>' +
+          '<p>My aim is real-world competence, not just passing exams. Certifications give me structure, but I judge my progress by whether I can explain a concept, spot how it gets attacked, and use it at a terminal.</p>' +
+          '<h2>How I learn</h2>' +
+          '<h3>Analogy first</h3><p>If I can compare an idea to something familiar, I can hold on to it. Every set of notes I write starts there.</p>' +
+          '<h3>Then the attack</h3><p>I attach each concept to a real attack or a real defence, so it is more than a definition.</p>' +
+          '<h3>Then practice</h3><p>Practice questions and hands-on labs close every part. I have written more about this in <a href="#/blog/how-i-study">How I study</a>.</p>' +
+          '<h2>Where I\'m headed</h2>' +
+          '<ul>' +
+            '<li><strong>Now:</strong> finish CompTIA Network+ and keep working through the Linux Bible.</li>' +
+            '<li><strong>Next:</strong> a Linux certification, either RHCSA/RHCE or CompTIA Linux+.</li>' +
+            '<li><strong>Longer term:</strong> a career in cybersecurity, with penetration testing as an area that draws me, while continuing to build software.</li>' +
+          '</ul>' +
+          '<h2>Beyond the code</h2>' +
+          '<p>I also work on Mini Circles, a multimedia platform that shares knowledge through video, social media and a website.</p>' +
+          '<div class="actions"><a class="btn" href="#/projects">See what I\'ve built</a><a class="btn ghost" href="#/contact">Get in touch</a></div>' +
+        '</div>'
+    };
+  }
+
+  function projects() {
+    return {
+      title: 'Projects',
+      html:
+        '<div class="page-head"><h1>Projects</h1><p class="lead">Things I\'ve built and the study work behind them.</p></div>' +
+        projectNeuro('h2') +
+        '<article class="project">' +
+          '<div class="project-head"><h2>Mini Circles</h2><p class="status">Ongoing</p></div>' +
+          '<p>A multimedia platform I work on that spans social media and a website, with video as the main way of sharing knowledge. I have also worked on its logo and branding, including a player-style mark for the video focus.</p>' +
+          '<dl class="facts"><div><dt>Focus</dt><dd>Video-first knowledge sharing, branding, web presence</dd></div></dl>' +
+        '</article>' +
+        '<article class="project">' +
+          '<div class="project-head"><h2>War Room study notes</h2><p class="status">In progress</p></div>' +
+          '<p>A chapter-by-chapter series of study notes for CompTIA Network+ and the Linux Bible. Each part explains a concept with an analogy, connects it to a real attack or defence, and ends with practice questions and, where it fits, a hands-on lab.</p>' +
+          '<dl class="facts"><div><dt>Format</dt><dd>Markdown notes, released one part at a time</dd></div><div><dt>Topics</dt><dd>Networking, Linux, security</dd></div></dl>' +
+          '<div class="actions"><a class="btn ghost" href="#/blog">Read related posts</a></div>' +
+        '</article>'
+    };
+  }
+
+  function skills() {
+    return {
+      title: 'Skills',
+      html:
+        '<div class="page-head"><h1>Skills and study path</h1><p class="lead">What I use today, what I\'m learning, and the certifications I\'m working toward.</p></div>' +
+        '<div class="cols">' +
+          '<div><h3>Building things</h3><p class="sub">Using in projects</p><ul class="plain">' +
+            '<li>HTML, CSS and JavaScript</li><li>PostgreSQL with Supabase, including auth and file storage</li><li>Git and GitHub</li><li>Deploying with GitHub Pages</li></ul></div>' +
+          '<div><h3>Systems and networking</h3><p class="sub">Studying now</p><ul class="plain">' +
+            '<li>Linux command line and shell</li><li>Network topologies, protocols and frame types</li><li>Linux distribution families and package managers</li></ul></div>' +
+          '<div><h3>Security</h3><p class="sub">Studying now</p><ul class="plain">' +
+            '<li>Linking concepts to real attacks and defences</li><li>Penetration testing basics</li><li>Access control and audit logging in my own projects</li></ul></div>' +
+        '</div>' +
+        '<section class="block" style="margin-top:3rem" aria-labelledby="road-h">' +
+          '<h2 id="road-h">Study path</h2>' +
+          '<ol class="roadmap">' +
+            '<li class="active"><h3>CompTIA Network+</h3><p class="st">In progress</p><p>Working through the exam objectives chapter by chapter, with security connected to every major concept.</p></li>' +
+            '<li class="active"><h3>Linux fundamentals</h3><p class="st">In progress</p><p>Reading the Linux Bible with hands-on terminal practice, starting with the shell and filesystem.</p></li>' +
+            '<li><h3>A Linux certification</h3><p class="st">Planned</p><p>Choosing between Red Hat\'s RHCSA/RHCE and CompTIA Linux+.</p></li>' +
+          '</ol>' +
+        '</section>'
+    };
+  }
+
+  var blogState = { q: '', tag: 'All' };
+
+  function blog() {
+    var tags = ['All'];
+    posts.forEach(function (p) { p.tags.forEach(function (t) { if (tags.indexOf(t) < 0) tags.push(t); }); });
+    return {
+      title: 'Blog',
+      html:
+        '<div class="page-head"><h1>Blog</h1><p class="lead">Notes from what I\'m studying and building.</p></div>' +
+        '<div class="controls">' +
+          '<div class="field search" style="margin:0"><label for="q">Search posts</label><input id="q" type="search" value="' + blogState.q.replace(/"/g, '&quot;') + '"></div>' +
+          '<div class="filters" role="group" aria-label="Filter by topic">' +
+            tags.map(function (t) { return '<button class="chip" type="button" data-tag="' + t + '" aria-pressed="' + (t === blogState.tag) + '">' + t + '</button>'; }).join('') +
+          '</div>' +
+        '</div>' +
+        '<p class="count" id="postCount" aria-live="polite"></p>' +
+        '<div id="postList"></div>',
+      after: function () {
+        function filtered() {
+          var q = blogState.q.toLowerCase();
+          return posts.filter(function (p) {
+            var okTag = blogState.tag === 'All' || p.tags.indexOf(blogState.tag) >= 0;
+            var okQ = !q || (p.title + ' ' + p.summary + ' ' + strip(p.body)).toLowerCase().indexOf(q) >= 0;
+            return okTag && okQ;
+          });
+        }
+        function paint() {
+          var list = filtered();
+          $('#postList').innerHTML = list.length
+            ? list.map(function (p) { return postRow(p, 'h2'); }).join('')
+            : '<p class="empty">No posts match that search. <button class="linkbtn" type="button" id="clearFilters">Clear the search and filter</button></p>';
+          $('#postCount').textContent = list.length + (list.length === 1 ? ' post' : ' posts');
+          var c = $('#clearFilters');
+          if (c) c.addEventListener('click', function () {
+            blogState = { q: '', tag: 'All' };
+            $('#q').value = '';
+            $$('.chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.tag === 'All')); });
+            paint();
+          });
+        }
+        $('#q').addEventListener('input', function (e) { blogState.q = e.target.value; paint(); });
+        $$('.chip').forEach(function (b) {
+          b.addEventListener('click', function () {
+            blogState.tag = b.dataset.tag;
+            $$('.chip').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+            paint();
+          });
+        });
+        paint();
+      }
+    };
+  }
+
+  function post(slug) {
+    var i = -1;
+    posts.forEach(function (p, n) { if (p.slug === slug) i = n; });
+    if (i < 0) return notFound();
+    var p = posts[i], newer = posts[i - 1], older = posts[i + 1];
+    return {
+      title: p.title,
+      html:
+        '<a class="back" href="#/blog">All posts</a>' +
+        '<header class="article-head"><h1>' + p.title + '</h1>' +
+          '<p class="meta"><time datetime="' + p.date + '">' + fmtDate(p.date) + '</time><span>' + mins(p.body) + ' min read</span></p>' +
+          tagList(p.tags) + '</header>' +
+        '<article class="prose">' + p.body + '</article>' +
+        '<nav class="pager" aria-label="More posts">' +
+          (older ? '<a href="#/blog/' + older.slug + '"><small>Older post</small>' + older.title + '</a>' : '<span></span>') +
+          (newer ? '<a href="#/blog/' + newer.slug + '" style="text-align:right"><small>Newer post</small>' + newer.title + '</a>' : '') +
+        '</nav>'
+    };
+  }
+
+  function contact() {
+    var links = '<li><a href="' + CONFIG.github + '" target="_blank" rel="noopener">GitHub: ' + CONFIG.handle + '</a></li>';
+    if (CONFIG.linkedin) links += '<li><a href="' + CONFIG.linkedin + '" target="_blank" rel="noopener">LinkedIn</a></li>';
+    links += '<li><a href="mailto:' + CONFIG.email + '">' + CONFIG.email + '</a></li>';
+    return {
+      title: 'Contact',
+      html:
+        '<div class="page-head"><h1>Get in touch</h1><p class="lead">I\'m interested in internships, junior roles and collaboration on security or web projects.</p></div>' +
+        '<div class="contact-grid">' +
+          '<div><h2>Find me online</h2><ul class="plain">' + links + '</ul></div>' +
+          '<div><h2>Send a message</h2>' +
+            '<form id="contactForm">' +
+              '<div class="field"><label for="cName">Your name</label><input id="cName" type="text" autocomplete="name" required></div>' +
+              '<div class="field"><label for="cEmail">Your email</label><input id="cEmail" type="email" autocomplete="email" required></div>' +
+              '<div class="field"><label for="cMsg">Message</label><textarea id="cMsg" required></textarea></div>' +
+              '<button class="btn" type="submit">Open in my email app</button>' +
+              '<p class="note" style="margin-top:1rem">This opens your email app with the message filled in. Nothing is sent from this page.</p>' +
+              '<div id="sent" class="sent" hidden></div>' +
+            '</form>' +
+          '</div>' +
+        '</div>',
+      after: function () {
+        $('#contactForm').addEventListener('submit', function (e) {
+          e.preventDefault();
+          var name = $('#cName').value.trim(), from = $('#cEmail').value.trim(), msg = $('#cMsg').value.trim();
+          var subject = 'Message from ' + name + ' via your site';
+          var body = msg + '\n\n' + name + '\n' + from;
+          var url = 'mailto:' + CONFIG.email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+          var a = document.createElement('a'); a.href = url; document.body.appendChild(a); a.click(); a.remove();
+          var s = $('#sent');
+          s.hidden = false;
+          s.textContent = 'If your email app did not open, write to ' + CONFIG.email + ' directly.';
+        });
+      }
+    };
+  }
+
+  function notFound() {
+    return {
+      title: 'Page not found',
+      html: '<div class="page-head"><h1>Page not found</h1><p class="lead">That page does not exist or has moved.</p><div class="actions"><a class="btn" href="#/">Go home</a><a class="btn ghost" href="#/blog">Browse the blog</a></div></div>'
+    };
+  }
+
+  /* ----- Terminal ----- */
+  var introPlayed = false;
+  var PAGES = ['home', 'about', 'projects', 'skills', 'blog', 'contact'];
+  var WHOAMI = [
+    'fixerctrl',
+    'role      final-year IT student',
+    'focus     cybersecurity and development',
+    'studying  CompTIA Network+, Linux',
+    'building  Neuroband Intelligence Hub, Mini Circles'
+  ];
+  var NOW = [
+    'studying   CompTIA Network+',
+    'reading    Linux Bible, 10th edition',
+    'building   Neuroband Intelligence Hub',
+    'next up    a Linux certification (RHCSA/RHCE or Linux+)'
+  ];
+  var HELP = [
+    'Commands:',
+    '  whoami        who I am',
+    '  ls            list the pages',
+    '  cat now       what I am working on',
+    '  open <page>   go to a page',
+    '  clear         clear the screen'
+  ];
+
+  function initTerminal() {
+    var body = $('#termBody'), log = $('#termLog'), form = $('#termForm'), input = $('#termInput');
+    var history = [], hIndex = 0, busy = false;
+
+    function line(text, cls) {
+      var p = document.createElement('p');
+      p.className = 'tl' + (cls ? ' ' + cls : '');
+      p.textContent = text;
+      log.appendChild(p);
+      return p;
+    }
+    function out(lines, cls) { lines.forEach(function (t) { line(t, cls); }); body.scrollTop = body.scrollHeight; }
+    function echo(cmd) {
+      var p = document.createElement('p');
+      p.className = 'tl';
+      var pr = document.createElement('span'); pr.className = 'pr'; pr.textContent = '$ ';
+      p.appendChild(pr); p.appendChild(document.createTextNode(cmd));
+      log.appendChild(p);
+      return p;
+    }
+
+    function run(raw) {
+      var cmd = raw.trim();
+      if (!cmd) return;
+      echo(cmd);
+      var parts = cmd.split(/\s+/), name = parts[0].toLowerCase(), arg = (parts[1] || '').toLowerCase();
+      switch (name) {
+        case 'help': out(HELP); break;
+        case 'whoami': out(WHOAMI); break;
+        case 'ls': out([PAGES.join('  ')]); break;
+        case 'cat':
+          if (!arg) out(['cat: missing file. Try: cat now']);
+          else if (arg === 'now') out(NOW);
+          else out(['cat: ' + parts[1] + ': No such file or directory']);
+          break;
+        case 'open':
+        case 'cd':
+          if (PAGES.indexOf(arg) >= 0) {
+            out(['opening ' + arg + '...'], 'dim');
+            location.hash = arg === 'home' ? '#/' : '#/' + arg;
+          } else out([name + ': ' + (parts[1] || '') + ': no such page. Try ls']);
+          break;
+        case 'clear': log.innerHTML = ''; break;
+        case 'sudo': out(['visitor is not in the sudoers file. This incident will be reported.']); break;
+        default: out([parts[0] + ': command not found. Type help for a list.']);
+      }
+      body.scrollTop = body.scrollHeight;
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (busy) return;
+      var v = input.value;
+      if (v.trim()) { history.push(v); hIndex = history.length; }
+      input.value = '';
+      run(v);
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowUp' && history.length) { e.preventDefault(); hIndex = Math.max(0, hIndex - 1); input.value = history[hIndex]; }
+      if (e.key === 'ArrowDown' && history.length) { e.preventDefault(); hIndex = Math.min(history.length, hIndex + 1); input.value = history[hIndex] || ''; }
+    });
+    $$('[data-cmd]').forEach(function (b) {
+      b.addEventListener('click', function () { if (!busy) run(b.dataset.cmd); });
+    });
+
+    line('fixerctrl terminal. Type help, or tap a command below.', 'dim');
+
+    if (introPlayed || reduceMotion) {
+      echo('whoami'); out(WHOAMI); introPlayed = true;
+      return;
+    }
+    // One orchestrated moment: type the first command, then print the result.
+    busy = true;
+    var p = echo('');
+    var span = document.createTextNode('');
+    p.appendChild(span);
+    var text = 'whoami', n = 0;
+    setTimeout(function tick() {
+      if (!document.body.contains(p)) { busy = false; return; }
+      n++;
+      span.nodeValue = text.slice(0, n);
+      if (n < text.length) setTimeout(tick, 85);
+      else setTimeout(function () { out(WHOAMI); introPlayed = true; busy = false; }, 250);
+    }, 500);
+  }
+
+  /* ----- Router ----- */
+  var first = true;
+  function render() {
+    var parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+    var page = parts[0] || 'home', view;
+    if (page === 'home') view = home();
+    else if (page === 'about') view = about();
+    else if (page === 'projects') view = projects();
+    else if (page === 'skills') view = skills();
+    else if (page === 'blog') view = parts[1] ? post(parts[1]) : blog();
+    else if (page === 'contact') view = contact();
+    else view = notFound();
+
+    main.innerHTML = '<div class="wrap">' + view.html + '</div>';
+    document.title = (view.title === 'Home' ? 'FixerCtrl | Cybersecurity and development' : view.title + ' | FixerCtrl');
+    $$('.main-nav a').forEach(function (a) {
+      if (a.dataset.nav === page) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    $('#siteHeader').classList.remove('open');
+    $('#menuBtn').setAttribute('aria-expanded', 'false');
+    $('#menuBtn').setAttribute('aria-label', 'Open menu');
+    window.scrollTo(0, 0);
+    if (!first) main.focus({ preventScroll: true });
+    first = false;
+    if (view.after) view.after();
+  }
+
+  /* ----- Chrome: theme, menu, footer ----- */
+  function currentTheme() {
+    return document.documentElement.getAttribute('data-theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+  function syncThemeLabel() {
+    $('#themeBtn').setAttribute('aria-label', currentTheme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  }
+  $('#themeBtn').addEventListener('click', function () {
+    var next = currentTheme() === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('fixerctrl-theme', next); } catch (e) {}
+    syncThemeLabel();
+  });
+  $('#menuBtn').addEventListener('click', function () {
+    var h = $('#siteHeader'), open = !h.classList.contains('open');
+    h.classList.toggle('open', open);
+    this.setAttribute('aria-expanded', String(open));
+    this.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && $('#siteHeader').classList.contains('open')) { $('#menuBtn').click(); $('#menuBtn').focus(); }
+  });
+
+  $('#yr').textContent = new Date().getFullYear();
+  var foot = '<li><a href="' + CONFIG.github + '" target="_blank" rel="noopener">GitHub</a></li>';
+  if (CONFIG.linkedin) foot += '<li><a href="' + CONFIG.linkedin + '" target="_blank" rel="noopener">LinkedIn</a></li>';
+  foot += '<li><a href="#/blog">Blog</a></li><li><a href="#/contact">Contact</a></li>';
+  $('#footLinks').innerHTML = foot;
+
+  syncThemeLabel();
+  window.addEventListener('hashchange', render);
+  render();
+})();
+</script>
+</body>
+</html>
