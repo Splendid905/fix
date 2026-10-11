@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FixerCtrl | Cybersecurity and development</title>
-<meta name="description" content="FixerCtrl: a young South African township-raised IT student sharing practical cybersecurity, systems and software work.">
+<meta name="description" content="FixerCtrl: a young South African IT student sharing practical cybersecurity, systems and software work.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Permanent+Marker&family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
@@ -44,6 +44,7 @@
   *, *::before, *::after { box-sizing: border-box; }
   body {
     margin: 0;
+    min-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
     min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
     display: flex; flex-direction: column;
     background: var(--bg);
@@ -54,7 +55,7 @@
   body::before {
     content: ""; position: fixed; inset: 0; pointer-events: none;
     background-image: radial-gradient(rgba(242,242,242,0.09) 0.65px, transparent 0.8px), radial-gradient(rgba(242,242,242,0.045) 0.65px, transparent 0.8px);
-    background-position: 0 0, 9px 11px; background-size: 19px 19px; opacity: 0.22; mix-blend-mode: screen;
+    background-position: 0 0, 9px 11px; background-size: 19px 19px; opacity: 0.14; mix-blend-mode: screen;
   }
   body::after {
     content: ""; position: fixed; inset: 0; pointer-events: none;
@@ -63,13 +64,13 @@
       radial-gradient(circle at 12% 10%, rgba(242,242,242,0.08) 0 1.4px, transparent 1.6px 100%),
       radial-gradient(circle at 82% 18%, rgba(242,242,242,0.08) 0 1.2px, transparent 1.4px 100%),
       radial-gradient(circle at 24% 76%, rgba(242,242,242,0.07) 0 1.3px, transparent 1.5px 100%);
-    background-size: 100% 100%, 14rem 14rem, 14rem 14rem, 14rem 14rem; opacity: 0.18;
+    background-size: 100% 100%, 14rem 14rem, 14rem 14rem, 14rem 14rem; opacity: 0.12;
   }
-  main { flex: 1; }
+  main { flex: 1 0 auto; }
   main:focus { outline: none; }
   .wrap { max-width: var(--wide); margin: 0 auto; padding-inline: var(--gutter); }
 
-  h1, h2, h3 { line-height: .96; letter-spacing: 0.02em; margin: 0 0 .7em; font-family: var(--heading); text-transform: uppercase; }
+  h1, h2, h3 { line-height: 1; letter-spacing: 0.02em; margin: 0 0 .7em; font-family: var(--heading); text-transform: uppercase; }
   h1 { font-size: clamp(2.7rem, 2rem + 3.6vw, 6rem); }
   h2 { font-size: clamp(1.7rem, 1.3rem + 1.2vw, 2.8rem); }
   h3 { font-size: clamp(1.2rem, 0.9rem + 0.8vw, 1.7rem); }
@@ -79,6 +80,15 @@
   code, pre, .mono, .tag, .meta, .status, .episode-meta, .label { font-family: var(--mono); }
   :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
   ul, ol { padding-left: 1.25rem; }
+  #readingProgress { position: fixed; inset: env(safe-area-inset-top, 0px) 0 auto; z-index: 30; display: block; width: 100%; height: 3px; border: 0; appearance: none; background: transparent; color: var(--accent); pointer-events: none; }
+  #readingProgress::-webkit-progress-bar { background: transparent; }
+  #readingProgress::-webkit-progress-value { background: var(--accent); }
+  #readingProgress::-moz-progress-bar { background: var(--accent); }
+  .reveal { opacity: 0; transform: translateY(1rem); transition: opacity .45s ease, transform .45s ease; }
+  .reveal.is-visible { opacity: 1; transform: none; }
+  .media-grid > .feature-card:nth-child(2).reveal { transition-delay: .08s; }
+  .media-grid > .feature-card:nth-child(3).reveal { transition-delay: .16s; }
+  @keyframes hero-copy-arrive { from { opacity: 0; transform: translateY(1rem); } to { opacity: 1; transform: translateY(0); } }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   }
@@ -100,7 +110,7 @@
   .main-nav a[aria-current="page"] { background: rgba(0, 180, 255, 0.12); box-shadow: inset 0 0 0 1px rgba(0, 180, 255, 0.28); text-decoration: none; }
   .tools { display: flex; gap: .25rem; }
   .icon-btn { width: 2.5rem; height: 2.5rem; display: inline-grid; place-items: center; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 2px; cursor: pointer; }
-  .icon-btn:hover { background: rgba(0, 180, 255, 0.08); border-color: var(--accent); }
+  .icon-btn:hover { border-color: var(--accent); }
   .menu-btn { display: none; }
   .menu-btn .x { display: none; }
   .site-header.open .menu-btn .bars { display: none; }
@@ -116,10 +126,12 @@
 
   /* Buttons */
     .btn { display: inline-block; font: inherit; font-weight: 700; padding: .8rem 1.3rem; border-radius: 2px; text-decoration: none; cursor: pointer;
-      border: 1px solid var(--btn-border); background: var(--accent); color: #0A0A0A; box-shadow: 3px 3px 0 rgba(242, 242, 242, 0.22); }
-    .btn:hover { filter: brightness(1.08); transform: translateY(-1px); text-decoration: none; }
+      border: 1px solid var(--btn-border); background: var(--accent); color: #0A0A0A; box-shadow: 3px 3px 0 rgba(242, 242, 242, 0.22); transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease; }
+    .btn:hover { border-color: var(--accent); text-decoration: none; }
+    .btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(242, 242, 242, 0.22); }
     .btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); box-shadow: none; }
-    .btn.ghost:hover { background: rgba(0, 180, 255, 0.06); }
+    .btn.ghost:hover { border-color: var(--accent); }
+    .btn.ghost:active { box-shadow: none; }
   .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
   .linkbtn { font: inherit; background: none; border: 0; padding: 0; color: var(--link); text-decoration: underline; cursor: pointer; }
 
@@ -144,28 +156,26 @@
     width: min(44%, 48rem);
     margin: 0 3% 0 auto;
     padding: clamp(3rem, 6vw, 5.5rem) clamp(1rem, 2vw, 2rem);
+    animation: hero-copy-arrive .65s .12s ease-out both;
   }
   .hero-copy h1 { font-size: clamp(2.4rem, 4.3vw, 5rem); }
   .hero-copy .lead { color: #D8D8D8; }
-  .hero-copy .btn.ghost, .hero-copy .social-pill, .hero .floating-badge { color: #F2F2F2; }
+  .hero-copy .social-icon { color: #F2F2F2; }
   .eyebrow { display: inline-flex; align-items: center; gap: .5rem; padding: .35rem .7rem; margin: 0 0 1rem; border: 1px solid rgba(0, 180, 255, 0.48); background: rgba(0, 180, 255, 0.06); border-radius: 2px; color: var(--accent); font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
   .eyebrow::before { content: ""; width: .48rem; height: .48rem; background: var(--accent); }
   .lead { font-size: 1.18rem; color: var(--muted); max-width: 36rem; }
-  .social-strip { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.2rem; }
-  .social-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 2.5rem; padding: .55rem .9rem; border-radius: 2px; border: 1px solid var(--line); background: transparent; color: var(--fg); text-decoration: none; font-weight: 600; }
-  .social-pill:hover { border-color: var(--accent); background: rgba(0, 180, 255, 0.06); text-decoration: none; }
-  .floating-badge {
-    position: absolute; right: clamp(1rem, 3vw, 2rem); bottom: clamp(1rem, 3vw, 2rem); display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-    padding: .6rem .8rem; border-radius: 2px; background: rgba(10, 10, 10, 0.92); border: 1px solid var(--line);
-    color: var(--fg); font-weight: 700; font-size: .9rem; z-index: 2;
-  }
-  .floating-badge span { color: var(--accent); }
+  .social-strip { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.5rem; }
+  .social-icon { width: 3.25rem; height: 3.25rem; display: inline-grid; place-items: center; border: 1px solid var(--line); border-radius: 2px; background: rgba(10, 10, 10, 0.55); color: var(--fg); text-decoration: none; transition: border-color .2s ease, background .2s ease, transform .2s ease; }
+  .social-icon svg { width: 1.4rem; height: 1.4rem; fill: currentColor; }
+  .social-icon:hover { border-color: var(--accent); background: rgba(0, 180, 255, 0.12); color: var(--accent); transform: translateY(-2px); text-decoration: none; }
+  .hero-quote { margin: 1.5rem 0 0; color: var(--fg); font-size: .95rem; font-weight: 700; }
+  .hero-quote p { margin: 0; }
+  .hero-quote cite { display: inline; margin-left: .35rem; color: var(--accent); font-size: .8rem; font-style: normal; }
   @media (max-width: 760px) {
     .hero { min-height: 40rem; }
     .hero::after { background: linear-gradient(90deg, rgba(10,10,10,0) 39%, rgba(10,10,10,.2) 51%, rgba(10,10,10,.84) 68%, #0A0A0A 82%); }
     .hero-copy { width: 50%; margin-right: var(--gutter); padding: 4rem .5rem 5rem; }
     .hero-copy h1 { font-size: clamp(2rem, 6vw, 3.6rem); }
-    .floating-badge { left: var(--gutter); right: auto; bottom: .75rem; }
   }
   @media (max-width: 540px) {
     .hero { min-height: 44rem; align-items: flex-end; padding-bottom: 2rem; }
@@ -173,18 +183,17 @@
     .hero-figure { bottom: auto; height: auto; aspect-ratio: 1584 / 672; }
     .hero-banner-art { object-fit: contain; }
     .hero-copy { width: 100%; margin: 0; padding: 2rem var(--gutter) 3rem; }
-    .hero-copy h1, .hero-copy .lead, .hero-copy .eyebrow, .hero-copy .actions, .hero-copy .social-strip { position: relative; z-index: 2; }
-    .floating-badge { display: none; }
+    .hero-copy h1, .hero-copy .lead, .hero-copy .eyebrow, .hero-copy .social-strip { position: relative; z-index: 2; }
   }
   .podcast-highlight .editorial-art { display: block; width: 100%; height: 100%; min-height: 20rem; object-fit: cover; object-position: center; }
 
   /* Blocks and lists */
-  .block { padding: clamp(2rem, 5vw, 3.25rem) 0; border-top: 1px solid var(--line); }
+  .block { padding: clamp(2.5rem, 5vw, 4rem) 0; border-top: 1px solid var(--line); }
   .block-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1rem; margin-bottom: 1rem; }
   .block-head h2 { margin: 0; }
   .block-head a { position: relative; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: .74rem; }
-  .block-head a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -0.2rem; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .2s ease; }
-  .block-head a:hover::after { transform: scaleX(1); }
+  .block-head a:not(.btn)::after { content: ""; position: absolute; left: 0; right: 0; bottom: -0.2rem; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .2s ease; }
+  .block-head a:not(.btn):hover::after { transform: scaleX(1); }
   .page-head { padding: clamp(2rem, 5vw, 3.5rem) 0 1.5rem; }
   .page-head h1, .hero-copy h1 { text-shadow: 3px 3px 0 rgba(242,242,242,0.12); }
   .now { margin: 0; }
@@ -193,7 +202,8 @@
   .now dd { margin: 0; }
   @media (max-width: 600px) { .now > div { grid-template-columns: 1fr; gap: .1rem; } }
 
-  .project { padding: 1.5rem 1.25rem 1.6rem; margin-top: 1rem; border: 1px solid var(--line); border-radius: 2px; background: #111; box-shadow: 4px 4px 0 rgba(242,242,242,0.08); }
+  .project { padding: 1.5rem 1.25rem 1.6rem; margin-top: 1rem; border: 1px solid var(--line); border-radius: 2px; background: #111; box-shadow: 4px 4px 0 rgba(242,242,242,0.08); transition: border-color .18s ease; }
+  .project:hover, .feature-card:hover, .post-row:hover, .episode-card:hover { border-color: rgba(0, 180, 255, .42); }
   .project p { max-width: 66ch; }
   .project-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1rem; margin-bottom: .5rem; }
   .project-head h2, .project-head h3 { margin: 0; }
@@ -201,10 +211,17 @@
   .status.live { color: var(--accent); border-color: rgba(0, 180, 255, 0.4); background: rgba(0, 180, 255, 0.08); }
 
   .media-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
-  .feature-card { display: grid; gap: .7rem; padding: 1.15rem; border: 1px solid var(--line); border-radius: 2px; background: #111; box-shadow: 3px 3px 0 rgba(242,242,242,0.08); }
+  .feature-card { display: grid; gap: .7rem; padding: 1.15rem; border: 1px solid var(--line); border-radius: 2px; background: #111; box-shadow: 3px 3px 0 rgba(242,242,242,0.08); transition: border-color .18s ease; }
+  .feature-icon { position: relative; isolation: isolate; display: grid; place-items: center; justify-self: center; width: 4rem; height: 4rem; margin-bottom: .15rem; border: 0; background: transparent; color: var(--accent); }
+  .feature-icon::before { content: ""; position: absolute; z-index: -1; top: 50%; left: 50%; width: 9rem; height: 8rem; transform: translate(-50%, -38%); background: radial-gradient(ellipse at center 32%, rgba(210, 210, 210, .2), rgba(210, 210, 210, .08) 38%, transparent 72%); pointer-events: none; }
+  .feature-icon svg { width: 3.25rem; height: 3.25rem; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
   .feature-card h3 { margin: 0; font-size: 1.15rem; }
   .feature-card p { margin: 0; color: var(--muted); }
   .feature-card .tag { display: inline-block; width: fit-content; padding: .25rem .6rem; border-radius: 2px; border: 1px solid rgba(0, 180, 255, 0.35); background: rgba(0, 180, 255, 0.06); color: var(--accent); font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .faq-list { max-width: 52rem; border-top: 1px solid var(--line); }
+  .faq-list details { border-bottom: 1px solid var(--line); }
+  .faq-list summary { padding: 1rem 2rem 1rem 0; color: var(--fg); font-weight: 700; cursor: pointer; }
+  .faq-list details p { max-width: 68ch; margin: 0 0 1rem; color: var(--muted); }
 
   .podcast-panel { display: grid; grid-template-columns: 1.1fr .9fr; gap: 1.4rem; align-items: stretch; margin-top: 1.5rem; }
   .podcast-highlight { position: relative; overflow: hidden; border-radius: 2px; border: 1px solid var(--line); background: #0A0A0A; box-shadow: 4px 4px 0 rgba(242,242,242,0.08); }
@@ -223,7 +240,7 @@
   .facts dt { color: var(--muted); }
   .facts dd { margin: 0; }
 
-  .post-row { padding: 1.35rem 1.15rem; border: 1px solid var(--line); border-radius: 2px; background: #111; box-shadow: 3px 3px 0 rgba(242,242,242,0.07); }
+  .post-row { padding: 1.35rem 1.15rem; border: 1px solid var(--line); border-radius: 2px; background: #111; box-shadow: 3px 3px 0 rgba(242,242,242,0.07); transition: border-color .18s ease; }
   .post-row + .post-row { margin-top: 1rem; }
   .post-row h2, .post-row h3 { font-size: 1.4rem; margin: 0 0 .35rem; }
   .post-row h2 a, .post-row h3 a { color: var(--fg); text-decoration: none; }
@@ -237,7 +254,7 @@
   .field { display: grid; gap: .35rem; margin-bottom: 1rem; }
   .field label { font-weight: 500; }
   .episode-card {
-    display: grid; gap: 1rem; padding: 1.2rem; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); box-shadow: 4px 4px 0 rgba(242,242,242,0.08);
+    display: grid; gap: 1rem; padding: 1.2rem; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); box-shadow: 4px 4px 0 rgba(242,242,242,0.08); transition: border-color .18s ease;
     position: relative;
   }
   .episode-card::before {
@@ -253,18 +270,21 @@
   .transcript { position: relative; z-index: 1; padding: 1rem 0 0; border-top: 1px solid var(--line); }
   .transcript code { color: var(--fg); }
   input[type="text"], input[type="email"], input[type="search"], textarea {
-    font: inherit; padding: .65rem .8rem; border: 2px solid var(--field); background: var(--bg); color: var(--fg); border-radius: 6px; width: 100%; }
+    font: inherit; padding: .65rem .8rem; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 2px; width: 100%; }
+  input[type="text"]:focus-visible, input[type="email"]:focus-visible, input[type="search"]:focus-visible, textarea:focus-visible { border-color: var(--accent); }
   textarea { min-height: 9rem; resize: vertical; }
   .search { width: min(22rem, 100%); }
   .filters { display: flex; flex-wrap: wrap; gap: .5rem; }
-  .chip { font: inherit; border: 2px solid var(--line); background: transparent; color: var(--fg); padding: .25rem .85rem; border-radius: 6px; cursor: pointer; }
-  .chip:hover { border-color: var(--fg); }
+  .chip { font: inherit; border: 1px solid var(--line); background: transparent; color: var(--fg); padding: .25rem .85rem; border-radius: 2px; cursor: pointer; transition: border-color .18s ease; }
+  .chip:hover { border-color: var(--accent); }
   .chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
   .count { color: var(--muted); margin: .5rem 0 0; font-size: .95rem; }
   .empty { padding: 1.5rem 0; border-top: 1px solid var(--line); }
 
   /* Articles */
   .prose { max-width: 66ch; }
+  .legal-draft { padding: 1rem 1.1rem; margin: 0 0 1.5rem; border-left: 3px solid var(--accent); background: var(--surface); color: var(--muted); }
+  .legal-draft strong { color: var(--fg); }
   .prose h2 { margin-top: 2.2rem; }
   .prose h3 { margin-top: 1.6rem; }
   .prose pre { background: var(--surface); padding: 1rem; border-radius: 6px; overflow-x: auto; font-family: var(--mono); font-size: 1rem; line-height: 1.5; margin: 0 0 1.25em; }
@@ -302,16 +322,46 @@
   .sent { margin-top: 1rem; padding: .9rem 1rem; border-left: 4px solid var(--link); background: var(--surface); }
 
   /* Footer */
-  .site-footer { border-top: 1px solid var(--line); margin-top: 3rem; background: #0A0A0A; }
-  .foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; padding-block: 1.5rem; color: var(--muted); font-size: .95rem; }
-  .foot p { margin: 0; }
-  .foot-links { list-style: none; display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin: 0; padding: 0; }
+  .site-footer { margin-top: 3rem; border-top: 1px solid var(--line); background: linear-gradient(180deg, #101010 0%, #0A0A0A 100%); }
+  .footer-main { display: grid; grid-template-columns: minmax(14rem, 1.4fr) repeat(2, minmax(10rem, 1fr)); align-items: stretch; gap: clamp(2rem, 5vw, 4rem); padding-block: 3rem; }
+  .footer-brand, .footer-nav, .footer-connect { display: flex; flex-direction: column; justify-content: flex-end; }
+  .footer-brand img { display: block; width: auto; height: 3.5rem; max-width: 100%; object-fit: contain; object-position: left center; }
+  .footer-brand p, .footer-connect p { max-width: 24rem; margin: 1rem 0 0; color: var(--muted); font-size: .95rem; }
+  .footer-main h2 { margin: 0 0 1rem; color: var(--fg); font-family: var(--font); font-size: .82rem; font-weight: 700; letter-spacing: .12em; line-height: 1.4; text-transform: uppercase; }
+  .footer-nav ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem 1rem; margin: auto 0 0; padding: 0; list-style: none; }
+  .footer-nav a, .footer-email { color: var(--muted); text-decoration: none; }
+  .footer-nav a { white-space: nowrap; }
+  .footer-nav a:hover, .footer-email:hover { color: var(--accent); text-decoration: underline; }
+  .footer-email { display: inline-flex; align-items: center; gap: .55rem; margin-top: .9rem; font-weight: 600; }
+  .footer-email svg { width: 1.1rem; height: 1.1rem; fill: currentColor; }
+  .footer-social { gap: .5rem; margin-top: 1rem; }
+  .footer-social .social-icon { width: 2.75rem; height: 2.75rem; background: rgba(242, 242, 242, .04); }
+  .footer-social .social-icon svg { width: 1.15rem; height: 1.15rem; }
+  .footer-bottom { border-top: 1px solid var(--line); }
+  .footer-bottom-inner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .75rem 1.5rem; padding-block: 1rem; color: var(--muted); font-size: .88rem; }
+  .footer-bottom-inner p { margin: 0; }
+  .footer-home { color: inherit; text-decoration: none; }
+  .footer-home:hover { color: var(--fg); }
+  .footer-top { display: inline-flex; align-items: center; gap: .45rem; padding: 0; border: 0; background: none; color: var(--fg); font: inherit; font-weight: 600; cursor: pointer; }
+  .footer-top:hover { color: var(--accent); }
+  .footer-top:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+  .footer-top svg { width: 1rem; height: 1rem; fill: currentColor; }
+  @media (max-width: 680px) {
+    .footer-main { grid-template-columns: 1fr 1fr; gap: 2rem 1.5rem; padding-block: 2.5rem; }
+    .footer-brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 420px) {
+    .footer-main { grid-template-columns: 1fr; }
+    .footer-brand { grid-column: auto; }
+    .footer-nav ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
 
   @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
+<progress id="readingProgress" max="100" value="0" aria-label="Page scroll progress"></progress>
 
 <header class="site-header" id="siteHeader">
   <div class="bar">
@@ -322,6 +372,7 @@
         <li><a href="#/podcast" data-nav="podcast">Podcast</a></li>
         <li><a href="#/blog" data-nav="blog">Writeups</a></li>
         <li><a href="#/about" data-nav="about">About</a></li>
+        <li><a href="#/freelancer" data-nav="freelancer">Freelance</a></li>
         <li><a href="#/contact" data-nav="contact">Contact</a></li>
       </ul>
     </nav>
@@ -339,9 +390,36 @@
 </main>
 
 <footer class="site-footer">
-  <div class="wrap foot">
-    <p>&copy; <span id="yr"></span> FixerCtrl</p>
-    <ul class="foot-links" id="footLinks"></ul>
+  <div class="wrap footer-main">
+    <div class="footer-brand">
+      <a class="footer-home" href="#/" aria-label="FixerCtrl home"><img src="assets/fixerctrl-logo.png" alt="FixerCtrl"></a>
+      <p>Cybersecurity, systems and software—learned hands-on and shared openly.</p>
+    </div>
+    <nav class="footer-nav" aria-label="Footer navigation">
+      <h2>Explore</h2>
+      <ul>
+        <li><a href="#/">Home</a></li>
+        <li><a href="#/about">About</a></li>
+        <li><a href="#/projects">All projects</a></li>
+        <li><a href="#/freelancer">Freelance</a></li>
+        <li><a href="#/blog">Writeups</a></li>
+        <li><a href="#/podcast">Podcast</a></li>
+        <li><a href="#/contact">Contact</a></li>
+        <li><a href="#/terms">Terms &amp; privacy</a></li>
+      </ul>
+    </nav>
+    <section class="footer-connect" aria-labelledby="footer-connect-title">
+      <h2 id="footer-connect-title">Get in touch</h2>
+      <p>For opportunities, questions, and collaborations:</p>
+      <a class="footer-email" id="footerEmail" href="mailto:fixerctrl@gmail.com"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm9 8.2L3.5 6h17L12 12.2ZM3 18V8l9 6.5L21 8v10H3Z"/></svg><span id="footerEmailAddress">fixerctrl@gmail.com</span></a>
+      <div id="footerSocial"></div>
+    </section>
+  </div>
+  <div class="footer-bottom">
+    <div class="wrap footer-bottom-inner">
+      <p>&copy; <span id="yr"></span> <a class="footer-home" href="#/">FixerCtrl</a>. All rights reserved.</p>
+      <button class="footer-top" id="footerTop" type="button">Back to top <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4 8 8-1.4 1.4-5.6-5.6V21h-2V7.8l-5.6 5.6L4 12l8-8Z"/></svg></button>
+    </div>
   </div>
 </footer>
 
@@ -352,7 +430,7 @@
   /* ----- Edit these to personalise the site ----- */
   var CONFIG = {
     handle: 'fixerctrl',
-    email: 'hello@fixerctrl.dev',
+    email: 'fixerctrl@gmail.com',
     github: 'https://github.com/fixerctrl',
     linkedin: 'https://www.linkedin.com/in/fixerctrl/',
     x: 'https://x.com/fixerctrl',
@@ -367,15 +445,40 @@
 
   function editorialArt(variant) {
     var artwork = {
-      podcast: 'Podcast feature: a hooded cybersecurity professional working at a laptop in a South African township at night',
-      episode: 'Episode artwork: a hooded cybersecurity professional working at a laptop in a South African township at night'
+      podcast: 'Podcast feature: a hooded cybersecurity professional working at a laptop in a South African neighborhood at night',
+      episode: 'Episode artwork: a hooded cybersecurity professional working at a laptop in a South African neighborhood at night'
     }[variant];
     if (!artwork) throw new Error('Unknown editorial artwork: ' + variant);
     return '<img class="editorial-art" src="assets/podcast-technical-notes.png" alt="' + artwork + '">';
   }
 
   function fixerBannerArt() {
-    return '<img class="hero-banner-art" src="assets/fixerctrl-kasi-banner.jpg" alt="Faceless hooded cybersecurity professional working at a laptop in a South African township at night">';
+    return '<img class="hero-banner-art" src="assets/fixerctrl-kasi-banner.jpg" alt="Faceless hooded cybersecurity professional working at a laptop in a South African neighborhood at night">';
+  }
+
+  function socialIconLinks(includeContactLinks, label) {
+    var icons = {
+      github: '<path d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.56.1.76-.24.76-.54v-2.1c-3.1.68-3.76-1.32-3.76-1.32-.5-1.29-1.24-1.63-1.24-1.63-1.01-.69.08-.68.08-.68 1.12.08 1.71 1.15 1.71 1.15 1 .1.76 2.07 3.22 1.48.1-.72.39-1.21.7-1.49-2.48-.28-5.09-1.24-5.09-5.52 0-1.22.44-2.22 1.15-3-.11-.28-.5-1.42.11-2.96 0 0 .94-.3 3.05 1.15a10.6 10.6 0 0 1 5.55 0c2.11-1.45 3.05-1.15 3.05-1.15.61 1.54.22 2.68.11 2.96.72.78 1.15 1.78 1.15 3 0 4.29-2.61 5.24-5.1 5.51.4.35.75 1.03.75 2.08v3.08c0 .3.2.65.77.54A11.1 11.1 0 0 0 12 .9Z"/>',
+      linkedin: '<path d="M20.45 2H3.55C2.69 2 2 2.68 2 3.52v16.96c0 .84.69 1.52 1.55 1.52h16.9c.86 0 1.55-.68 1.55-1.52V3.52c0-.84-.69-1.52-1.55-1.52ZM7.93 18.45H4.96V9h2.97v9.45ZM6.45 7.71a1.72 1.72 0 1 1 0-3.44 1.72 1.72 0 0 1 0 3.44Zm12 10.74h-2.97v-4.6c0-1.1-.02-2.52-1.54-2.52-1.54 0-1.78 1.2-1.78 2.44v4.68H9.19V9h2.85v1.29h.04c.4-.75 1.37-1.54 2.82-1.54 3.01 0 3.57 1.98 3.57 4.55v5.15Z"/>',
+      x: '<path d="M18.9 2H22l-6.78 7.75L23.2 22h-6.25l-4.9-7.43L5.55 22H2.4l7.25-8.29L1.8 2h6.4l4.43 6.77L18.9 2Zm-1.1 17.86h1.73L7.27 4.03H5.42L17.8 19.86Z"/>',
+      youtube: '<path d="M23.5 6.2a3 3 0 0 0-2.12-2.12C19.51 3.57 12 3.57 12 3.57s-7.51 0-9.38.5A3 3 0 0 0 .5 6.2 31.2 31.2 0 0 0 0 12a31.2 31.2 0 0 0 .5 5.8 3 3 0 0 0 2.12 2.12c1.87.5 9.38.5 9.38.5s7.51 0 9.38-.5a3 3 0 0 0 2.12-2.12A31.2 31.2 0 0 0 24 12a31.2 31.2 0 0 0-.5-5.8ZM9.55 15.58V8.42L15.82 12l-6.27 3.58Z"/>'
+    };
+    var links = [
+      ['GitHub', CONFIG.github, icons.github],
+      ['LinkedIn', CONFIG.linkedin, icons.linkedin],
+      ['X', CONFIG.x, icons.x],
+      ['YouTube', CONFIG.youtube, icons.youtube]
+    ];
+    if (includeContactLinks) {
+      links.push(['Podcast', CONFIG.podcast, '<path d="M12 2a4 4 0 0 0-4 4v5a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Zm-6 9a1 1 0 0 0-2 0 8 8 0 0 0 7 7.94V22h2v-3.06A8 8 0 0 0 20 11a1 1 0 0 0-2 0 6 6 0 0 1-12 0Z"/>']);
+      links.push(['Email', 'mailto:' + CONFIG.email, '<path d="M3 4h18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm9 8.2L3.5 6h17L12 12.2ZM3 18V8l9 6.5L21 8v10H3Z"/>']);
+    }
+    return '<nav class="social-strip" aria-label="' + label + '">' +
+      links.map(function (link) {
+        var isEmail = link[1].indexOf('mailto:') === 0;
+        return '<a class="social-icon" href="' + link[1] + '"' + (isEmail ? '' : ' target="_blank" rel="noopener noreferrer') + ' aria-label="' + link[0] + '" title="' + link[0] + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + link[2] + '</svg></a>';
+      }).join('') +
+      '</nav>';
   }
 
   /* ----- Blog posts (newest first). Add a new object to publish a post. ----- */
@@ -505,31 +608,26 @@
         '<section class="hero">' +
           '<div class="hero-figure">' + fixerBannerArt() + '</div>' +
           '<div class="hero-copy">' +
-            '<p class="eyebrow">South Africa • Township raised • Security minded</p>' +
-            '<h1>Township roots. Systems thinking. A safer digital future.</h1>' +
-            '<p class="lead">I\'m a young South African IT student building toward a career in cybersecurity. I learn by taking systems apart, practising ethically, and sharing what I discover—bringing a practical township perspective to the tech I build.</p>' +
-            '<div class="actions"><a class="btn" href="#/projects">Explore my work</a><a class="btn ghost" href="#/blog">Read the blog</a></div>' +
-            '<div class="social-strip">' +
-              '<a class="social-pill" href="' + CONFIG.github + '" target="_blank" rel="noopener">GitHub</a>' +
-              '<a class="social-pill" href="' + CONFIG.linkedin + '" target="_blank" rel="noopener">LinkedIn</a>' +
-              '<a class="social-pill" href="' + CONFIG.x + '" target="_blank" rel="noopener">X / Twitter</a>' +
-              '<a class="social-pill" href="' + CONFIG.youtube + '" target="_blank" rel="noopener">YouTube</a>' +
-            '</div>' +
+            '<p class="eyebrow">South Africa • Web development • Cybersecurity</p>' +
+            '<h1>Build for the web. Learn to defend it.</h1>' +
+            '<p class="lead">I\'m a young South African IT student building responsive web projects while developing cybersecurity skills. I learn by creating, testing ethically, and sharing what I discover—with a practical, people-first perspective.</p>' +
+            '<div class="actions"><a class="btn" href="#/projects">Explore my projects</a><a class="btn ghost" href="#/freelancer">Freelance services</a></div>' +
+            socialIconLinks(false, 'Social media') +
+            '<blockquote class="hero-quote"><p>“Every Day Go Evolve” <cite>— EDGE</cite></p></blockquote>' +
           '</div>' +
-          '<div class="floating-badge"><span>FIELD NOTE</span><strong>Curiosity / discipline / community</strong></div>' +
         '</section>' +
 
         '<section class="block" aria-labelledby="approach-h">' +
           '<div class="block-head"><h2 id="approach-h">How I move in cyber</h2><span class="section-label">No shortcuts. No harm.</span></div>' +
           '<div class="media-grid">' +
-            '<article class="feature-card"><span class="tag">01 / Ethics</span><h3>Permission first</h3><p>Security practice belongs in a lab or an environment where I have clear permission. Curiosity should protect people, not put them at risk.</p></article>' +
-            '<article class="feature-card"><span class="tag">02 / Craft</span><h3>Learn it. Lab it.</h3><p>Networking, Linux and code become real through patient study, hands-on practice, notes and repeatable checks.</p></article>' +
-            '<article class="feature-card"><span class="tag">03 / Purpose</span><h3>Build for people</h3><p>Township roots keep my focus on useful, accessible technology and security that makes sense beyond the server room.</p></article>' +
+            '<article class="feature-card"><span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6l8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg></span><span class="tag">01 / Ethics</span><h3>Permission first</h3><p>Security practice belongs in a lab or an environment where I have clear permission. Curiosity should protect people, not put them at risk.</p></article>' +
+            '<article class="feature-card"><span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3h8M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M8 15h8M9.5 12.5h5"/></svg></span><span class="tag">02 / Craft</span><h3>Learn it. Lab it.</h3><p>Networking, Linux and code become real through patient study, hands-on practice, notes and repeatable checks.</p></article>' +
+            '<article class="feature-card"><span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5A5.5 5.5 0 0 1 9 13h1a5.5 5.5 0 0 1 5.5 5.5V20M16 5.5a3 3 0 0 1 0 5.8M18 13a4.5 4.5 0 0 1 3 4.2V20"/></svg></span><span class="tag">03 / Purpose</span><h3>Build for people</h3><p>My background keeps my focus on useful, accessible technology and security that makes sense beyond the server room.</p></article>' +
           '</div>' +
         '</section>' +
 
         '<section class="block" aria-labelledby="podcast-h">' +
-          '<div class="block-head"><h2 id="podcast-h">Podcast & technical notes</h2><a href="' + CONFIG.podcast + '" target="_blank" rel="noopener">Listen in</a></div>' +
+          '<div class="block-head"><h2 id="podcast-h">Podcast & technical notes</h2><a class="btn ghost" href="' + CONFIG.podcast + '" target="_blank" rel="noopener">Listen in</a></div>' +
           '<div class="podcast-panel">' +
             '<div class="podcast-highlight">' + editorialArt('podcast') + '</div>' +
             '<div class="podcast-copy">' +
@@ -542,12 +640,12 @@
         '</section>' +
 
         '<section class="block" aria-labelledby="feat-h">' +
-          '<div class="block-head"><h2 id="feat-h">Featured project</h2><a href="#/projects">All projects</a></div>' +
+          '<div class="block-head"><h2 id="feat-h">Featured project</h2><a class="btn ghost" href="#/projects">All projects</a></div>' +
           projectNeuro('h3') +
         '</section>' +
 
         '<section class="block" aria-labelledby="latest-h">' +
-          '<div class="block-head"><h2 id="latest-h">Latest from the blog</h2><a href="#/blog">All posts</a></div>' +
+          '<div class="block-head"><h2 id="latest-h">Latest from the blog</h2><a class="btn ghost" href="#/blog">All posts</a></div>' +
           posts.slice(0, 3).map(function (p) { return postRow(p, 'h3'); }).join('') +
         '</section>',
       after: initTerminal
@@ -593,10 +691,10 @@
     return {
       title: 'About',
       html:
-        '<div class="page-head"><span class="section-label">South African / Township raised</span><h1>About me</h1><p class="lead">I\'m a young South African IT student from a township, working toward a career in cybersecurity and software development.</p></div>' +
+        '<div class="page-head"><span class="section-label">South African / Grounded perspective</span><h1>About me</h1><p class="lead">I\'m a young South African IT student working toward a career in cybersecurity and software development.</p></div>' +
         '<div class="prose">' +
           '<p>I like understanding systems well enough to build them, test them responsibly, and see where they can fail. I study networking and Linux alongside web development, and let security shape the decisions I make in my own projects.</p>' +
-          '<p>Growing up in a township is part of my perspective, not a limit on where I can go. It keeps me interested in practical technology: tools that are understandable, useful and made with real people in mind. I want to bring that perspective into the cybersecurity profession.</p>' +
+          '<p>My background shapes my perspective, not the limits of where I can go. It keeps me interested in practical technology: tools that are understandable, useful and made with real people in mind. I want to bring that perspective into the cybersecurity profession.</p>' +
           '<p>My aim is real-world competence, not just passing exams. Certifications give me structure, but I judge my progress by whether I can explain a concept, spot how it gets attacked, and use it at a terminal.</p>' +
           '<h2>How I learn</h2>' +
           '<h3>Analogy first</h3><p>If I can compare an idea to something familiar, I can hold on to it. Every set of notes I write starts there.</p>' +
@@ -655,6 +753,70 @@
             '<li class="active"><h3>Linux fundamentals</h3><p class="st">In progress</p><p>Reading the Linux Bible with hands-on terminal practice, starting with the shell and filesystem.</p></li>' +
             '<li><h3>A Linux certification</h3><p class="st">Planned</p><p>Choosing between Red Hat\'s RHCSA/RHCE and CompTIA Linux+.</p></li>' +
           '</ol>' +
+        '</section>'
+    };
+  }
+
+  function freelancer() {
+    return {
+      title: 'Freelance services',
+      html:
+        '<div class="page-head"><span class="section-label">Freelance / Web services</span><h1>Freelance services</h1><p class="lead">Practical, people-focused web help for individuals and small organisations. Browse the services and skills I can bring to your project.</p></div>' +
+        '<section aria-label="Freelance services">' +
+          '<div class="media-grid">' +
+            '<article class="feature-card"><span class="tag">01 / Web</span><h3>Small websites</h3><p>Responsive landing pages, portfolios, and simple informational websites built with HTML, CSS, and JavaScript.</p><p class="status">From R1,500</p></article>' +
+            '<article class="feature-card"><span class="tag">02 / Updates</span><h3>Website improvements</h3><p>Content and layout updates, responsive fixes, and visual refinements to help an existing site feel clearer and work better across screen sizes.</p><p class="status">R250 / hour</p></article>' +
+            '<article class="feature-card"><span class="tag">03 / Setup</span><h3>Project setup and integrations</h3><p>Help with Git and GitHub workflows, GitHub Pages deployment, or straightforward Supabase and PostgreSQL features for a small web project.</p><p class="status">From R500</p></article>' +
+          '</div>' +
+        '</section>' +
+        '<section class="block" aria-labelledby="freelance-skills">' +
+          '<div class="block-head"><h2 id="freelance-skills">Skills I bring</h2></div>' +
+          '<div class="cols">' +
+            '<div><h3>Front end</h3><ul class="plain"><li>HTML and semantic page structure</li><li>CSS and responsive layouts</li><li>JavaScript for interactive features</li></ul></div>' +
+            '<div><h3>Project tools</h3><ul class="plain"><li>Git and GitHub</li><li>GitHub Pages deployment</li><li>Supabase and PostgreSQL fundamentals</li></ul></div>' +
+            '<div><h3>How I work</h3><ul class="plain"><li>Agree on scope before starting</li><li>Share progress and communicate clearly</li><li>Focus on usable, accessible results</li></ul></div>' +
+          '</div>' +
+          '<p class="note" style="margin-top:1.5rem">Student starter rates in South African rand (ZAR). These are guide prices; I’ll confirm the scope, timeline, and total price with you before work begins.</p>' +
+          '<div class="actions"><a class="btn" href="#/contact">Discuss a project</a><a class="btn ghost" href="#/projects">See my projects</a></div>' +
+        '</section>' +
+        '<section class="block" aria-labelledby="freelance-work">' +
+          '<div class="block-head"><h2 id="freelance-work">Selected work</h2><a href="#/projects">All projects</a></div>' +
+          '<div class="media-grid">' +
+            '<article class="feature-card"><span class="tag">Group project</span><h3>Neuroband Intelligence Hub</h3><p>A research collaboration app built for a competitive intelligence assignment, with a source repository, team task tracking, and activity log. My role included design and development.</p><a href="https://fixerctrl.github.io/Neuroband-Intelligence-Hub/" target="_blank" rel="noopener noreferrer">View the live app</a></article>' +
+            '<article class="feature-card"><span class="tag">Ongoing project</span><h3>Mini Circles</h3><p>A multimedia knowledge-sharing project spanning social media and a website. My contributions include web presence and branding.</p><a href="#/projects">More about my projects</a></article>' +
+          '</div>' +
+          '<p class="note" style="margin-top:1rem">More project screenshots and detailed case studies can be added here as they’re ready to share.</p>' +
+        '</section>' +
+        '<section class="block" aria-labelledby="freelance-process">' +
+          '<div class="block-head"><h2 id="freelance-process">How a project works</h2></div>' +
+          '<ol class="plain">' +
+            '<li><strong>1. Tell me what you need.</strong> Share your goals, audience, and any examples or existing materials.</li>' +
+            '<li><strong>2. Agree on scope and quote.</strong> We confirm what’s included, the price, timeline, and review plan before work begins.</li>' +
+            '<li><strong>3. Build and review.</strong> I share progress for feedback against the agreed scope.</li>' +
+            '<li><strong>4. Handover.</strong> We confirm the finished work and any agreed deployment or handover details.</li>' +
+          '</ol>' +
+        '</section>' +
+        '<section class="block" aria-labelledby="freelance-pricing">' +
+          '<div class="block-head"><h2 id="freelance-pricing">Student-friendly pricing (ZAR)</h2></div>' +
+          '<p class="lead">Guide rates for small, clearly scoped projects:</p>' +
+          '<ul class="plain"><li><strong>One-page landing page:</strong> R1,500–R3,000</li><li><strong>Small multi-page website (up to 5 pages):</strong> R3,500–R7,500</li><li><strong>Website updates:</strong> R250 per hour</li><li><strong>Basic deployment or project setup:</strong> from R500</li><li><strong>Small feature or integration:</strong> from R800, quoted after review</li></ul>' +
+          '<p class="note" style="margin-top:1rem">Final pricing depends on page count, content readiness, design needs, functionality, integrations, and timeline. Domain fees, paid hosting, subscriptions, and major content creation are not included. I’ll confirm deliverables and the total price before work starts.</p>' +
+        '</section>' +
+        '<section class="block" aria-labelledby="freelance-faq">' +
+          '<div class="block-head"><h2 id="freelance-faq">Frequently asked questions</h2></div>' +
+          '<div class="faq-list">' +
+            '<details><summary>How long will my project take?</summary><p>Timing depends on the scope and how quickly content and feedback are available. I’ll suggest a timeline with the quote before work begins.</p></details>' +
+            '<details><summary>Can you help with hosting?</summary><p>I can discuss simple static-site deployment, including GitHub Pages. Hosting or integrations beyond the agreed scope can be quoted separately.</p></details>' +
+            '<details><summary>What if I need changes?</summary><p>The review and change scope will be agreed in the quote, so you’ll know what feedback is included before work starts.</p></details>' +
+            '<details><summary>What should I send to get a quote?</summary><p>Describe what you want the site or feature to do, who it is for, any deadline, and links or materials you already have. I’ll follow up to clarify the scope.</p></details>' +
+          '</div>' +
+        '</section>' +
+        '<section class="block" aria-labelledby="freelance-next">' +
+          '<div class="block-head"><h2 id="freelance-next">More information</h2></div>' +
+          '<div class="media-grid">' +
+            '<article class="feature-card"><span class="tag">Coming later</span><h3>Client feedback</h3><p>Genuine testimonials can be added here when available, with permission from the people who shared them.</p></article>' +
+            '<article class="feature-card"><span class="tag">To add</span><h3>CV / résumé</h3><p>A downloadable CV can be added here when the document is ready to share.</p></article>' +
+          '</div>' +
         '</section>'
     };
   }
@@ -720,7 +882,7 @@
     return {
       title: p.title,
       html:
-        '<a class="back" href="#/blog">All posts</a>' +
+        '<a class="back btn ghost" href="#/blog">All posts</a>' +
         '<header class="article-head"><h1>' + p.title + '</h1>' +
           '<p class="meta"><time datetime="' + p.date + '">' + fmtDate(p.date) + '</time><span>' + mins(p.body) + ' min read</span></p>' +
           tagList(p.tags) + '</header>' +
@@ -733,18 +895,12 @@
   }
 
   function contact() {
-    var links = '<li><a href="' + CONFIG.github + '" target="_blank" rel="noopener">GitHub: ' + CONFIG.handle + '</a></li>';
-    if (CONFIG.linkedin) links += '<li><a href="' + CONFIG.linkedin + '" target="_blank" rel="noopener">LinkedIn</a></li>';
-    if (CONFIG.x) links += '<li><a href="' + CONFIG.x + '" target="_blank" rel="noopener">X / Twitter</a></li>';
-    if (CONFIG.youtube) links += '<li><a href="' + CONFIG.youtube + '" target="_blank" rel="noopener">YouTube</a></li>';
-    if (CONFIG.podcast) links += '<li><a href="' + CONFIG.podcast + '" target="_blank" rel="noopener">Podcast</a></li>';
-    links += '<li><a href="mailto:' + CONFIG.email + '">' + CONFIG.email + '</a></li>';
     return {
       title: 'Contact',
       html:
-        '<div class="page-head"><h1>Get in touch</h1><p class="lead">I\'m interested in internships, junior roles and collaboration on security or web projects.</p></div>' +
+        '<div class="page-head"><h1>Get in touch</h1><p class="lead">For freelance project enquiries, internships, junior roles, and collaboration on security or web projects, send me a message.</p></div>' +
         '<div class="contact-grid">' +
-          '<div><h2>Find me online</h2><ul class="plain">' + links + '</ul></div>' +
+          '<div><h2>Find me online</h2>' + socialIconLinks(true, 'Social media and contact links') + '</div>' +
           '<div><h2>Send a message</h2>' +
             '<form id="contactForm">' +
               '<div class="field"><label for="cName">Your name</label><input id="cName" type="text" autocomplete="name" required></div>' +
@@ -772,6 +928,54 @@
     };
   }
 
+  function terms() {
+    return {
+      title: 'Terms and privacy',
+      html:
+        '<div class="page-head"><span class="section-label">South Africa / Draft</span><h1>Terms &amp; privacy</h1><p class="lead">Terms for using this website and a privacy notice describing the current contact process.</p><p class="note">Last updated: 11 October 2026</p></div>' +
+        '<aside class="legal-draft"><strong>Draft for review:</strong> This general information is not legal advice and may not cover every obligation that applies to your business or circumstances. Before accepting paid work, add the operator’s full legal name, legal form (if applicable), and physical business address, and have a South African legal professional review these terms. Consumer, tax, privacy, and disclosure obligations depend on the facts.</aside>' +
+        '<article class="prose">' +
+          '<h2>1. Who operates this site</h2>' +
+          '<p>This website is operated online as FixerCtrl. Contact: <a href="mailto:fixerctrl@gmail.com">fixerctrl@gmail.com</a>. FixerCtrl’s legal form and South African physical business address have not yet been supplied. Complete the required operator disclosures here before treating these terms as final or accepting online orders.</p>' +
+          '<h2>2. Using this website</h2>' +
+          '<p>You may browse and link to public pages for lawful, personal or business reference. Do not disrupt the site, attempt unauthorised access, misuse contact details, or copy protected material beyond what the law permits. Site articles and examples are general educational material, not professional, legal, financial, or security advice tailored to your situation.</p>' +
+          '<p>External websites and services are operated by others and are subject to their own terms and privacy practices. Links do not mean that FixerCtrl endorses or controls those services.</p>' +
+          '<h2>3. Freelance services and quotes</h2>' +
+          '<p>Service descriptions and displayed prices are indicative. A project begins only after the client and FixerCtrl agree in writing on the work, deliverables, price, timing, payment arrangements, and review scope. Any applicable taxes and third-party costs will be identified in the quote or invoice. No additional work or charge is agreed unless confirmed.</p>' +
+          '<p>Changes to scope, delays, cancellation, refunds, and handover will be handled under the written project agreement and applicable law. Nothing here removes a consumer right or remedy that cannot lawfully be excluded. If a term conflicts with a mandatory legal right, that right prevails.</p>' +
+          '<h2>4. Client materials and intellectual property</h2>' +
+          '<p>You are responsible for having the rights and permissions needed for materials you provide. Ownership or licence rights for project deliverables, client materials, third-party components, and any pre-existing tools must be set out in the project agreement. Unless a written agreement says otherwise, this website’s original content and branding may not be republished or commercially reused without permission, subject to rights granted by law.</p>' +
+          '<h2>5. Security work and lawful permission</h2>' +
+          '<p>No security test, scan, access, or other activity against a system is included unless its scope is agreed in writing and the person authorising it has the right to do so. Never test or access systems without explicit permission. Work must comply with applicable law, including the Cybercrimes Act 19 of 2020 where relevant.</p>' +
+          '<h2>6. Availability and liability</h2>' +
+          '<p>The website and external services may change or become unavailable. Reasonable care is taken with published information, but no guarantee is made that every page is complete, current, or error-free. To the extent permitted by law, FixerCtrl is not responsible for indirect loss arising from ordinary browsing or third-party services. This does not limit liability or consumer rights that cannot lawfully be limited, including rights under the Consumer Protection Act where it applies.</p>' +
+          '<h2>7. Applicable law and resolving concerns</h2>' +
+          '<p>These website terms are governed by the laws of the Republic of South Africa, subject to any mandatory rights, protections, or forums that apply to a consumer. Please first raise a concern at <a href="mailto:fixerctrl@gmail.com">fixerctrl@gmail.com</a>. You may also use any regulator, tribunal, or other remedy available under applicable law.</p>' +
+          '<h2 id="privacy">8. Privacy notice</h2>' +
+          '<h3>Information and how it is handled</h3>' +
+          '<p>The contact form asks for your name, email address, and message. It uses your device’s email application; the site does not submit the form to a FixerCtrl website database or server. Your details are sent to FixerCtrl only if you choose to send the email. Your email provider and the receiving email service will also process the message.</p>' +
+          '<p>The site loads fonts from Google Fonts. Your browser may send ordinary technical request information to Google when retrieving those fonts. Links to social networks and other external sites may also disclose information to those providers if you follow them. Their privacy notices and processing practices are separate from this site.</p>' +
+          '<p>The current site code does not include an analytics script or a site-managed tracking cookie. The site’s hosting provider may process technical request or security logs as part of serving the pages; check the host’s current privacy terms for details.</p>' +
+          '<h3>Purpose, sharing, and retention</h3>' +
+          '<p>If you email, your information is used to respond to your enquiry, prepare a quote, communicate about work you request, and keep records where reasonably necessary for the relationship or a legal obligation. It is not sold. Information may be handled by email, hosting, or other service providers needed to deliver the site or respond to you, or disclosed where the law requires it. Some providers may process information outside South Africa under their own terms.</p>' +
+          '<p>Messages and project records are kept only for as long as reasonably needed for those purposes and applicable legal obligations, then securely deleted where practicable.</p>' +
+          '<h3>Your privacy choices</h3>' +
+          '<p>Subject to applicable law and verification of your identity, you may ask to access or correct personal information, raise an objection, or request deletion where appropriate. Email <a href="mailto:fixerctrl@gmail.com">fixerctrl@gmail.com</a>. You may complain to the Information Regulator of South Africa; see its <a href="https://inforegulator.org.za/" target="_blank" rel="noopener noreferrer">official website</a>.</p>' +
+          '<h2>9. South African legislation to consider</h2>' +
+          '<p>The laws that apply depend on the operator, transaction, customer, and service. Relevant legislation may include:</p>' +
+          '<ul>' +
+            '<li><a href="https://www.gov.za/documents/consumer-protection-act" target="_blank" rel="noopener noreferrer">Consumer Protection Act 68 of 2008</a>, where its scope and consumer protections apply.</li>' +
+            '<li><a href="https://www.gov.za/documents/protection-personal-information-act" target="_blank" rel="noopener noreferrer">Protection of Personal Information Act 4 of 2013 (POPIA)</a>, for processing personal information.</li>' +
+            '<li><a href="https://www.gov.za/documents/electronic-communications-and-transactions-act" target="_blank" rel="noopener noreferrer">Electronic Communications and Transactions Act 25 of 2002</a>, including provisions relevant to electronic transactions and supplier disclosures.</li>' +
+            '<li><a href="https://www.gov.za/documents/promotion-access-information-act" target="_blank" rel="noopener noreferrer">Promotion of Access to Information Act 2 of 2000 (PAIA)</a>, where applicable, including any applicable access-to-information manual obligations.</li>' +
+            '<li>Copyright Act 98 of 1978 and Cybercrimes Act 19 of 2020, where relevant to intellectual property and lawful access or security work.</li>' +
+            '<li>Tax and VAT legislation, business-registration requirements, and other laws may also apply depending on the operator’s status and activities.</li>' +
+          '</ul>' +
+          '<p>This list is not exhaustive and naming a law does not by itself establish compliance. Please obtain advice for the actual business and services.</p>' +
+        '</article>'
+    };
+  }
+
   function notFound() {
     return {
       title: 'Page not found',
@@ -785,7 +989,7 @@
   var WHOAMI = [
     'fixerctrl',
     'role      young South African IT student',
-    'roots     township raised',
+    'perspective grounded and people-first',
     'focus     ethical cybersecurity and development',
     'studying  CompTIA Network+, Linux',
     'building  Neuroband Intelligence Hub, Mini Circles'
@@ -891,6 +1095,32 @@
     }, 500);
   }
 
+  function initPageInteractions() {
+    if (reduceMotion || !('IntersectionObserver' in window)) return;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -32px 0px' });
+    $$('.block, .feature-card, .project, .episode-card, .post-row', main).forEach(function (element) {
+      element.classList.add('reveal');
+      observer.observe(element);
+    });
+  }
+
+  var progressFrame = 0;
+  function updateReadingProgress() {
+    if (progressFrame) return;
+    progressFrame = window.requestAnimationFrame(function () {
+      progressFrame = 0;
+      var progress = $('#readingProgress');
+      var scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      progress.value = scrollable > 0 ? Math.min(100, Math.max(0, window.scrollY / scrollable * 100)) : 0;
+    });
+  }
+
   /* ----- Router ----- */
   var first = true;
   function render() {
@@ -901,11 +1131,14 @@
     else if (page === 'about') view = about();
     else if (page === 'projects') view = projects();
     else if (page === 'skills') view = skills();
+    else if (page === 'freelancer') view = freelancer();
     else if (page === 'blog') view = parts[1] ? post(parts[1]) : blog();
     else if (page === 'contact') view = contact();
+    else if (page === 'terms') view = terms();
     else view = notFound();
 
     main.innerHTML = '<div class="wrap">' + view.html + '</div>';
+    initPageInteractions();
     document.title = (view.title === 'Home' ? 'FixerCtrl | Cybersecurity and development' : view.title + ' | FixerCtrl');
     $$('.main-nav a').forEach(function (a) {
       if (a.dataset.nav === page) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
@@ -914,6 +1147,7 @@
     $('#menuBtn').setAttribute('aria-expanded', 'false');
     $('#menuBtn').setAttribute('aria-label', 'Open menu');
     window.scrollTo(0, 0);
+    updateReadingProgress();
     if (!first) main.focus({ preventScroll: true });
     first = false;
     if (view.after) view.after();
@@ -931,13 +1165,16 @@
   });
 
   $('#yr').textContent = new Date().getFullYear();
-  var foot = '<li><a href="' + CONFIG.github + '" target="_blank" rel="noopener">GitHub</a></li>';
-  if (CONFIG.linkedin) foot += '<li><a href="' + CONFIG.linkedin + '" target="_blank" rel="noopener">LinkedIn</a></li>';
-  if (CONFIG.x) foot += '<li><a href="' + CONFIG.x + '" target="_blank" rel="noopener">X</a></li>';
-  if (CONFIG.youtube) foot += '<li><a href="' + CONFIG.youtube + '" target="_blank" rel="noopener">YouTube</a></li>';
-  foot += '<li><a href="#/blog">Blog</a></li><li><a href="#/contact">Contact</a></li>';
-  $('#footLinks').innerHTML = foot;
+  $('#footerEmail').href = 'mailto:' + CONFIG.email;
+  $('#footerEmailAddress').textContent = CONFIG.email;
+  $('#footerSocial').innerHTML = socialIconLinks(false, 'Social media');
+  $('#footerSocial .social-strip').classList.add('footer-social');
+  $('#footerTop').addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+  });
 
+  window.addEventListener('scroll', updateReadingProgress, { passive: true });
+  window.addEventListener('resize', updateReadingProgress);
   window.addEventListener('hashchange', render);
   render();
 })();
