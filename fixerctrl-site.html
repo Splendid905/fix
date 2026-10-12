@@ -180,8 +180,8 @@
   @media (max-width: 540px) {
     .hero { min-height: 44rem; align-items: flex-end; padding-bottom: 2rem; }
     .hero::after { background: linear-gradient(0deg, #0A0A0A 2%, rgba(10,10,10,.92) 34%, rgba(10,10,10,.18) 100%); }
-    .hero-figure { bottom: auto; height: auto; aspect-ratio: 1584 / 672; }
-    .hero-banner-art { object-fit: contain; }
+    .hero-figure { bottom: auto; height: clamp(17rem, 72vw, 23rem); aspect-ratio: auto; }
+    .hero-banner-art { object-fit: cover; object-position: 32% center; }
     .hero-copy { width: 100%; margin: 0; padding: 2rem var(--gutter) 3rem; }
     .hero-copy h1, .hero-copy .lead, .hero-copy .eyebrow, .hero-copy .social-strip { position: relative; z-index: 2; }
     .hero-copy .actions { display: grid; grid-template-columns: 1fr; }
@@ -190,6 +190,28 @@
     .episode-card::before { left: 0; right: 0; }
     .episode-card .episode-top { grid-template-columns: minmax(0, 1fr); }
     .episode-art { width: min(100%, 12rem); margin-inline: auto; }
+    body { text-align: center; }
+    .bar { position: relative; justify-content: center; }
+    .brand img { max-width: min(65vw, 20rem); }
+    .tools { position: absolute; top: 50%; right: var(--gutter); transform: translateY(-50%); }
+    .main-nav ul { align-items: center; }
+    .wrap > :not(.hero), .page-head, .article-head, .prose, .faq-list, .roadmap { margin-inline: auto; }
+    .lead, .project p, .feature-card p, .post-row p, .faq-list details p, .footer-brand p, .footer-connect p { margin-inline: auto; }
+    .block-head, .project-head { justify-content: center; align-items: center; text-align: center; }
+    .actions, .social-strip, .meta, .tags, .filters, .controls { justify-content: center; }
+    .feature-card .tag { justify-self: center; }
+    .episode-number, .episode-meta { text-align: center; }
+    .prose ul, .prose ol { padding-left: 0; list-style-position: inside; }
+    .prose pre, .prose pre code, .table-wrap { text-align: left; }
+    .roadmap { border-left: 0; padding: 1.5rem 0 0; }
+    .roadmap li { padding: 1.5rem 0 2rem; }
+    .roadmap li::before { top: 0; left: 50%; transform: translateX(-50%); }
+    .footer-main > * { align-items: center; }
+    .footer-nav ul { justify-items: center; }
+    .footer-email { display: inline-flex; justify-content: center; }
+    .footer-bottom-inner { justify-content: center; }
+    .pager { justify-content: center; }
+    .pager-newer { text-align: center; }
   }
   .podcast-highlight .editorial-art { display: block; width: 100%; height: 100%; min-height: 20rem; object-fit: cover; object-position: center; }
 
@@ -317,6 +339,7 @@
   .article-head h1 { font-size: clamp(1.9rem, 1.2rem + 2.6vw, 3rem); }
   .pager { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--line); margin-top: 3rem; padding-top: 1.5rem; max-width: 66ch; }
   .pager a { max-width: 20rem; }
+  .pager-newer { text-align: right; }
   .pager small { display: block; color: var(--muted); }
 
   /* Skills */
@@ -909,7 +932,7 @@
         '<article class="prose">' + p.body + '</article>' +
         '<nav class="pager" aria-label="More posts">' +
           (older ? '<a href="#/blog/' + older.slug + '"><small>Older post</small>' + older.title + '</a>' : '<span></span>') +
-          (newer ? '<a href="#/blog/' + newer.slug + '" style="text-align:right"><small>Newer post</small>' + newer.title + '</a>' : '') +
+          (newer ? '<a class="pager-newer" href="#/blog/' + newer.slug + '"><small>Newer post</small>' + newer.title + '</a>' : '') +
         '</nav>'
     };
   }
