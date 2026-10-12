@@ -178,15 +178,16 @@
     .hero-copy h1 { font-size: clamp(2rem, 6vw, 3.6rem); }
   }
   @media (max-width: 540px) {
-    .hero { min-height: 52rem; align-items: flex-end; padding-bottom: 2rem; }
-    .hero::after { background: linear-gradient(0deg, #0A0A0A 2%, rgba(10,10,10,.92) 34%, rgba(10,10,10,.18) 100%); }
-    .hero-figure { bottom: auto; height: clamp(20rem, 86vw, 27rem); aspect-ratio: auto; }
-    .hero-banner-art { object-fit: cover; object-position: 32% center; }
-    .hero-copy { width: 100%; margin: 0; padding: 1rem var(--gutter) 2rem; }
+    .hero { min-height: 0; flex-direction: column; align-items: stretch; padding: 0; }
+    .hero::after { display: none; }
+    .hero-figure { position: relative; inset: auto; width: 100%; height: auto; aspect-ratio: 1584 / 672; flex: none; }
+    .hero-banner-art { object-fit: contain; object-position: center; }
+    .hero-copy { width: 100%; margin: 0; padding: 1.5rem var(--gutter) 2rem; }
     .hero-copy h1, .hero-copy .lead, .hero-copy .eyebrow, .hero-copy .social-strip { position: relative; z-index: 2; }
     .hero-copy .actions { display: grid; grid-template-columns: 1fr; }
     .hero-copy .actions .btn { text-align: center; }
     .facts > div { grid-template-columns: 1fr; gap: .1rem; }
+    .facts { text-align: left; }
     .episode-card::before { left: 0; right: 0; }
     .episode-card .episode-top { grid-template-columns: minmax(0, 1fr); }
     .episode-art { width: min(100%, 12rem); margin-inline: auto; }
@@ -198,6 +199,10 @@
     .wrap > :not(.hero), .page-head, .article-head, .prose, .faq-list, .roadmap { margin-inline: auto; }
     .lead, .project p, .feature-card p, .post-row p, .faq-list details p, .footer-brand p, .footer-connect p { margin-inline: auto; }
     .block-head, .project-head { justify-content: center; align-items: center; text-align: center; }
+    .block[aria-labelledby="approach-h"] .block-head { flex-direction: column; }
+    .block[aria-labelledby="podcast-h"] .block-head { flex-direction: column; }
+    .block[aria-labelledby="feat-h"] .block-head { flex-direction: column; }
+    .block[aria-labelledby="latest-h"] .block-head { flex-direction: column; }
     .actions, .social-strip, .meta, .tags, .filters, .controls { justify-content: center; }
     .feature-card .tag { justify-self: center; }
     .episode-number, .episode-meta { text-align: center; }
