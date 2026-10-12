@@ -189,8 +189,6 @@
     .facts > div { grid-template-columns: 1fr; gap: .1rem; }
     .facts { text-align: left; }
     .episode-card::before { left: 0; right: 0; }
-    .episode-card .episode-top { grid-template-columns: minmax(0, 1fr); }
-    .episode-art { width: min(100%, 12rem); margin-inline: auto; }
     body { text-align: center; }
     .bar { position: relative; justify-content: center; }
     .brand img { max-width: min(65vw, 20rem); }
@@ -203,6 +201,10 @@
     .block[aria-labelledby="podcast-h"] .block-head { flex-direction: column; }
     .block[aria-labelledby="feat-h"] .block-head { flex-direction: column; }
     .block[aria-labelledby="latest-h"] .block-head { flex-direction: column; }
+    .block[aria-labelledby="freelance-skills"] .block-head,
+    .block[aria-labelledby="freelance-work"] .block-head,
+    .block[aria-labelledby="freelance-process"] .block-head,
+    .block[aria-labelledby="freelance-next"] .block-head { flex-direction: column; }
     .actions, .social-strip, .meta, .tags, .filters, .controls { justify-content: center; }
     .feature-card .tag { justify-self: center; }
     .episode-number, .episode-meta { text-align: center; }
@@ -313,6 +315,10 @@
   .podcast-player audio { width: 100%; }
   .transcript { position: relative; z-index: 1; padding: 1rem 0 0; border-top: 1px solid var(--line); }
   .transcript code { color: var(--fg); }
+  @media (max-width: 540px) {
+    .episode-card .episode-top { grid-template-columns: minmax(0, 1fr); }
+    .episode-art { width: min(100%, 12rem); margin-inline: auto; }
+  }
   input[type="text"], input[type="email"], input[type="search"], textarea {
     font: inherit; padding: .65rem .8rem; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 2px; width: 100%; }
   input[type="text"]:focus-visible, input[type="email"]:focus-visible, input[type="search"]:focus-visible, textarea:focus-visible { border-color: var(--accent); }
@@ -828,7 +834,7 @@
           '<div class="actions"><a class="btn" href="#/contact">Discuss a project</a><a class="btn ghost" href="#/projects">See my projects</a></div>' +
         '</section>' +
         '<section class="block" aria-labelledby="freelance-work">' +
-          '<div class="block-head"><h2 id="freelance-work">Selected work</h2><a href="#/projects">All projects</a></div>' +
+          '<div class="block-head"><h2 id="freelance-work">Selected work</h2><a class="btn ghost" href="#/projects">All projects</a></div>' +
           '<div class="media-grid">' +
             '<article class="feature-card"><span class="tag">Group project</span><h3>Neuroband Intelligence Hub</h3><p>A research collaboration app built for a competitive intelligence assignment, with a source repository, team task tracking, and activity log. My role included design and development.</p><a href="https://fixerctrl.github.io/Neuroband-Intelligence-Hub/" target="_blank" rel="noopener noreferrer">View the live app</a></article>' +
             '<article class="feature-card"><span class="tag">Ongoing project</span><h3>Mini Circles</h3><p>A multimedia knowledge-sharing project spanning social media and a website. My contributions include web presence and branding.</p><a href="#/projects">More about my projects</a></article>' +
