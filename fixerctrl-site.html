@@ -184,6 +184,12 @@
     .hero-banner-art { object-fit: contain; }
     .hero-copy { width: 100%; margin: 0; padding: 2rem var(--gutter) 3rem; }
     .hero-copy h1, .hero-copy .lead, .hero-copy .eyebrow, .hero-copy .social-strip { position: relative; z-index: 2; }
+    .hero-copy .actions { display: grid; grid-template-columns: 1fr; }
+    .hero-copy .actions .btn { text-align: center; }
+    .facts > div { grid-template-columns: 1fr; gap: .1rem; }
+    .episode-card::before { left: 0; right: 0; }
+    .episode-card .episode-top { grid-template-columns: minmax(0, 1fr); }
+    .episode-art { width: min(100%, 12rem); margin-inline: auto; }
   }
   .podcast-highlight .editorial-art { display: block; width: 100%; height: 100%; min-height: 20rem; object-fit: cover; object-position: center; }
 
