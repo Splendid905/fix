@@ -840,14 +840,14 @@
         '</section>' +
 
         '<section class="block" aria-labelledby="podcast-h">' +
-          '<div class="block-head"><h2 id="podcast-h">Recommended listening &amp; technical notes</h2><a class="btn ghost" href="' + CONFIG.podcast + '" target="_blank" rel="noopener">Darknet Diaries</a></div>' +
+          '<div class="block-head"><h2 id="podcast-h">Podcast &amp; technical notes</h2><a class="btn ghost" href="' + CONFIG.podcast + '" target="_blank" rel="noopener">Listen in</a></div>' +
           '<div class="podcast-panel">' +
             '<div class="podcast-highlight">' + editorialArt('podcast') + '</div>' +
             '<div class="podcast-copy">' +
               '<span class="tag">Featured</span>' +
               '<h3>Thoughtful conversations on cybersecurity, systems, and the tech behind the work.</h3>' +
-              '<p>I share concise technical writeups and discussions on cybersecurity, systems and web development, informed by practical projects and careful research.</p>' +
-              '<div class="actions"><a class="btn" href="#/blog">Browse technical writeups</a><a class="btn ghost" href="#/projects">View project work</a></div>' +
+              '<p>Technical conversations on cybersecurity, systems, and the realities of building with technology, alongside notes and insights from practical projects.</p>' +
+              '<div class="actions"><a class="btn" href="#/blog">Browse technical notes</a><a class="btn ghost" href="' + CONFIG.podcast + '" target="_blank" rel="noopener">Listen in</a></div>' +
             '</div>' +
           '</div>' +
         '</section>' +
@@ -867,13 +867,30 @@
 
   function podcast() {
     return {
-      title: 'Podcast recommendation',
+      title: 'Podcast',
       html:
-        pageBanner('Recommended listening', 'Darknet Diaries', 'A podcast exploring real-world stories about hacking, cybercrime, and security.', 'assets/image.png') +
+        pageBanner('Latest drop', 'FixerCtrl Podcast', 'Practical conversations on security, systems, and the messy realities of building with technology.', 'assets/image.png') +
         '<section class="episode-card">' +
+          '<div class="episode-top">' +
+            '<div class="episode-art">' + editorialArt('episode') + '</div>' +
+            '<div>' +
+              '<div class="episode-number">Episode 07</div>' +
+              '<h2>Signals, systems, and the work behind the breach</h2>' +
+              '<div class="episode-meta">May 12, 2026 • 38 min • Cybersecurity • Systems thinking</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="podcast-player"><audio controls preload="none"><source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg"></audio></div>' +
           '<div class="transcript">' +
-            '<p>Darknet Diaries is an external podcast. This page recommends the show as a resource; episodes are published and hosted by Darknet Diaries, not FixerCtrl.</p>' +
-            '<div class="actions"><a class="btn" href="' + CONFIG.podcast + '" target="_blank" rel="noopener noreferrer">Visit Darknet Diaries</a><a class="btn ghost" href="#/blog">Read technical writeups</a></div>' +
+            '<p><code>&gt; latest_episode</code> on the current signal: how attackers target weak assumptions, and why strong systems come from boring fundamentals.</p>' +
+            '<p>We look at how detection, response, and operational discipline fit together in a realistic environment, then break down a few patterns that show up again and again in real security incidents.</p>' +
+          '</div>' +
+        '</section>' +
+        '<section class="block" aria-labelledby="episodes-list">' +
+          '<div class="block-head"><h2 id="episodes-list">Recent episodes</h2></div>' +
+          '<div class="media-grid">' +
+            '<article class="feature-card"><span class="episode-number">EP 06</span><h3>Linux forensics without the theatre</h3><p>What to look at first when a host starts acting like it has been touched.</p><div class="episode-meta">Apr 28, 2026</div></article>' +
+            '<article class="feature-card"><span class="episode-number">EP 05</span><h3>Zero trust isn’t a slogan</h3><p>Where the policy stops and the actual architecture begins.</p><div class="episode-meta">Apr 04, 2026</div></article>' +
+            '<article class="feature-card"><span class="episode-number">EP 04</span><h3>Build the habit, not the hero story</h3><p>On studying, documenting, and practicing like a systems engineer.</p><div class="episode-meta">Mar 22, 2026</div></article>' +
           '</div>' +
         '</section>'
     };
