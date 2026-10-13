@@ -878,6 +878,12 @@
       title: 'Podcast',
       html:
         pageBanner('Latest drop', 'FixerCtrl Podcast', 'Practical conversations on security, systems, and the messy realities of building with technology.', 'assets/image.png') +
+        '<div class="controls">' +
+          '<div class="field search" style="margin:0"><label for="episodeSearch">Search episodes</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="episodeSearch" type="search" placeholder="Search here"></div></div>' +
+          '<div class="filters" role="group" aria-label="Filter episodes by topic">' +
+            episodeTags.map(function (tag) { return '<button class="chip" type="button" data-episode-tag="' + tag + '" aria-pressed="' + (tag === episodeTag) + '">' + tag + '</button>'; }).join('') +
+          '</div>' +
+        '</div>' +
         '<section class="episode-card">' +
           '<div class="episode-top">' +
             '<div class="episode-art">' + editorialArt('episode') + '</div>' +
@@ -895,12 +901,6 @@
         '</section>' +
         '<section class="block" aria-labelledby="episodes-list">' +
           '<div class="block-head"><h2 id="episodes-list">Recent episodes</h2></div>' +
-          '<div class="controls">' +
-            '<div class="field search" style="margin:0"><label for="episodeSearch">Search episodes</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="episodeSearch" type="search" placeholder="Search here"></div></div>' +
-            '<div class="filters" role="group" aria-label="Filter episodes by topic">' +
-              episodeTags.map(function (tag) { return '<button class="chip" type="button" data-episode-tag="' + tag + '" aria-pressed="' + (tag === episodeTag) + '">' + tag + '</button>'; }).join('') +
-            '</div>' +
-          '</div>' +
           '<p class="count" id="episodeCount" aria-live="polite"></p>' +
           '<div class="media-grid" id="episodeList"></div>' +
         '</section>',
