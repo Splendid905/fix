@@ -85,6 +85,7 @@
   #readingProgress::-webkit-progress-bar { background: transparent; }
   #readingProgress::-webkit-progress-value { background: var(--accent); }
   #readingProgress::-moz-progress-bar { background: var(--accent); }
+  #interactionCanvas { position: fixed; inset: 0; z-index: 19; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: screen; opacity: .85; }
   .reveal { opacity: 0; transform: translateY(1rem); transition: opacity .45s ease, transform .45s ease; }
   .reveal.is-visible { opacity: 1; transform: none; }
   .media-grid > .feature-card:nth-child(2).reveal { transition-delay: .08s; }
@@ -556,6 +557,7 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <progress id="readingProgress" max="100" value="0" aria-label="Page scroll progress"></progress>
+<canvas id="interactionCanvas" aria-hidden="true"></canvas>
 
 <header class="site-header" id="siteHeader">
   <div class="bar">
@@ -636,6 +638,133 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var main = $('#main');
+
+  function initHalftoneRipple() {
+    if (reduceMotion) return;
+
+    var canvas = $('#interactionCanvas');
+    var context = canvas.getContext('2d');
+    if (!context) {
+      canvas.remove();
+      return;
+    }
+
+    var spacing = 14;
+    var duration = 1050;
+    var ripples = [];
+    var lastPulseAt = 0;
+    var lastPulseX = 0;
+    var lastPulseY = 0;
+    var activeTouchId = null;
+    var frame = 0;
+    var pixelRatio = 1;
+
+    function resize() {
+      pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = Math.round(window.innerWidth * pixelRatio);
+      canvas.height = Math.round(window.innerHeight * pixelRatio);
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    }
+
+    function scheduleDraw() {
+      if (!frame) frame = window.requestAnimationFrame(draw);
+    }
+
+    function addRipple(x, y, now, force) {
+      if (!force && lastPulseAt && (now - lastPulseAt < 110 || Math.hypot(x - lastPulseX, y - lastPulseY) < 8)) return;
+
+      ripples.push({ x: x, y: y, startedAt: now });
+      if (ripples.length > 4) ripples.shift();
+      lastPulseAt = now;
+      lastPulseX = x;
+      lastPulseY = y;
+      scheduleDraw();
+    }
+
+    function draw(now) {
+      frame = 0;
+      context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      ripples = ripples.filter(function (ripple) { return now - ripple.startedAt < duration; });
+
+      ripples.forEach(function (ripple) {
+        var progress = Math.max(0, (now - ripple.startedAt) / duration);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        var radius = eased * 230;
+        var remaining = 1 - progress;
+        var gradient = context.createRadialGradient(ripple.x, ripple.y, 0, ripple.x, ripple.y, 230);
+        gradient.addColorStop(0, 'rgba(0, 180, 255, ' + (remaining * 0.11) + ')');
+        gradient.addColorStop(0.55, 'rgba(0, 110, 255, ' + (remaining * 0.045) + ')');
+        gradient.addColorStop(1, 'rgba(0, 90, 255, 0)');
+        context.fillStyle = gradient;
+        context.beginPath();
+        context.arc(ripple.x, ripple.y, 230, 0, Math.PI * 2);
+        context.fill();
+
+        var bounds = radius + 34;
+        var minX = Math.max(0, Math.floor((ripple.x - bounds) / spacing) * spacing);
+        var maxX = Math.min(window.innerWidth, ripple.x + bounds);
+        var minY = Math.max(0, Math.floor((ripple.y - bounds) / spacing) * spacing);
+        var maxY = Math.min(window.innerHeight, ripple.y + bounds);
+        var buckets = [[], [], [], [], [], []];
+
+        for (var y = minY; y <= maxY; y += spacing) {
+          for (var x = minX; x <= maxX; x += spacing) {
+            var distance = Math.hypot(x - ripple.x, y - ripple.y);
+            var ring = Math.exp(-Math.pow((distance - radius) / 17, 2) * 0.5) * remaining * 0.38;
+            var core = Math.exp(-distance / 95) * remaining * 0.11;
+            var strength = Math.min(0.48, ring + core);
+            if (strength > 0.035) buckets[Math.min(5, Math.floor(strength * 12))].push([x, y]);
+          }
+        }
+
+        context.fillStyle = '#00b4ff';
+        context.shadowColor = 'rgba(0, 180, 255, 0.35)';
+        context.shadowBlur = 7;
+        buckets.forEach(function (dots, index) {
+          if (!dots.length) return;
+          context.globalAlpha = (index + 1) * 0.065;
+          context.beginPath();
+          dots.forEach(function (dot) {
+            context.moveTo(dot[0] + 0.7 + index * 0.2, dot[1]);
+            context.arc(dot[0], dot[1], 0.7 + index * 0.2, 0, Math.PI * 2);
+          });
+          context.fill();
+        });
+        context.shadowBlur = 0;
+        context.globalAlpha = 1;
+      });
+
+      if (ripples.length) scheduleDraw();
+    }
+
+    function onPointerMove(event) {
+      if (event.pointerType === 'touch') {
+        if (event.pointerId !== activeTouchId) return;
+      } else if (event.pointerType !== 'mouse' && event.pointerType !== 'pen') {
+        return;
+      }
+      addRipple(event.clientX, event.clientY, performance.now(), false);
+    }
+
+    function onPointerDown(event) {
+      if (event.pointerType !== 'touch') return;
+      activeTouchId = event.pointerId;
+      addRipple(event.clientX, event.clientY, performance.now(), true);
+    }
+
+    function onPointerEnd(event) {
+      if (event.pointerId === activeTouchId) activeTouchId = null;
+    }
+
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+    document.addEventListener('pointermove', onPointerMove, { passive: true });
+    document.addEventListener('pointerdown', onPointerDown, { passive: true });
+    document.addEventListener('pointerup', onPointerEnd, { passive: true });
+    document.addEventListener('pointercancel', onPointerEnd, { passive: true });
+  }
+
+  initHalftoneRipple();
 
   function editorialArt(variant) {
     var artwork = {

@@ -1,6 +1,7 @@
 # FixerCtrl website
 
 This repository contains the FixerCtrl public website, built as a static HTML page with its images in `assets/`.
+The site includes a pointer-reactive cyan halftone ripple for mouse and touch input; it is disabled when reduced motion is preferred.
 
 ## Publish with GitHub Pages
 
