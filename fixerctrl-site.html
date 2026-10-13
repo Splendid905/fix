@@ -785,9 +785,8 @@
   }
 
   function pageBanner(label, title, lead, artSrc) {
-    var art = artSrc
-      ? '<div class="page-banner-art has-image" aria-hidden="true"><img src="' + artSrc + '" alt="' + title + '"></div>'
-      : '<div class="page-banner-art" aria-hidden="true"></div>';
+    var bannerImage = artSrc || 'assets/outside.jpg';
+    var art = '<div class="page-banner-art has-image" aria-hidden="true"><img src="' + bannerImage + '" alt="' + title + '"></div>';
     return '<header class="page-banner">' +
       art +
       '<div class="page-banner-copy">' +
