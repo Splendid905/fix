@@ -381,6 +381,19 @@
   .post-row.has-thumb { display: grid; grid-template-columns: minmax(9rem, .38fr) 1fr; align-items: center; gap: 1.25rem; }
   .post-thumb { aspect-ratio: 4 / 3; overflow: hidden; border: 1px solid var(--line); background: var(--surface); }
   .post-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 20% center; }
+  .post-thumb.is-placeholder {
+    display: grid;
+    place-items: center;
+    background:
+      linear-gradient(135deg, rgba(0,180,255,0.08), transparent 58%),
+      repeating-linear-gradient(135deg, rgba(242,242,242,0.04) 0 1px, transparent 1px 12px),
+      #101010;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: .75rem;
+    text-transform: uppercase;
+  }
+  .post-thumb.is-placeholder::before { content: "Image placeholder"; }
   .post-copy { min-width: 0; }
   .post-row + .post-row { margin-top: 1rem; }
   .post-row h2, .post-row h3 { font-size: 1.4rem; margin: 0 0 .35rem; }
@@ -757,10 +770,14 @@
   function strip(html) { return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); }
   function mins(html) { return Math.max(1, Math.ceil(strip(html).split(' ').length / 200)); }
   function tagList(tags) { return '<ul class="tags" aria-label="Tags">' + tags.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>'; }
-  function postRow(p, level, withThumbnail) {
+  function postRow(p, level, withThumbnail, placeholderThumbnail) {
     level = level || 'h3';
-    return '<article class="post-row' + (withThumbnail ? ' has-thumb' : '') + '">' +
-      (withThumbnail ? '<div class="post-thumb"><img src="assets/fixerctrl-kasi-banner.jpg" alt="Illustrated cybersecurity study scene in a South African neighborhood" loading="lazy" width="1584" height="672"></div>' : '') +
+    var hasThumbnail = withThumbnail || placeholderThumbnail;
+    var thumbnail = placeholderThumbnail
+      ? '<div class="post-thumb is-placeholder" role="img" aria-label="Image placeholder for ' + p.title + '"></div>'
+      : (withThumbnail ? '<div class="post-thumb"><img src="assets/fixerctrl-kasi-banner.jpg" alt="Illustrated cybersecurity study scene in a South African neighborhood" loading="lazy" width="1584" height="672"></div>' : '');
+    return '<article class="post-row' + (hasThumbnail ? ' has-thumb' : '') + '">' +
+      thumbnail +
       '<div class="post-copy">' +
       '<' + level + '><a href="#/blog/' + p.slug + '">' + p.title + '</a></' + level + '>' +
       '<p class="meta"><time datetime="' + p.date + '">' + fmtDate(p.date) + '</time><span>' + mins(p.body) + ' min read</span></p>' +
@@ -1042,7 +1059,7 @@
         function paint() {
           var list = filtered();
           $('#postList').innerHTML = list.length
-            ? list.map(function (p) { return postRow(p, 'h2'); }).join('')
+            ? list.map(function (p) { return postRow(p, 'h2', false, true); }).join('')
             : '<p class="empty">No posts match that search. <button class="linkbtn" type="button" id="clearFilters">Clear the search and filter</button></p>';
           $('#postCount').textContent = list.length + (list.length === 1 ? ' post' : ' posts');
           var c = $('#clearFilters');
