@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>FixerCtrl | Cybersecurity and development</title>
-<meta name="description" content="FixerCtrl: a young South African IT student sharing practical cybersecurity, systems and software work.">
+<title>FixerCtrl | IT Support, Web &amp; Security</title>
+<meta name="description" content="Practical IT support, web development and security-focused help for individuals and small businesses in South Africa.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Permanent+Marker&family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
@@ -565,7 +565,7 @@
         <li><a href="#/podcast" data-nav="podcast">Podcast</a></li>
         <li><a href="#/blog" data-nav="blog">Writeups</a></li>
         <li><a href="#/about" data-nav="about">About</a></li>
-        <li><a href="#/freelancer" data-nav="freelancer">Freelance</a></li>
+        <li><a href="#/freelancer" data-nav="freelancer">Services</a></li>
         <li><a href="#/contact" data-nav="contact">Contact</a></li>
       </ul>
     </nav>
@@ -586,7 +586,7 @@
   <div class="wrap footer-main">
     <div class="footer-brand">
       <a class="footer-home" href="#/" aria-label="FixerCtrl home"><img src="assets/fixerctrl-logo.png" alt="FixerCtrl"></a>
-      <p>Cybersecurity, systems and software—learned hands-on and shared openly.</p>
+      <p>Practical IT support and web development, with security built into the details.</p>
     </div>
     <nav class="footer-nav" aria-label="Footer navigation">
       <h2>Explore</h2>
@@ -594,7 +594,7 @@
         <li><a href="#/">Home</a></li>
         <li><a href="#/about">About</a></li>
         <li><a href="#/projects">All projects</a></li>
-        <li><a href="#/freelancer">Freelance</a></li>
+        <li><a href="#/freelancer">Services</a></li>
         <li><a href="#/blog">Writeups</a></li>
         <li><a href="#/podcast">Podcast</a></li>
         <li><a href="#/contact">Contact</a></li>
@@ -681,9 +681,9 @@
       title: 'The OSI model is also a map of attacks',
       date: '2026-09-18',
       tags: ['Networking', 'Security'],
-      summary: 'Each network layer has its own typical attacks and its own defences. This is the map I use while studying for Network+.',
+      summary: 'A practical reference to common network-layer attacks and the controls that help defend against them.',
       body: '' +
-        '<p>When I started the networking chapters for Network+, the OSI model felt like a list to memorise. It clicked when I paired each layer with the way it gets attacked and the control that stops that attack. Now the seven layers double as a checklist for where to look when something goes wrong.</p>' +
+        '<p>The OSI model is more than a list of layers. Pairing each layer with common attack patterns and relevant controls makes it a useful starting point for troubleshooting and security reviews.</p>' +
         '<div class="table-wrap"><table>' +
         '<thead><tr><th>Layer</th><th>What it does</th><th>Typical attack</th><th>A defence that fits</th></tr></thead><tbody>' +
         '<tr><td>7 Application</td><td>Where apps and users meet the network</td><td>SQL injection, cross-site scripting</td><td>Input validation, patching, a web application firewall</td></tr>' +
@@ -697,8 +697,8 @@
         '<h2>Why the layers matter</h2>' +
         '<p>A fix at one layer rarely covers another. A firewall tuned for layer 4 will not stop SQL injection, and a well-written web application will not help if someone can plug a rogue switch into an open wall port.</p>' +
         '<h2>How I use it</h2>' +
-        '<p>When I read about a breach, I ask two questions: which layer did the attacker actually work at, and which layer\'s control failed? Often the answer is not the layer that makes the headlines.</p>' +
-        '<p>A study tip that helped: quiz yourself in both directions. Go from an attack to its layer, then from a layer to the attacks that live there.</p>'
+        '<p>When analyzing an incident, identify the layer where the activity occurred and the control that failed. The technical cause is not always the layer emphasized in the headline.</p>' +
+        '<p>For review, work in both directions: map an attack to its layer, then identify the attack patterns associated with each layer.</p>'
     },
     {
       slug: 'linux-distribution-families',
@@ -719,8 +719,8 @@
         '<pre><code># Debian family\nsudo apt update\nsudo apt upgrade\n\n# Red Hat family\nsudo dnf upgrade</code></pre>' +
         '<h2>Why this matters for security</h2>' +
         '<p>Patching is the first line of defence, and the tool you patch with depends on the family. Default hardening differs too: Red Hat family systems ship with SELinux enforcing, while Ubuntu leans on AppArmor. Knowing which one you are looking at tells you where to look when a service is blocked, or when an attack has been contained.</p>' +
-        '<h2>Where the certifications fit</h2>' +
-        '<p>RHCSA and RHCE are built around the Red Hat family. CompTIA Linux+ is vendor neutral and touches both. Kali is where a lot of penetration testing happens and Red Hat systems are common in enterprises, so I am learning both dialects.</p>'
+        '<h2>Why distribution families matter</h2>' +
+        '<p>Package managers, default security controls, and service locations vary between distributions. Recognizing those differences helps with patching, troubleshooting, and reviewing mixed Linux environments.</p>'
     },
     {
       slug: 'seven-jobs-of-an-os',
@@ -740,26 +740,26 @@
         '<li><strong>The user interface</strong>, mostly the shell on a server. Command injection through unsanitised input is the main risk.</li>' +
         '</ul>' +
         '<h2>Turning the list into a habit</h2>' +
-        '<p>For any Linux system I walk the list and ask what I would check at each step. On Linux the answers mostly start at the command line, which is why the shell and filesystem chapters come before the desktop ones in my study plan.</p>' +
+        '<p>Use the list as a starting point for a Linux review. The command line and filesystem often expose the information needed to understand processes, permissions, services, and listening ports.</p>' +
         '<pre><code>ps aux                          # what is running, and as whom\nls -l /etc/passwd /etc/shadow   # who can read the sensitive files\nss -tulpn                       # which ports are listening\nfind / -perm -4000 2>/dev/null  # setuid programs to review</code></pre>' +
         '<p>Only run checks like these on machines you own or have permission to audit.</p>'
     },
     {
       slug: 'how-i-study',
-      title: 'How I study: analogy, attack, practice',
+      title: 'A practical framework for clear technical writeups',
       date: '2026-08-28',
-      tags: ['Study'],
-      summary: 'The three-step pattern behind my Network+ and Linux notes, and why I order chapters by career relevance instead of page number.',
+      tags: ['Security', 'Method'],
+      summary: 'A repeatable structure for technical notes: explain a concept, connect it to real risks and controls, then validate it with examples or hands-on checks.',
       body: '' +
-        '<p>My goal is to be useful in a real security role, not only to pass an exam. So every set of notes I write follows the same three steps.</p>' +
-        '<h2>Start with an analogy</h2>' +
-        '<p>Abstract ideas stick when they are attached to something familiar. A firewall becomes a building\'s front desk; a routing table becomes a set of road signs. If I cannot explain a concept with an analogy, I do not understand it well enough yet.</p>' +
-        '<h2>Attach a real attack or defence</h2>' +
-        '<p>Next I connect the concept to something that has actually gone wrong, or to the control that prevents it. This is what turns a definition into something I can use when reading about a breach or looking at a system.</p>' +
-        '<h2>Finish with practice</h2>' +
-        '<p>Each part ends with practice questions, including a few scenario-style ones where there is no menu of answers to pick from, and a hands-on lab where the topic allows it. Reading alone gives me a false sense of progress; questions and terminals do not.</p>' +
-        '<h2>Order by relevance, not page number</h2>' +
-        '<p>A book\'s chapter order is not my career\'s order. Command-line and filesystem chapters come first for me, and the desktop chapters can wait. Notes are released one part at a time so I do not skim ahead.</p>'
+        '<p>Effective technical documentation should move from concept to practical application. This structure makes notes easier to scan, verify, and reuse.</p>' +
+        '<h2>Define the concept</h2>' +
+        '<p>Start with a precise explanation, then use a familiar comparison only where it makes the mechanism clearer.</p>' +
+        '<h2>Connect risk to control</h2>' +
+        '<p>Describe the system behavior, the relevant failure or attack pattern, and the control that mitigates it. Distinguish established guidance from assumptions or examples.</p>' +
+        '<h2>Verify with examples</h2>' +
+        '<p>Use scenarios, commands, or a lab to check how the concept works. Include prerequisites and permission boundaries for any security exercise.</p>' +
+        '<h2>Organize by operational relevance</h2>' +
+        '<p>Lead with the tasks a reader needs most, use headings and concise examples, and link to reliable references so the notes can be checked and updated.</p>'
     }
   ];
 
@@ -793,7 +793,7 @@
     level = level || 'h2';
     return '<article class="project">' +
       '<div class="project-head"><' + level + '>Neuroband Intelligence Hub</' + level + '><p class="status live">Live</p></div>' +
-      '<p>A full-stack web app I built with my group, Insight Consulting, for a competitive intelligence assignment. It keeps the whole research effort in one place: an intelligence taxonomy, an editable collection plan, a source repository with file uploads and filters, team task tracking, and an append-only activity log.</p>' +
+      '<p>A team-built research collaboration platform developed with Insight Consulting. It brings research into one place with a taxonomy, editable collection plans, a file-enabled source library, team task tracking, and an activity history.</p>' +
       '<dl class="facts">' +
       '<div><dt>Stack</dt><dd>HTML, CSS and vanilla JavaScript, Supabase (PostgreSQL, Auth, Storage), GitHub Pages</dd></div>' +
       '<div><dt>Role</dt><dd>Design and development</dd></div>' +
@@ -822,8 +822,8 @@
         '<section class="hero">' +
           '<div class="hero-figure">' + fixerBannerArt() + '</div>' +
           '<div class="hero-copy">' +
-            '<h1>Build for the web. Learn to defend it.</h1>' +
-            '<p class="lead">I\'m a young South African IT student building responsive web projects while developing cybersecurity skills. I learn by creating, testing ethically, and sharing what I discover—with a practical, people-first perspective.</p>' +
+            '<h1>Practical IT support. Secure web solutions.</h1>' +
+            '<p class="lead">I help individuals and small businesses troubleshoot everyday technology issues, improve their websites, and strengthen day-to-day security—with clear communication and practical fixes.</p>' +
             '<div class="actions"><a class="btn" href="#/projects">Explore my projects</a><a class="btn ghost" href="#/freelancer">Freelance services</a></div>' +
             socialIconLinks(false, 'Social media') +
             '<blockquote class="hero-quote"><p>“Every Day Go Evolve” <cite>— EDGE</cite></p></blockquote>' +
@@ -831,23 +831,23 @@
         '</section>' +
 
         '<section class="block" aria-labelledby="approach-h">' +
-          '<div class="block-head"><h2 id="approach-h">How I move in cyber</h2><span class="section-label">No shortcuts. No harm.</span></div>' +
+          '<div class="block-head"><h2 id="approach-h">How I work</h2><span class="section-label">Clear scope. Practical fixes.</span></div>' +
           '<div class="media-grid">' +
-            '<article class="feature-card"><span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6l8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg></span><span class="tag">01 / Ethics</span><h3>Permission first</h3><p>Security practice belongs in a lab or an environment where I have clear permission. Curiosity should protect people, not put them at risk.</p></article>' +
-            '<article class="feature-card"><span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3h8M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M8 15h8M9.5 12.5h5"/></svg></span><span class="tag">02 / Craft</span><h3>Learn it. Lab it.</h3><p>Networking, Linux and code become real through patient study, hands-on practice, notes and repeatable checks.</p></article>' +
-            '<article class="feature-card"><span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5A5.5 5.5 0 0 1 9 13h1a5.5 5.5 0 0 1 5.5 5.5V20M16 5.5a3 3 0 0 1 0 5.8M18 13a4.5 4.5 0 0 1 3 4.2V20"/></svg></span><span class="tag">03 / Purpose</span><h3>Build for people</h3><p>My background keeps my focus on useful, accessible technology and security that makes sense beyond the server room.</p></article>' +
+            '<article class="feature-card"><span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6l8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg></span><span class="tag">01 / Scope</span><h3>Permission first</h3><p>Before any system change or security check, I confirm the issue and get clear authorization.</p></article>' +
+            '<article class="feature-card"><span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3h8M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M8 15h8M9.5 12.5h5"/></svg></span><span class="tag">02 / Process</span><h3>Diagnose and test</h3><p>I work through the cause, apply an agreed fix, and check the result instead of guessing.</p></article>' +
+            '<article class="feature-card"><span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5A5.5 5.5 0 0 1 9 13h1a5.5 5.5 0 0 1 5.5 5.5V20M16 5.5a3 3 0 0 0 0 5.8M18 13a4.5 4.5 0 0 1 3 4.2V20"/></svg></span><span class="tag">03 / Handover</span><h3>Clear next steps</h3><p>You get a plain-language explanation of the work and any practical follow-up.</p></article>' +
           '</div>' +
         '</section>' +
 
         '<section class="block" aria-labelledby="podcast-h">' +
-          '<div class="block-head"><h2 id="podcast-h">Podcast & technical notes</h2><a class="btn ghost" href="' + CONFIG.podcast + '" target="_blank" rel="noopener">Listen in</a></div>' +
+          '<div class="block-head"><h2 id="podcast-h">Recommended listening &amp; technical notes</h2><a class="btn ghost" href="' + CONFIG.podcast + '" target="_blank" rel="noopener">Darknet Diaries</a></div>' +
           '<div class="podcast-panel">' +
             '<div class="podcast-highlight">' + editorialArt('podcast') + '</div>' +
             '<div class="podcast-copy">' +
               '<span class="tag">Featured</span>' +
               '<h3>Thoughtful conversations on cybersecurity, systems, and the tech behind the work.</h3>' +
-              '<p>I use blogs and podcast-style discussions to break down technical concepts, share study notes, and connect what I learn to real-world systems and security practice.</p>' +
-              '<div class="actions"><a class="btn" href="#/blog">Browse blog notes</a><a class="btn ghost" href="' + CONFIG.podcast + '" target="_blank" rel="noopener">Podcast inspiration</a></div>' +
+              '<p>I share concise technical writeups and discussions on cybersecurity, systems and web development, informed by practical projects and careful research.</p>' +
+              '<div class="actions"><a class="btn" href="#/blog">Browse technical writeups</a><a class="btn ghost" href="#/projects">View project work</a></div>' +
             '</div>' +
           '</div>' +
         '</section>' +
@@ -867,30 +867,13 @@
 
   function podcast() {
     return {
-      title: 'Podcast',
+      title: 'Podcast recommendation',
       html:
-        pageBanner('Latest drop', 'FixerCtrl Podcast', 'Practical conversations on security, systems, and the messy realities of building with technology.', 'assets/image.png') +
+        pageBanner('Recommended listening', 'Darknet Diaries', 'A podcast exploring real-world stories about hacking, cybercrime, and security.', 'assets/image.png') +
         '<section class="episode-card">' +
-          '<div class="episode-top">' +
-            '<div class="episode-art">' + editorialArt('episode') + '</div>' +
-            '<div>' +
-              '<div class="episode-number">Episode 07</div>' +
-              '<h2>Signals, systems, and the work behind the breach</h2>' +
-              '<div class="episode-meta">May 12, 2026 • 38 min • Cybersecurity • Systems thinking</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="podcast-player"><audio controls preload="none"><source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg"></audio></div>' +
           '<div class="transcript">' +
-            '<p><code>&gt; latest_episode</code> on the current signal: how attackers target weak assumptions, and why strong systems come from boring fundamentals.</p>' +
-            '<p>We look at how detection, response, and operational discipline fit together in a realistic environment, then break down a few patterns that show up again and again in real security incidents.</p>' +
-          '</div>' +
-        '</section>' +
-        '<section class="block" aria-labelledby="episodes-list">' +
-          '<div class="block-head"><h2 id="episodes-list">Recent episodes</h2></div>' +
-          '<div class="media-grid">' +
-            '<article class="feature-card"><span class="episode-number">EP 06</span><h3>Linux forensics without the theatre</h3><p>What to look at first when a host starts acting like it has been touched.</p><div class="episode-meta">Apr 28, 2026</div></article>' +
-            '<article class="feature-card"><span class="episode-number">EP 05</span><h3>Zero trust isn’t a slogan</h3><p>Where the policy stops and the actual architecture begins.</p><div class="episode-meta">Apr 04, 2026</div></article>' +
-            '<article class="feature-card"><span class="episode-number">EP 04</span><h3>Build the habit, not the hero story</h3><p>On studying, documenting, and practicing like a systems engineer.</p><div class="episode-meta">Mar 22, 2026</div></article>' +
+            '<p>Darknet Diaries is an external podcast. This page recommends the show as a resource; episodes are published and hosted by Darknet Diaries, not FixerCtrl.</p>' +
+            '<div class="actions"><a class="btn" href="' + CONFIG.podcast + '" target="_blank" rel="noopener noreferrer">Visit Darknet Diaries</a><a class="btn ghost" href="#/blog">Read technical writeups</a></div>' +
           '</div>' +
         '</section>'
     };
@@ -900,23 +883,17 @@
     return {
       title: 'About',
       html:
-        pageBanner('South African / Grounded perspective', 'About me', 'I\'m a young South African IT student working toward a career in cybersecurity and software development.') +
+        pageBanner('IT / Web / Security', 'About FixerCtrl', 'Practical IT support and web development for individuals and small businesses, with security built into the way I work.') +
         '<div class="prose">' +
-          '<p>I like understanding systems well enough to build them, test them responsibly, and see where they can fail. I study networking and Linux alongside web development, and let security shape the decisions I make in my own projects.</p>' +
-          '<p>My background shapes my perspective, not the limits of where I can go. It keeps me interested in practical technology: tools that are understandable, useful and made with real people in mind. I want to bring that perspective into the cybersecurity profession.</p>' +
-          '<p>My aim is real-world competence, not just passing exams. Certifications give me structure, but I judge my progress by whether I can explain a concept, spot how it gets attacked, and use it at a terminal.</p>' +
-          '<h2>How I learn</h2>' +
-          '<h3>Analogy first</h3><p>If I can compare an idea to something familiar, I can hold on to it. Every set of notes I write starts there.</p>' +
-          '<h3>Then the attack</h3><p>I attach each concept to a real attack or a real defence, so it is more than a definition.</p>' +
-          '<h3>Then practice</h3><p>Practice questions and hands-on labs close every part. I have written more about this in <a href="#/blog/how-i-study">How I study</a>.</p>' +
-          '<h2>Where I\'m headed</h2>' +
-          '<ul>' +
-            '<li><strong>Now:</strong> finish CompTIA Network+ and keep working through the Linux Bible.</li>' +
-            '<li><strong>Next:</strong> a Linux certification, either RHCSA/RHCE or CompTIA Linux+.</li>' +
-            '<li><strong>Longer term:</strong> a career in cybersecurity, with penetration testing as an area that draws me, while continuing to build software.</li>' +
-          '</ul>' +
+          '<p>I help individuals and small businesses troubleshoot everyday technology problems, improve websites, and strengthen security basics. I start by understanding the issue, confirming the scope, and explaining practical options before work begins.</p>' +
+          '<p>My project work includes responsive websites, JavaScript features, GitHub Pages deployment, and team collaboration tools. I focus on useful results: clear interfaces, tested changes, and straightforward handover.</p>' +
+          '<p>Cybersecurity support stays within agreed, authorized scope. I can help with day-to-day security practices and configuration; any testing or access to systems requires explicit permission.</p>' +
+          '<h2>How I work</h2>' +
+          '<h3>Understand the issue</h3><p>I ask the right questions, identify the goal, and confirm what is in scope before making changes.</p>' +
+          '<h3>Apply and verify a fix</h3><p>I work through the agreed solution, check that it addresses the problem, and flag anything that needs a specialist.</p>' +
+          '<h3>Explain the result</h3><p>You get a clear summary of what changed, what to expect, and any useful next steps.</p>' +
           '<h2>Beyond the code</h2>' +
-          '<p>I also work on Mini Circles, a multimedia platform that shares knowledge through video, social media and a website.</p>' +
+          '<p>I also contribute to Mini Circles, a multimedia knowledge-sharing project spanning video, social media, and a website.</p>' +
           '<div class="actions"><a class="btn" href="#/projects">See what I\'ve built</a><a class="btn ghost" href="#/contact">Get in touch</a></div>' +
         '</div>'
     };
@@ -926,7 +903,7 @@
     return {
       title: 'Projects',
       html:
-        pageBanner('', 'Projects', 'Things I\'ve built and the study work behind them.') +
+        pageBanner('', 'Projects', 'Selected web, systems, and collaboration projects with clear details on scope and my contribution.') +
         projectNeuro('h2') +
         '<article class="project">' +
           '<div class="project-head"><h2>Mini Circles</h2><p class="status">Ongoing</p></div>' +
@@ -934,8 +911,8 @@
           '<dl class="facts"><div><dt>Focus</dt><dd>Video-first knowledge sharing, branding, web presence</dd></div></dl>' +
         '</article>' +
         '<article class="project">' +
-          '<div class="project-head"><h2>War Room study notes</h2><p class="status">In progress</p></div>' +
-          '<p>A chapter-by-chapter series of study notes for CompTIA Network+ and the Linux Bible. Each part explains a concept with an analogy, connects it to a real attack or defence, and ends with practice questions and, where it fits, a hands-on lab.</p>' +
+          '<div class="project-head"><h2>War Room technical writeups</h2><p class="status">Ongoing</p></div>' +
+          '<p>A practical series covering networking, Linux, and security fundamentals. Each writeup explains a concept, connects it to real attack and defence patterns, and includes checks or hands-on exercises where appropriate.</p>' +
           '<dl class="facts"><div><dt>Format</dt><dd>Markdown notes, released one part at a time</dd></div><div><dt>Topics</dt><dd>Networking, Linux, security</dd></div></dl>' +
           '<div class="actions"><a class="btn ghost" href="#/blog">Read related posts</a></div>' +
         '</article>'
@@ -946,55 +923,46 @@
     return {
       title: 'Skills',
       html:
-        pageBanner('', 'Skills and study path', 'What I use today, what I\'m learning, and the certifications I\'m working toward.') +
+        pageBanner('', 'Technical capabilities', 'Practical capabilities across IT support, web development, and security-focused setup.') +
         '<div class="cols">' +
-          '<div><h3>Building things</h3><p class="sub">Using in projects</p><ul class="plain">' +
+          '<div><h3>Web development</h3><p class="sub">Applied in projects</p><ul class="plain">' +
             '<li>HTML, CSS and JavaScript</li><li>PostgreSQL with Supabase, including auth and file storage</li><li>Git and GitHub</li><li>Deploying with GitHub Pages</li></ul></div>' +
-          '<div><h3>Systems and networking</h3><p class="sub">Studying now</p><ul class="plain">' +
-            '<li>Linux command line and shell</li><li>Network topologies, protocols and frame types</li><li>Linux distribution families and package managers</li></ul></div>' +
-          '<div><h3>Security</h3><p class="sub">Studying now</p><ul class="plain">' +
-            '<li>Linking concepts to real attacks and defences</li><li>Penetration testing basics</li><li>Access control and audit logging in my own projects</li></ul></div>' +
-        '</div>' +
-        '<section class="block" style="margin-top:3rem" aria-labelledby="road-h">' +
-          '<h2 id="road-h">Study path</h2>' +
-          '<ol class="roadmap">' +
-            '<li class="active"><h3>CompTIA Network+</h3><p class="st">In progress</p><p>Working through the exam objectives chapter by chapter, with security connected to every major concept.</p></li>' +
-            '<li class="active"><h3>Linux fundamentals</h3><p class="st">In progress</p><p>Reading the Linux Bible with hands-on terminal practice, starting with the shell and filesystem.</p></li>' +
-            '<li><h3>A Linux certification</h3><p class="st">Planned</p><p>Choosing between Red Hat\'s RHCSA/RHCE and CompTIA Linux+.</p></li>' +
-          '</ol>' +
-        '</section>'
+          '<div><h3>IT systems and networks</h3><p class="sub">Troubleshooting foundations</p><ul class="plain">' +
+            '<li>Linux command line and basic system administration</li><li>Device, software, and account setup</li><li>Network connectivity and common protocol fundamentals</li></ul></div>' +
+          '<div><h3>Security basics</h3><p class="sub">Safe, scoped support</p><ul class="plain">' +
+            '<li>Account protection and access control</li><li>Updates, backups, and safer configuration</li><li>Security checks only with explicit permission and agreed scope</li></ul></div>' +
+        '</div>'
     };
   }
 
   function freelancer() {
     return {
-      title: 'Freelance services',
+      title: 'IT & Web Support',
       html:
-        pageBanner('Freelance / Web services', 'Freelance services', 'Practical, people-focused web help for individuals and small organisations. Browse the services and skills I can bring to your project.') +
-        '<section aria-label="Freelance services">' +
+        pageBanner('IT support / Web / Security', 'IT &amp; Web Support', 'Practical troubleshooting, security setup, and web solutions for individuals and small businesses.') +
+        '<section aria-label="IT and web services">' +
           '<div class="media-grid">' +
-            '<article class="feature-card"><span class="tag">01 / Web</span><h3>Small websites</h3><p>Responsive landing pages, portfolios, and simple informational websites built with HTML, CSS, and JavaScript.</p><p class="status">From R1,500</p></article>' +
-            '<article class="feature-card"><span class="tag">02 / Updates</span><h3>Website improvements</h3><p>Content and layout updates, responsive fixes, and visual refinements to help an existing site feel clearer and work better across screen sizes.</p><p class="status">R250 / hour</p></article>' +
-            '<article class="feature-card"><span class="tag">03 / Setup</span><h3>Project setup and integrations</h3><p>Help with Git and GitHub workflows, GitHub Pages deployment, or straightforward Supabase and PostgreSQL features for a small web project.</p><p class="status">From R500</p></article>' +
+            '<article class="feature-card"><span class="tag">01 / IT support</span><h3>Everyday troubleshooting</h3><p>Diagnosis and practical help for common device, software, account, and connectivity issues. Clear options for individuals and small teams.</p><p class="status">Quoted to scope</p></article>' +
+            '<article class="feature-card"><span class="tag">02 / Security</span><h3>Security setup and hygiene</h3><p>Help with account protection, device updates, backups, and safer configuration. Any security testing must be explicitly authorized and agreed in writing.</p><p class="status">Quoted after review</p></article>' +
+            '<article class="feature-card"><span class="tag">03 / Web</span><h3>Websites and fixes</h3><p>Responsive websites, layout and content updates, bug fixes, GitHub Pages deployment, and straightforward integrations for small organizations.</p><p class="status">From R1,500</p></article>' +
           '</div>' +
         '</section>' +
         '<section class="block" aria-labelledby="freelance-skills">' +
-          '<div class="block-head"><h2 id="freelance-skills">Skills I bring</h2></div>' +
+          '<div class="block-head"><h2 id="freelance-skills">Technical capabilities</h2></div>' +
           '<div class="cols">' +
-            '<div><h3>Front end</h3><ul class="plain"><li>HTML and semantic page structure</li><li>CSS and responsive layouts</li><li>JavaScript for interactive features</li></ul></div>' +
-            '<div><h3>Project tools</h3><ul class="plain"><li>Git and GitHub</li><li>GitHub Pages deployment</li><li>Supabase and PostgreSQL fundamentals</li></ul></div>' +
-            '<div><h3>How I work</h3><ul class="plain"><li>Agree on scope before starting</li><li>Share progress and communicate clearly</li><li>Focus on usable, accessible results</li></ul></div>' +
+            '<div><h3>Web development</h3><ul class="plain"><li>HTML and semantic page structure</li><li>CSS and responsive layouts</li><li>JavaScript for interactive features</li></ul></div>' +
+            '<div><h3>Tools and deployment</h3><ul class="plain"><li>Git and GitHub</li><li>GitHub Pages deployment</li><li>Supabase and PostgreSQL fundamentals</li></ul></div>' +
+            '<div><h3>Support approach</h3><ul class="plain"><li>Agree on scope before starting</li><li>Share progress and communicate clearly</li><li>Focus on usable, accessible results</li></ul></div>' +
           '</div>' +
-          '<p class="note" style="margin-top:1.5rem">Student starter rates in South African rand (ZAR). These are guide prices; I’ll confirm the scope, timeline, and total price with you before work begins.</p>' +
+          '<p class="note" style="margin-top:1.5rem">Every quote confirms the scope, timeline, and total price before work begins.</p>' +
           '<div class="actions"><a class="btn" href="#/contact">Discuss a project</a><a class="btn ghost" href="#/projects">See my projects</a></div>' +
         '</section>' +
         '<section class="block" aria-labelledby="freelance-work">' +
           '<div class="block-head"><h2 id="freelance-work">Selected work</h2><a class="btn ghost" href="#/projects">All projects</a></div>' +
           '<div class="media-grid">' +
-            '<article class="feature-card"><span class="tag">Group project</span><h3>Neuroband Intelligence Hub</h3><p>A research collaboration app built for a competitive intelligence assignment, with a source repository, team task tracking, and activity log. My role included design and development.</p><a href="https://fixerctrl.github.io/Neuroband-Intelligence-Hub/" target="_blank" rel="noopener noreferrer">View the live app</a></article>' +
+            '<article class="feature-card"><span class="tag">Selected work</span><h3>Neuroband Intelligence Hub</h3><p>A team-built research collaboration app with a source library, task tracking, and activity history. I contributed to its design and development.</p><a href="https://fixerctrl.github.io/Neuroband-Intelligence-Hub/" target="_blank" rel="noopener noreferrer">View the live app</a></article>' +
             '<article class="feature-card"><span class="tag">Ongoing project</span><h3>Mini Circles</h3><p>A multimedia knowledge-sharing project spanning social media and a website. My contributions include web presence and branding.</p><a href="#/projects">More about my projects</a></article>' +
           '</div>' +
-          '<p class="note" style="margin-top:1rem">More project screenshots and detailed case studies can be added here as they’re ready to share.</p>' +
         '</section>' +
         '<section class="block" aria-labelledby="freelance-process">' +
           '<div class="block-head"><h2 id="freelance-process">How a project works</h2></div>' +
@@ -1006,8 +974,8 @@
           '</ol>' +
         '</section>' +
         '<section class="block" aria-labelledby="freelance-pricing">' +
-          '<div class="block-head"><h2 id="freelance-pricing">Student-friendly pricing (ZAR)</h2></div>' +
-          '<p class="lead">Guide rates for small, clearly scoped projects:</p>' +
+          '<div class="block-head"><h2 id="freelance-pricing">Pricing guide (ZAR)</h2></div>' +
+          '<p class="lead">Starting rates for scoped web work; IT and security support are quoted after review:</p>' +
           '<ul class="plain"><li><strong>One-page landing page:</strong> R1,500–R3,000</li><li><strong>Small multi-page website (up to 5 pages):</strong> R3,500–R7,500</li><li><strong>Website updates:</strong> R250 per hour</li><li><strong>Basic deployment or project setup:</strong> from R500</li><li><strong>Small feature or integration:</strong> from R800, quoted after review</li></ul>' +
           '<p class="note" style="margin-top:1rem">Final pricing depends on page count, content readiness, design needs, functionality, integrations, and timeline. Domain fees, paid hosting, subscriptions, and major content creation are not included. I’ll confirm deliverables and the total price before work starts.</p>' +
         '</section>' +
@@ -1021,10 +989,10 @@
           '</div>' +
         '</section>' +
         '<section class="block" aria-labelledby="freelance-next">' +
-          '<div class="block-head"><h2 id="freelance-next">More information</h2></div>' +
+          '<div class="block-head"><h2 id="freelance-next">What clients can expect</h2></div>' +
           '<div class="media-grid">' +
-            '<article class="feature-card"><span class="tag">Coming later</span><h3>Client feedback</h3><p>Genuine testimonials can be added here when available, with permission from the people who shared them.</p></article>' +
-            '<article class="feature-card"><span class="tag">To add</span><h3>CV / résumé</h3><p>A downloadable CV can be added here when the document is ready to share.</p></article>' +
+            '<article class="feature-card"><span class="tag">Clear scope</span><h3>Agreed work</h3><p>Scope, price, and timing are confirmed before work starts, so expectations are clear.</p></article>' +
+            '<article class="feature-card"><span class="tag">Clear handover</span><h3>Useful next steps</h3><p>You receive a plain-language summary of the work and any agreed follow-up.</p></article>' +
           '</div>' +
         '</section>'
     };
@@ -1036,9 +1004,9 @@
     var tags = ['All'];
     posts.forEach(function (p) { p.tags.forEach(function (t) { if (tags.indexOf(t) < 0) tags.push(t); }); });
     return {
-      title: 'Blog',
+      title: 'Writeups',
       html:
-        pageBanner('', 'Blog', 'Notes from what I\'m studying and building.', 'assets/outside.jpg') +
+        pageBanner('', 'Writeups', 'Practical notes on networking, Linux, cybersecurity, and technology fixes.', 'assets/outside.jpg') +
         '<div class="controls">' +
           '<div class="field search" style="margin:0"><label for="q">Search posts</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="q" type="search" value="' + blogState.q.replace(/"/g, '&quot;') + '" placeholder="Search here"></div></div>' +
           '<div class="filters" role="group" aria-label="Filter by topic">' +
@@ -1107,7 +1075,7 @@
     return {
       title: 'Contact',
       html:
-        pageBanner('', 'Get in touch', 'For freelance project enquiries, internships, junior roles, and collaboration on security or web projects, send me a message.') +
+        pageBanner('', 'Get in touch', 'For IT support, security setup, website work, or a project quote, send me a message.') +
         '<div class="contact-grid">' +
           '<div><h2>Find me online</h2>' + socialIconLinks(true, 'Social media and contact links') + '</div>' +
           '<div><h2>Send a message</h2>' +
@@ -1198,17 +1166,16 @@
   var PAGES = ['home', 'podcast', 'blog', 'about', 'projects', 'skills', 'freelancer', 'contact', 'terms'];
   var WHOAMI = [
     'fixerctrl',
-    'role      young South African IT student',
-    'perspective grounded and people-first',
-    'focus     ethical cybersecurity and development',
-    'studying  CompTIA Network+, Linux',
+    'role      South African IT and web support',
+    'focus     troubleshooting and security basics',
+    'method    scope, test, explain, hand over',
     'building  Neuroband Intelligence Hub, Mini Circles'
   ];
   var NOW = [
-    'studying   CompTIA Network+',
-    'reading    Linux Bible, 10th edition',
-    'building   Neuroband Intelligence Hub',
-    'next up    a Linux certification (RHCSA/RHCE or Linux+)'
+    'IT support: devices, software, accounts, network',
+    'web       responsive builds and site updates',
+    'security  account protection and safe setup',
+    'projects  Neuroband Hub, Mini Circles'
   ];
   var HELP = [
     'Commands:',
@@ -1349,7 +1316,7 @@
 
     main.innerHTML = '<div class="wrap">' + view.html + '</div>';
     initPageInteractions();
-    document.title = (view.title === 'Home' ? 'FixerCtrl | Cybersecurity and development' : view.title + ' | FixerCtrl');
+    document.title = (view.title === 'Home' ? 'FixerCtrl | IT Support, Web & Security' : view.title + ' | FixerCtrl');
     $$('.main-nav a').forEach(function (a) {
       if (a.dataset.nav === page) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
