@@ -331,7 +331,23 @@
     font: inherit; padding: .65rem .8rem; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 2px; width: 100%; }
   input[type="text"]:focus-visible, input[type="email"]:focus-visible, input[type="search"]:focus-visible, textarea:focus-visible { border-color: var(--accent); }
   textarea { min-height: 9rem; resize: vertical; }
+  .search-wrap { position: relative; width: min(22rem, 100%); }
+  .search-wrap svg {
+    position: absolute;
+    left: .85rem;
+    top: 50%;
+    width: 1rem;
+    height: 1rem;
+    transform: translateY(-50%);
+    stroke: var(--muted);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
   .search { width: min(22rem, 100%); }
+  .search-wrap input { padding-left: 2.5rem; }
   .filters { display: flex; flex-wrap: wrap; gap: .5rem; }
   .chip { font: inherit; border: 1px solid var(--line); background: transparent; color: var(--fg); padding: .25rem .85rem; border-radius: 2px; cursor: pointer; transition: border-color .18s ease; }
   .chip:hover { border-color: var(--accent); }
@@ -893,7 +909,7 @@
       html:
         '<div class="page-head"><h1>Blog</h1><p class="lead">Notes from what I\'m studying and building.</p></div>' +
         '<div class="controls">' +
-          '<div class="field search" style="margin:0"><label for="q">Search posts</label><input id="q" type="search" value="' + blogState.q.replace(/"/g, '&quot;') + '"></div>' +
+          '<div class="field search" style="margin:0"><label for="q">Search posts</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="q" type="search" value="' + blogState.q.replace(/"/g, '&quot;') + '" placeholder="Search here"></div></div>' +
           '<div class="filters" role="group" aria-label="Filter by topic">' +
             tags.map(function (t) { return '<button class="chip" type="button" data-tag="' + t + '" aria-pressed="' + (t === blogState.tag) + '">' + t + '</button>'; }).join('') +
           '</div>' +
