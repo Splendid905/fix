@@ -425,6 +425,7 @@
   .episode-art .editorial-art { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 28% center; }
   .episode-number { color: var(--accent); font-family: var(--mono); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
   .episode-meta { color: var(--muted); font-size: .85rem; }
+  .podcast-new-heading { margin: 1rem 0 .75rem; color: var(--accent); font-family: var(--mono); font-size: 1rem; line-height: 1.3; text-transform: uppercase; }
   .podcast-player { position: relative; z-index: 1; }
   .podcast-player audio { width: 100%; }
   .transcript { position: relative; z-index: 1; padding: 1rem 0 0; border-top: 1px solid var(--line); }
@@ -884,6 +885,7 @@
             episodeTags.map(function (tag) { return '<button class="chip" type="button" data-episode-tag="' + tag + '" aria-pressed="' + (tag === episodeTag) + '">' + tag + '</button>'; }).join('') +
           '</div>' +
         '</div>' +
+        '<h2 class="podcast-new-heading">New</h2>' +
         '<section class="episode-card">' +
           '<div class="episode-top">' +
             '<div class="episode-art">' + editorialArt('episode') + '</div>' +
