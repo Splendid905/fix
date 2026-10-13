@@ -7,7 +7,7 @@
 <meta name="description" content="FixerCtrl: a young South African IT student sharing practical cybersecurity, systems and software work.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Permanent+Marker&family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Permanent+Marker&family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0A0A0A;
@@ -30,7 +30,7 @@
     --term-dim: #D1D1D1;
     --term-line: rgba(242, 242, 242, 0.08);
     --shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
-    --font: "Inter", "IBM Plex Sans", system-ui, sans-serif;
+    --font: "IBM Plex Sans", system-ui, sans-serif;
     --mono: "IBM Plex Mono", "SFMono-Regular", ui-monospace, monospace;
     --heading: "Anton", "Arial Narrow", sans-serif;
     --marker: "Permanent Marker", cursive;
@@ -218,6 +218,7 @@
     .episode-number, .episode-meta { text-align: center; }
     .prose ul, .prose ol { padding-left: 0; list-style-position: inside; }
     .prose pre, .prose pre code, .table-wrap { text-align: left; }
+    .prose, .transcript, .post-row p { text-align: left; }
     .roadmap { border-left: 0; padding: 1.5rem 0 0; }
     .roadmap li { padding: 1.5rem 0 2rem; }
     .roadmap li::before { top: 0; left: 50%; transform: translateX(-50%); }
@@ -397,7 +398,7 @@
   .controls { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: center; margin-bottom: .5rem; }
   .field { display: grid; gap: .35rem; margin-bottom: 1rem; }
   .field.search { margin: 0; }
-  .field.search label { display: none; }
+  .field.search label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
   .field label { font-weight: 500; }
   .episode-card {
     display: grid; gap: 1rem; padding: 1.2rem; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); box-shadow: 4px 4px 0 rgba(242,242,242,0.08); transition: border-color .18s ease;
@@ -1177,7 +1178,7 @@
 
   /* ----- Terminal ----- */
   var introPlayed = false;
-  var PAGES = ['home', 'podcast', 'blog', 'about', 'contact'];
+  var PAGES = ['home', 'podcast', 'blog', 'about', 'projects', 'skills', 'freelancer', 'contact', 'terms'];
   var WHOAMI = [
     'fixerctrl',
     'role      young South African IT student',
