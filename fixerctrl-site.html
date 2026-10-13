@@ -339,9 +339,21 @@
   .podcast-copy .actions { gap: .6rem; margin-top: .65rem; }
   .podcast-copy .btn { padding: .7rem 1rem; font-size: .96rem; }
   .section-label {
-    display: inline-block; transform: rotate(-2deg); margin-bottom: 1rem; padding: .35rem .8rem;
-    border: 1px solid var(--line); background: rgba(0, 180, 255, 0.05); color: var(--fg);
-    font-family: var(--marker); letter-spacing: .04em; font-size: .8rem; text-transform: uppercase;
+    display: inline-flex;
+    align-self: flex-start;
+    width: auto;
+    max-width: 100%;
+    transform: rotate(-2deg);
+    margin-bottom: 1rem;
+    padding: .35rem .8rem;
+    border: 1px solid var(--line);
+    background: rgba(0, 180, 255, 0.05);
+    color: var(--fg);
+    font-family: var(--marker);
+    letter-spacing: .04em;
+    font-size: .8rem;
+    text-transform: uppercase;
+    white-space: nowrap;
   }
   @media (max-width: 820px) { .podcast-panel { grid-template-columns: 1fr; } }
   .facts { margin: 1rem 0 0; display: grid; gap: .3rem; }
