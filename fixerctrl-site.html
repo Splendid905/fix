@@ -239,6 +239,63 @@
   .block-head a:not(.btn):hover::after { transform: scaleX(1); }
   .page-head { padding: clamp(2rem, 5vw, 3.5rem) 0 1.5rem; }
   .page-head h1, .hero-copy h1 { text-shadow: 3px 3px 0 rgba(242,242,242,0.12); }
+  .page-banner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.9fr);
+    gap: 1.25rem;
+    align-items: center;
+    margin: clamp(1.5rem, 3vw, 2.5rem) 0 2rem;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+    overflow: hidden;
+  }
+  .page-banner-art {
+    position: relative;
+    min-height: 13rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)),
+      repeating-linear-gradient(
+        90deg,
+        rgba(242,242,242,0.05) 0,
+        rgba(242,242,242,0.05) 2px,
+        transparent 2px,
+        transparent 18px
+      ),
+      rgba(20, 20, 20, 0.7);
+    overflow: hidden;
+  }
+  .page-banner-art::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(242,242,242,0.18), transparent 20%),
+      radial-gradient(circle at 70% 60%, rgba(0,180,255,0.16), transparent 28%);
+  }
+  .page-banner-art::after {
+    content: "Image placeholder";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(242, 242, 242, 0.72);
+  }
+  .page-banner-copy { min-width: 0; }
+  .page-banner-copy .lead { margin: 0; }
+  .page-banner-copy h1 { margin: 0 0 .55rem; }
+  .page-banner-copy .section-label { margin-bottom: .7rem; }
+  @media (max-width: 720px) {
+    .page-banner { grid-template-columns: 1fr; }
+    .page-banner-art { min-height: 10rem; }
+  }
   .now { margin: 0; }
   .now > div { display: grid; grid-template-columns: 10rem 1fr; gap: 1rem; padding: 1rem 0; border-top: 1px solid var(--line); }
   .now dt { font-weight: 700; }
@@ -679,6 +736,17 @@
       '</article>';
   }
 
+  function pageBanner(label, title, lead) {
+    return '<header class="page-banner">' +
+      '<div class="page-banner-art" aria-hidden="true"></div>' +
+      '<div class="page-banner-copy">' +
+        (label ? '<span class="section-label">' + label + '</span>' : '') +
+        '<h1>' + title + '</h1>' +
+        (lead ? '<p class="lead">' + lead + '</p>' : '') +
+      '</div>' +
+    '</header>';
+  }
+
   function home() {
     return {
       title: 'Home',
@@ -734,11 +802,7 @@
     return {
       title: 'Podcast',
       html:
-        '<div class="page-head">' +
-          '<span class="section-label">Latest drop</span>' +
-          '<h1>FixerCtrl Podcast</h1>' +
-          '<p class="lead">Practical conversations on security, systems, and the messy realities of building with technology.</p>' +
-        '</div>' +
+        pageBanner('Latest drop', 'FixerCtrl Podcast', 'Practical conversations on security, systems, and the messy realities of building with technology.') +
         '<section class="episode-card">' +
           '<div class="episode-top">' +
             '<div class="episode-art">' + editorialArt('episode') + '</div>' +
@@ -769,7 +833,7 @@
     return {
       title: 'About',
       html:
-        '<div class="page-head"><span class="section-label">South African / Grounded perspective</span><h1>About me</h1><p class="lead">I\'m a young South African IT student working toward a career in cybersecurity and software development.</p></div>' +
+        pageBanner('South African / Grounded perspective', 'About me', 'I\'m a young South African IT student working toward a career in cybersecurity and software development.') +
         '<div class="prose">' +
           '<p>I like understanding systems well enough to build them, test them responsibly, and see where they can fail. I study networking and Linux alongside web development, and let security shape the decisions I make in my own projects.</p>' +
           '<p>My background shapes my perspective, not the limits of where I can go. It keeps me interested in practical technology: tools that are understandable, useful and made with real people in mind. I want to bring that perspective into the cybersecurity profession.</p>' +
@@ -795,7 +859,7 @@
     return {
       title: 'Projects',
       html:
-        '<div class="page-head"><h1>Projects</h1><p class="lead">Things I\'ve built and the study work behind them.</p></div>' +
+        pageBanner('', 'Projects', 'Things I\'ve built and the study work behind them.') +
         projectNeuro('h2') +
         '<article class="project">' +
           '<div class="project-head"><h2>Mini Circles</h2><p class="status">Ongoing</p></div>' +
@@ -815,7 +879,7 @@
     return {
       title: 'Skills',
       html:
-        '<div class="page-head"><h1>Skills and study path</h1><p class="lead">What I use today, what I\'m learning, and the certifications I\'m working toward.</p></div>' +
+        pageBanner('', 'Skills and study path', 'What I use today, what I\'m learning, and the certifications I\'m working toward.') +
         '<div class="cols">' +
           '<div><h3>Building things</h3><p class="sub">Using in projects</p><ul class="plain">' +
             '<li>HTML, CSS and JavaScript</li><li>PostgreSQL with Supabase, including auth and file storage</li><li>Git and GitHub</li><li>Deploying with GitHub Pages</li></ul></div>' +
@@ -839,7 +903,7 @@
     return {
       title: 'Freelance services',
       html:
-        '<div class="page-head"><span class="section-label">Freelance / Web services</span><h1>Freelance services</h1><p class="lead">Practical, people-focused web help for individuals and small organisations. Browse the services and skills I can bring to your project.</p></div>' +
+        pageBanner('Freelance / Web services', 'Freelance services', 'Practical, people-focused web help for individuals and small organisations. Browse the services and skills I can bring to your project.') +
         '<section aria-label="Freelance services">' +
           '<div class="media-grid">' +
             '<article class="feature-card"><span class="tag">01 / Web</span><h3>Small websites</h3><p>Responsive landing pages, portfolios, and simple informational websites built with HTML, CSS, and JavaScript.</p><p class="status">From R1,500</p></article>' +
@@ -907,7 +971,7 @@
     return {
       title: 'Blog',
       html:
-        '<div class="page-head"><h1>Blog</h1><p class="lead">Notes from what I\'m studying and building.</p></div>' +
+        pageBanner('', 'Blog', 'Notes from what I\'m studying and building.') +
         '<div class="controls">' +
           '<div class="field search" style="margin:0"><label for="q">Search posts</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="q" type="search" value="' + blogState.q.replace(/"/g, '&quot;') + '" placeholder="Search here"></div></div>' +
           '<div class="filters" role="group" aria-label="Filter by topic">' +
@@ -961,8 +1025,8 @@
       title: p.title,
       html:
         '<a class="back btn ghost" href="#/blog">All posts</a>' +
-        '<header class="article-head"><h1>' + p.title + '</h1>' +
-          '<p class="meta"><time datetime="' + p.date + '">' + fmtDate(p.date) + '</time><span>' + mins(p.body) + ' min read</span></p>' +
+        pageBanner('', p.title, '') +
+        '<header class="article-head"><p class="meta"><time datetime="' + p.date + '">' + fmtDate(p.date) + '</time><span>' + mins(p.body) + ' min read</span></p>' +
           tagList(p.tags) + '</header>' +
         '<article class="prose">' + p.body + '</article>' +
         '<nav class="pager" aria-label="More posts">' +
@@ -976,7 +1040,7 @@
     return {
       title: 'Contact',
       html:
-        '<div class="page-head"><h1>Get in touch</h1><p class="lead">For freelance project enquiries, internships, junior roles, and collaboration on security or web projects, send me a message.</p></div>' +
+        pageBanner('', 'Get in touch', 'For freelance project enquiries, internships, junior roles, and collaboration on security or web projects, send me a message.') +
         '<div class="contact-grid">' +
           '<div><h2>Find me online</h2>' + socialIconLinks(true, 'Social media and contact links') + '</div>' +
           '<div><h2>Send a message</h2>' +
@@ -1010,7 +1074,8 @@
     return {
       title: 'Terms and privacy',
       html:
-        '<div class="page-head"><span class="section-label">South Africa / Draft</span><h1>Terms &amp; privacy</h1><p class="lead">Terms for using this website and a privacy notice describing the current contact process.</p><p class="note">Last updated: 11 October 2026</p></div>' +
+        pageBanner('South Africa / Draft', 'Terms &amp; privacy', 'Terms for using this website and a privacy notice describing the current contact process.') +
+        '<p class="note">Last updated: 11 October 2026</p>' +
         '<aside class="legal-draft"><strong>Draft for review:</strong> This general information is not legal advice and may not cover every obligation that applies to your business or circumstances. Before accepting paid work, add the operator’s full legal name, legal form (if applicable), and physical business address, and have a South African legal professional review these terms. Consumer, tax, privacy, and disclosure obligations depend on the facts.</aside>' +
         '<article class="prose">' +
           '<h2>1. Who operates this site</h2>' +
@@ -1057,7 +1122,7 @@
   function notFound() {
     return {
       title: 'Page not found',
-      html: '<div class="page-head"><h1>Page not found</h1><p class="lead">That page does not exist or has moved.</p><div class="actions"><a class="btn" href="#/">Go home</a><a class="btn ghost" href="#/blog">Browse the blog</a></div></div>'
+      html: pageBanner('', 'Page not found', 'That page does not exist or has moved.') + '<div class="actions"><a class="btn" href="#/">Go home</a><a class="btn ghost" href="#/blog">Browse the blog</a></div>'
     };
   }
 
