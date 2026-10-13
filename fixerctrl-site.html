@@ -379,8 +379,10 @@
   .tags { list-style: none; display: flex; flex-wrap: wrap; gap: .4rem; padding: 0; margin: 0; }
   .tags li { font-size: .88rem; padding: .05rem .55rem; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); }
 
-  .controls { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: end; margin-bottom: .5rem; }
+  .controls { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: center; margin-bottom: .5rem; }
   .field { display: grid; gap: .35rem; margin-bottom: 1rem; }
+  .field.search { margin: 0; }
+  .field.search label { display: none; }
   .field label { font-weight: 500; }
   .episode-card {
     display: grid; gap: 1rem; padding: 1.2rem; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); box-shadow: 4px 4px 0 rgba(242,242,242,0.08); transition: border-color .18s ease;
@@ -423,7 +425,7 @@
   }
   .search { width: min(22rem, 100%); }
   .search-wrap input { padding-left: 2.5rem; }
-  .filters { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
   .chip { font: inherit; border: 1px solid var(--line); background: transparent; color: var(--fg); padding: .25rem .85rem; border-radius: 2px; cursor: pointer; transition: border-color .18s ease; }
   .chip:hover { border-color: var(--accent); }
   .chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
