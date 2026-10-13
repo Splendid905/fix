@@ -14,7 +14,8 @@
     --bg-2: #121212;
     --fg: #F2F2F2;
     --muted: #D8D8D8;
-    --line: rgba(242, 242, 242, 0.10);
+    --line: rgba(255, 255, 255, 0.28);
+    --line-width: 1.5px;
     --surface: #141414;
     --surface-strong: #171717;
     --field: #1B1B1B;
@@ -95,6 +96,10 @@
 
   .skip { position: absolute; left: -999px; top: 0; background: var(--accent); color: #000; padding: .6rem 1rem; z-index: 50; font-weight: 700; }
   .skip:focus { left: 0; }
+
+  .site-header, .hero, .block, .now > div, .faq-list, .faq-list details, .transcript, .empty, .pager, .plain li, .site-footer, .footer-bottom, .social-icon, .project, .feature-card, .post-row, .table-wrap td {
+    border-width: var(--line-width);
+  }
 
   /* Header */
   .site-header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: rgba(10, 10, 10, 0.96); border-bottom: 1px solid var(--line); }
