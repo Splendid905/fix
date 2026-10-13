@@ -866,6 +866,14 @@
   }
 
   function podcast() {
+    var episodes = [
+      { number: '06', title: 'Linux forensics without the theatre', description: 'What to look at first when a host starts acting like it has been touched.', date: 'Apr 28, 2026', tags: ['Linux', 'Security'] },
+      { number: '05', title: 'Zero trust isn’t a slogan', description: 'Where the policy stops and the actual architecture begins.', date: 'Apr 04, 2026', tags: ['Security', 'Systems'] },
+      { number: '04', title: 'Build the habit, not the hero story', description: 'On studying, documenting, and practicing like a systems engineer.', date: 'Mar 22, 2026', tags: ['Systems', 'Practice'] }
+    ];
+    var episodeTags = ['All', 'Linux', 'Security', 'Systems', 'Practice'];
+    var episodeQuery = '';
+    var episodeTag = 'All';
     return {
       title: 'Podcast',
       html:
@@ -887,12 +895,51 @@
         '</section>' +
         '<section class="block" aria-labelledby="episodes-list">' +
           '<div class="block-head"><h2 id="episodes-list">Recent episodes</h2></div>' +
-          '<div class="media-grid">' +
-            '<article class="feature-card"><span class="episode-number">EP 06</span><h3>Linux forensics without the theatre</h3><p>What to look at first when a host starts acting like it has been touched.</p><div class="episode-meta">Apr 28, 2026</div></article>' +
-            '<article class="feature-card"><span class="episode-number">EP 05</span><h3>Zero trust isn’t a slogan</h3><p>Where the policy stops and the actual architecture begins.</p><div class="episode-meta">Apr 04, 2026</div></article>' +
-            '<article class="feature-card"><span class="episode-number">EP 04</span><h3>Build the habit, not the hero story</h3><p>On studying, documenting, and practicing like a systems engineer.</p><div class="episode-meta">Mar 22, 2026</div></article>' +
+          '<div class="controls">' +
+            '<div class="field search" style="margin:0"><label for="episodeSearch">Search episodes</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="episodeSearch" type="search" placeholder="Search here"></div></div>' +
+            '<div class="filters" role="group" aria-label="Filter episodes by topic">' +
+              episodeTags.map(function (tag) { return '<button class="chip" type="button" data-episode-tag="' + tag + '" aria-pressed="' + (tag === episodeTag) + '">' + tag + '</button>'; }).join('') +
+            '</div>' +
           '</div>' +
-        '</section>'
+          '<p class="count" id="episodeCount" aria-live="polite"></p>' +
+          '<div class="media-grid" id="episodeList"></div>' +
+        '</section>',
+      after: function () {
+        function filteredEpisodes() {
+          var query = episodeQuery.trim().toLowerCase();
+          return episodes.filter(function (episode) {
+            var matchesTag = episodeTag === 'All' || episode.tags.indexOf(episodeTag) >= 0;
+            var searchable = (episode.number + ' ' + episode.title + ' ' + episode.description + ' ' + episode.tags.join(' ')).toLowerCase();
+            return matchesTag && (!query || searchable.indexOf(query) >= 0);
+          });
+        }
+        function paintEpisodes() {
+          var matches = filteredEpisodes();
+          $('#episodeList').innerHTML = matches.length
+            ? matches.map(function (episode) {
+              return '<article class="feature-card"><span class="episode-number">EP ' + episode.number + '</span><h3>' + episode.title + '</h3><p>' + episode.description + '</p><div class="episode-meta">' + episode.date + '</div>' + tagList(episode.tags) + '</article>';
+            }).join('')
+            : '<p class="empty">No episodes match that search. <button class="linkbtn" type="button" id="clearEpisodeFilters">Clear search and filter</button></p>';
+          $('#episodeCount').textContent = matches.length + (matches.length === 1 ? ' episode' : ' episodes');
+          var clearButton = $('#clearEpisodeFilters');
+          if (clearButton) clearButton.addEventListener('click', function () {
+            episodeQuery = '';
+            episodeTag = 'All';
+            $('#episodeSearch').value = '';
+            $$('[data-episode-tag]').forEach(function (button) { button.setAttribute('aria-pressed', String(button.dataset.episodeTag === 'All')); });
+            paintEpisodes();
+          });
+        }
+        $('#episodeSearch').addEventListener('input', function (event) { episodeQuery = event.target.value; paintEpisodes(); });
+        $$('[data-episode-tag]').forEach(function (button) {
+          button.addEventListener('click', function () {
+            episodeTag = button.dataset.episodeTag;
+            $$('[data-episode-tag]').forEach(function (item) { item.setAttribute('aria-pressed', String(item === button)); });
+            paintEpisodes();
+          });
+        });
+        paintEpisodes();
+      }
     };
   }
 
