@@ -138,10 +138,26 @@
     .btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); box-shadow: none; }
     .btn.ghost:hover { border-color: var(--accent); }
     .btn.ghost:active { box-shadow: none; }
-  .share-link { display: inline-flex; align-items: center; gap: .55rem; }
-  .share-link svg { width: 1.05rem; height: 1.05rem; fill: currentColor; }
+  .share-button { display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0; border: 1px solid transparent; border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; transition: color .18s ease, background .18s ease, border-color .18s ease; }
+  .share-button:hover { color: var(--accent); background: rgba(29, 155, 240, 0.12); border-color: rgba(29, 155, 240, 0.35); }
+  .share-button svg { width: 1.25rem; height: 1.25rem; fill: currentColor; }
   .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
-  .share-toolbar { display: flex; margin: 0 0 1.25rem; }
+  .card-actions { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-top: auto; padding-top: .65rem; }
+  .card-actions .btn { margin-top: 0; }
+  .card-share { display: flex; justify-content: flex-end; align-items: center; margin-top: auto; padding-top: .25rem; position: relative; z-index: 1; }
+  .share-dialog { width: min(28rem, calc(100% - 2rem)); max-width: none; max-height: min(90dvh, 42rem); padding: 1.5rem; border: 1px solid var(--line); border-radius: 4px; background: var(--surface-strong); color: var(--fg); box-shadow: var(--shadow); }
+  .share-dialog::backdrop { background: rgba(0, 0, 0, .72); }
+  .share-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: .75rem; }
+  .share-dialog-head h2 { margin: 0; font-size: 1.5rem; }
+  .share-dialog-head .section-label { margin: 0 0 .35rem; }
+  .share-dialog-close { flex: 0 0 auto; width: 2.5rem; height: 2.5rem; display: inline-grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--fg); cursor: pointer; }
+  .share-dialog-close:hover { border-color: var(--accent); color: var(--accent); }
+  .share-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-top: 1rem; }
+  .share-option { min-height: 2.75rem; padding: .65rem .8rem; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); color: var(--fg); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+  .share-option:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+  .share-url-label { display: block; margin-top: 1rem; font-size: .85rem; font-weight: 600; }
+  .share-dialog input { width: 100%; margin-top: .35rem; padding: .6rem .7rem; border: 1px solid var(--line); border-radius: 2px; background: var(--bg); color: var(--fg); font: .85rem var(--mono); }
+  .share-status { min-height: 1.5em; margin: .55rem 0 0; color: var(--muted); font-size: .9rem; }
   .linkbtn { font: inherit; background: none; border: 0; padding: 0; color: var(--link); text-decoration: underline; cursor: pointer; }
 
   /* Hero */
@@ -399,6 +415,7 @@
   }
   .post-thumb.is-placeholder::before { content: "Image placeholder"; }
   .post-copy { min-width: 0; }
+  .post-row.has-thumb .post-copy { display: flex; flex-direction: column; align-self: stretch; }
   .post-row + .post-row { margin-top: 1rem; }
   .post-row h2, .post-row h3 { font-size: 1.4rem; margin: 0 0 .35rem; }
   .post-row h2 a, .post-row h3 a { color: var(--fg); text-decoration: none; }
@@ -587,6 +604,31 @@
 <main id="main" tabindex="-1">
   <noscript><div class="wrap"><p>This site needs JavaScript to show its pages.</p></div></noscript>
 </main>
+
+<dialog class="share-dialog" id="shareDialog" aria-labelledby="shareDialogTitle" aria-describedby="shareDialogDescription">
+  <div class="share-dialog-head">
+    <div>
+      <p class="section-label">Share</p>
+      <h2 id="shareDialogTitle">Share this page</h2>
+    </div>
+    <button class="share-dialog-close" id="closeShareDialog" type="button" aria-label="Close share dialog">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <p id="shareDialogDescription">Choose an app to share this link.</p>
+  <div class="share-options">
+    <button class="share-option" id="deviceShare" type="button">More apps</button>
+    <a class="share-option" id="shareToX" href="#" target="_blank" rel="noopener noreferrer">X</a>
+    <a class="share-option" id="shareToFacebook" href="#" target="_blank" rel="noopener noreferrer">Facebook</a>
+    <a class="share-option" id="shareToLinkedIn" href="#" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+    <a class="share-option" id="shareToWhatsApp" href="#" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+    <a class="share-option" id="shareByEmail" href="#">Email</a>
+    <button class="share-option" id="copyShareLink" type="button">Copy link</button>
+  </div>
+  <label class="share-url-label" for="shareUrl">Link</label>
+  <input id="shareUrl" type="text" readonly>
+  <p class="share-status" id="shareStatus" role="status" aria-live="polite"></p>
+</dialog>
 
 <footer class="site-footer">
   <div class="wrap footer-main">
@@ -900,16 +942,20 @@
   function fmtDate(d) {
     return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, function (character) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character];
+    });
+  }
   function strip(html) { return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); }
   function mins(html) { return Math.max(1, Math.ceil(strip(html).split(' ').length / 200)); }
   function tagList(tags) { return '<ul class="tags" aria-label="Tags">' + tags.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>'; }
-  function xShareLink(title, path) {
+  function shareButton(title, path) {
     var pageUrl = new URL(location.href);
     pageUrl.hash = '/' + path;
-    var shareUrl = 'https://x.com/intent/post?text=' + encodeURIComponent(title) + '&url=' + encodeURIComponent(pageUrl.href);
-    return '<a class="btn ghost share-link" href="' + shareUrl + '" target="_blank" rel="noopener noreferrer" aria-label="Share ' + title + ' on X" title="Share on X">' +
-      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 6.3 7.7l1.4 1.4L11 5.8V15h2V5.8l3.3 3.3 1.4-1.4L12 2ZM4 12H2v10h20V12h-2v8H4v-8Z"/></svg>' +
-      'Share on X</a>';
+    return '<button class="share-button" type="button" data-share-title="' + escapeHtml(title) + '" data-share-url="' + escapeHtml(pageUrl.href) + '" aria-label="Share ' + escapeHtml(title) + '" title="Share">' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3m0 0L7 8m5-5 5 5M4 14v6h16v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      '</button>';
   }
   function postRow(p, level, withThumbnail, placeholderThumbnail) {
     level = level || 'h3';
@@ -923,7 +969,10 @@
       '<' + level + '><a href="#/blog/' + p.slug + '">' + p.title + '</a></' + level + '>' +
       '<p class="meta"><time datetime="' + p.date + '">' + fmtDate(p.date) + '</time><span>' + mins(p.body) + ' min read</span></p>' +
       '<p>' + p.summary + '</p>' + tagList(p.tags) +
-      (withThumbnail ? '<div class="actions"><a class="btn" href="#/blog/' + p.slug + '">Read now</a></div>' : '') +
+      '<div class="card-actions">' +
+      (withThumbnail ? '<a class="btn" href="#/blog/' + p.slug + '">Read now</a>' : '<span></span>') +
+      shareButton(p.title, 'blog/' + p.slug) +
+      '</div>' +
       '</div></article>';
   }
 
@@ -1019,7 +1068,6 @@
       title: 'Podcast',
       html:
         pageBanner('Latest drop', 'FixerCtrl Podcast', 'Practical conversations on security, systems, and the messy realities of building with technology.', 'assets/image.png') +
-        '<div class="share-toolbar">' + xShareLink('FixerCtrl Podcast', 'podcast') + '</div>' +
         '<div class="controls">' +
           '<div class="field search" style="margin:0"><label for="episodeSearch">Search episodes</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="episodeSearch" type="search" placeholder="Search here"></div></div>' +
           '<div class="filters" role="group" aria-label="Filter episodes by topic">' +
@@ -1041,6 +1089,7 @@
             '<p><code>&gt; latest_episode</code> on the current signal: how attackers target weak assumptions, and why strong systems come from boring fundamentals.</p>' +
             '<p>We look at how detection, response, and operational discipline fit together in a realistic environment, then break down a few patterns that show up again and again in real security incidents.</p>' +
           '</div>' +
+          '<div class="card-share">' + shareButton('Episode 07: Signals, systems, and the work behind the breach', 'podcast') + '</div>' +
         '</section>' +
         '<section class="block" aria-labelledby="episodes-list">' +
           '<div class="block-head"><h2 id="episodes-list">Recent episodes</h2></div>' +
@@ -1060,7 +1109,7 @@
           var matches = filteredEpisodes();
           $('#episodeList').innerHTML = matches.length
             ? matches.map(function (episode) {
-              return '<article class="feature-card"><span class="episode-number">EP ' + episode.number + '</span><h3>' + episode.title + '</h3><p>' + episode.description + '</p><div class="episode-meta">' + episode.date + '</div>' + tagList(episode.tags) + '</article>';
+              return '<article class="feature-card"><span class="episode-number">EP ' + episode.number + '</span><h3>' + episode.title + '</h3><p>' + episode.description + '</p><div class="episode-meta">' + episode.date + '</div>' + tagList(episode.tags) + '<div class="card-share">' + shareButton('Episode ' + episode.number + ': ' + episode.title, 'podcast') + '</div></article>';
             }).join('')
             : '<p class="empty">No episodes match that search. <button class="linkbtn" type="button" id="clearEpisodeFilters">Clear search and filter</button></p>';
           $('#episodeCount').textContent = matches.length + (matches.length === 1 ? ' episode' : ' episodes');
@@ -1270,8 +1319,8 @@
         pageBanner('', p.title, '') +
         '<header class="article-head"><p class="meta"><time datetime="' + p.date + '">' + fmtDate(p.date) + '</time><span>' + mins(p.body) + ' min read</span></p>' +
           tagList(p.tags) +
-          '<div class="share-toolbar">' + xShareLink(p.title, 'blog/' + p.slug) + '</div></header>' +
-        '<article class="prose">' + p.body + '</article>' +
+          '</header>' +
+        '<article class="prose">' + p.body + '<div class="card-actions"><span></span>' + shareButton(p.title, 'blog/' + p.slug) + '</div></article>' +
         '<nav class="pager" aria-label="More posts">' +
           (older ? '<a href="#/blog/' + older.slug + '"><small>Older post</small>' + older.title + '</a>' : '<span></span>') +
           (newer ? '<a class="pager-newer" href="#/blog/' + newer.slug + '"><small>Newer post</small>' + newer.title + '</a>' : '') +
@@ -1537,6 +1586,68 @@
     first = false;
     if (view.after) view.after();
   }
+
+  var shareTrigger = null;
+  function openShareDialog(button) {
+    var title = button.dataset.shareTitle;
+    var url = button.dataset.shareUrl;
+    var encodedUrl = encodeURIComponent(url);
+    var encodedText = encodeURIComponent(title + ' ' + url);
+    var xUrl = new URL('https://x.com/intent/post');
+    xUrl.searchParams.set('text', title);
+    xUrl.searchParams.set('url', url);
+    $('#shareDialogTitle').textContent = 'Share';
+    $('#shareDialogDescription').textContent = title;
+    $('#shareUrl').value = url;
+    $('#shareToX').href = xUrl.href;
+    $('#shareToFacebook').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodedUrl;
+    $('#shareToLinkedIn').href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodedUrl;
+    $('#shareToWhatsApp').href = 'https://wa.me/?text=' + encodedText;
+    $('#shareByEmail').href = 'mailto:?subject=' + encodeURIComponent(title) + '&body=' + encodeURIComponent(url);
+    $('#shareStatus').textContent = '';
+    $('#deviceShare').hidden = typeof navigator.share !== 'function';
+    shareTrigger = button;
+    $('#shareDialog').showModal();
+    $('#closeShareDialog').focus();
+  }
+
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest('.share-button');
+    if (button) openShareDialog(button);
+  });
+  $('#closeShareDialog').addEventListener('click', function () { $('#shareDialog').close(); });
+  $('#shareDialog').addEventListener('close', function () {
+    if (shareTrigger && shareTrigger.isConnected) shareTrigger.focus();
+    shareTrigger = null;
+  });
+  $('#shareDialog').addEventListener('click', function (event) {
+    if (event.target === this) this.close();
+  });
+  $('#deviceShare').addEventListener('click', function () {
+    navigator.share({
+      title: $('#shareDialogDescription').textContent,
+      text: $('#shareDialogDescription').textContent,
+      url: $('#shareUrl').value
+    }).catch(function (error) {
+      if (error.name !== 'AbortError') $('#shareStatus').textContent = 'The device share sheet could not be opened. Choose an app above instead.';
+    });
+  });
+  $('#copyShareLink').addEventListener('click', function () {
+    var field = $('#shareUrl');
+    if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+      field.focus();
+      field.select();
+      $('#shareStatus').textContent = 'Copy is unavailable here. The link is selected; copy it to share.';
+      return;
+    }
+    navigator.clipboard.writeText(field.value).then(function () {
+      $('#shareStatus').textContent = 'Link copied.';
+    }, function () {
+      field.focus();
+      field.select();
+      $('#shareStatus').textContent = 'Copy was blocked. The link is selected; copy it to share.';
+    });
+  });
 
   /* ----- Chrome: menu, footer ----- */
   $('#menuBtn').addEventListener('click', function () {
