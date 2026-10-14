@@ -150,6 +150,9 @@
   .like-button:hover, .like-button[aria-pressed="true"] { color: #F45D8C; }
   .like-button:hover { background: rgba(244, 93, 140, 0.1); border-color: rgba(244, 93, 140, 0.3); }
   .like-button[aria-pressed="true"] svg { fill: currentColor; }
+  .comment-button { display: inline-flex; align-items: center; gap: .35rem; min-height: 2.75rem; padding: 0 .4rem; border: 1px solid transparent; border-radius: 2rem; background: transparent; color: var(--muted); font: inherit; cursor: pointer; transition: color .18s ease, background .18s ease, border-color .18s ease; }
+  .comment-button svg { width: 1.2rem; height: 1.2rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .comment-button:hover { color: var(--accent); background: rgba(29, 155, 240, 0.12); border-color: rgba(29, 155, 240, 0.35); }
   .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
   .card-footer { display: grid; justify-items: center; gap: .35rem; margin-top: auto; }
   .card-footer .btn { margin-top: 0; }
@@ -166,6 +169,14 @@
   .share-url-label { display: block; margin-top: 1rem; font-size: .85rem; font-weight: 600; }
   .share-dialog input { width: 100%; margin-top: .35rem; padding: .6rem .7rem; border: 1px solid var(--line); border-radius: 2px; background: var(--bg); color: var(--fg); font: .85rem var(--mono); }
   .share-status { min-height: 1.5em; margin: .55rem 0 0; color: var(--muted); font-size: .9rem; }
+  .comment-dialog { width: min(34rem, calc(100% - 2rem)); }
+  .comment-list { display: grid; gap: .65rem; max-height: min(40dvh, 18rem); overflow-y: auto; margin: 1rem 0; padding: 0; list-style: none; }
+  .comment-entry { padding: .75rem; border: 1px solid var(--line); background: var(--surface); overflow-wrap: anywhere; }
+  .comment-empty { color: var(--muted); }
+  .comment-form { display: grid; gap: .6rem; }
+  .comment-form textarea { min-height: 6rem; }
+  .comment-form .btn { justify-self: end; }
+  .comment-local-note { margin: .75rem 0 0; color: var(--muted); font-size: .85rem; }
   .linkbtn { font: inherit; background: none; border: 0; padding: 0; color: var(--link); text-decoration: underline; cursor: pointer; }
 
   /* Hero */
@@ -638,6 +649,26 @@
   <p class="share-status" id="shareStatus" role="status" aria-live="polite"></p>
 </dialog>
 
+<dialog class="share-dialog comment-dialog" id="commentDialog" aria-labelledby="commentDialogTitle" aria-describedby="commentDialogDescription">
+  <div class="share-dialog-head">
+    <div>
+      <p class="section-label">Comments · this browser</p>
+      <h2 id="commentDialogTitle">Comments</h2>
+    </div>
+    <button class="share-dialog-close" id="closeCommentDialog" type="button" aria-label="Close comments">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <p id="commentDialogDescription"></p>
+  <ul class="comment-list" id="commentList" aria-live="polite"></ul>
+  <form class="comment-form" id="commentForm">
+    <label for="commentText">Add a comment</label>
+    <textarea id="commentText" maxlength="500" required placeholder="Write a comment (up to 500 characters)"></textarea>
+    <button class="btn" id="submitComment" type="submit">Comment</button>
+  </form>
+  <p class="comment-local-note" id="commentStatus" role="status" aria-live="polite">Comments are saved only in this browser. They are not posted to X or visible to other visitors.</p>
+</dialog>
+
 <footer class="site-footer">
   <div class="wrap footer-main">
     <div class="footer-brand">
@@ -981,6 +1012,30 @@
       return null;
     }
   }
+  function readComments(id) {
+    try {
+      var stored = window.localStorage.getItem('fixerctrl.engagement.comments.' + encodeURIComponent(id));
+      if (stored === null) return [];
+      var comments = JSON.parse(stored);
+      if (!Array.isArray(comments) || !comments.every(function (comment) {
+        return comment && typeof comment.text === 'string' && typeof comment.createdAt === 'string';
+      })) return null;
+      return comments;
+    } catch (error) {
+      return null;
+    }
+  }
+  function writeComment(id, text) {
+    var comments = readComments(id);
+    if (comments === null) return false;
+    comments.push({ text: text, createdAt: new Date().toISOString() });
+    try {
+      window.localStorage.setItem('fixerctrl.engagement.comments.' + encodeURIComponent(id), JSON.stringify(comments));
+      return comments.length;
+    } catch (error) {
+      return false;
+    }
+  }
   function shareButton(title, path) {
     var pageUrl = new URL(location.href);
     pageUrl.hash = '/' + path;
@@ -992,12 +1047,17 @@
     var safeTitle = escapeHtml(title);
     var liked = readLikeState(id);
     var views = recordContentView(id);
+    var comments = readComments(id);
     var likesLabel = liked === null ? 'Unavailable' : (liked ? '1' : '0');
     var viewsLabel = views === null ? 'Unavailable' : String(views);
+    var commentsLabel = comments === null ? 'Unavailable' : String(comments.length);
     return '<div class="engagement-bar">' +
       '<button class="like-button" type="button" data-engagement-id="' + escapeHtml(id) + '" data-engagement-title="' + safeTitle + '" aria-pressed="' + (liked === true) + '" aria-label="Like ' + safeTitle + (liked === null ? '; browser storage unavailable' : (liked ? '; unlike, 1 like on this browser' : '; 0 likes on this browser')) + '" title="' + (liked === null ? 'Likes unavailable in this browser' : 'Like; saved only on this browser') + '"' + (liked === null ? ' disabled' : '') + '>' +
       '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>' +
       '<span class="engagement-count" aria-hidden="true">' + likesLabel + '</span></button>' +
+      '<button class="comment-button" type="button" data-engagement-id="' + escapeHtml(id) + '" data-engagement-title="' + safeTitle + '" aria-label="Comments for ' + safeTitle + ': ' + commentsLabel + ' on this browser" title="Comments are saved only in this browser"' + (comments === null ? ' disabled' : '') + '>' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg>' +
+      '<span class="engagement-count" aria-hidden="true">' + commentsLabel + '</span></button>' +
       '<span class="engagement-item" title="Views counted only on this browser" aria-label="' + viewsLabel + ' views on this browser">' +
       '<svg class="view-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>' +
       '<span class="engagement-count" aria-hidden="true">' + viewsLabel + '</span></span>' +
@@ -1437,7 +1497,7 @@
           '<h3>Information and how it is handled</h3>' +
           '<p>The contact form asks for your name, email address, and message. It uses your device’s email application; the site does not submit the form to a FixerCtrl website database or server. Your details are sent to FixerCtrl only if you choose to send the email. Your email provider and the receiving email service will also process the message.</p>' +
           '<p>The site loads fonts from Google Fonts. Your browser may send ordinary technical request information to Google when retrieving those fonts. Links to social networks and other external sites may also disclose information to those providers if you follow them. Their privacy notices and processing practices are separate from this site.</p>' +
-          '<p>Likes and view counts on posts and podcast episodes are stored in your browser’s local storage and are only counts for this browser; they are not sent to FixerCtrl and are not site-wide analytics. You can clear them by clearing this site’s browser data. The site does not include an analytics script or a site-managed tracking cookie. The hosting provider may process technical request or security logs as part of serving the pages; check the host’s current privacy terms for details.</p>' +
+          '<p>Likes, view counts, and comments on posts and podcast episodes are stored in your browser’s local storage and are only visible in that browser; they are not sent to FixerCtrl, X, or other platforms and are not site-wide analytics. You can clear them by clearing this site’s browser data. The site does not include an analytics script or a site-managed tracking cookie. The hosting provider may process technical request or security logs as part of serving the pages; check the host’s current privacy terms for details.</p>' +
           '<h3>Purpose, sharing, and retention</h3>' +
           '<p>If you email, your information is used to respond to your enquiry, prepare a quote, communicate about work you request, and keep records where reasonably necessary for the relationship or a legal obligation. It is not sold. Information may be handled by email, hosting, or other service providers needed to deliver the site or respond to you, or disclosed where the law requires it. Some providers may process information outside South Africa under their own terms.</p>' +
           '<p>Messages and project records are kept only for as long as reasonably needed for those purposes and applicable legal obligations, then securely deleted where practicable.</p>' +
@@ -1636,6 +1696,55 @@
   }
 
   var shareTrigger = null;
+  var commentTrigger = null;
+  function renderComments(id) {
+    var comments = readComments(id);
+    var list = $('#commentList');
+    list.textContent = '';
+    if (comments === null) {
+      $('#commentStatus').textContent = 'Comments are unavailable because this browser could not read local storage.';
+      $('#commentText').disabled = true;
+      $('#submitComment').disabled = true;
+      return;
+    }
+    $('#commentText').disabled = false;
+    $('#submitComment').disabled = false;
+    $('#commentStatus').textContent = 'Saved only in this browser. Comments are not posted to X or visible to other visitors.';
+    if (!comments.length) {
+      var empty = document.createElement('li');
+      empty.className = 'comment-empty';
+      empty.textContent = 'No comments yet in this browser.';
+      list.appendChild(empty);
+      return;
+    }
+    comments.slice().reverse().forEach(function (comment) {
+      var item = document.createElement('li');
+      item.className = 'comment-entry';
+      var content = document.createElement('p');
+      content.textContent = comment.text;
+      item.appendChild(content);
+      var timestamp = new Date(comment.createdAt);
+      if (!Number.isNaN(timestamp.getTime())) {
+        var date = document.createElement('time');
+        date.dateTime = timestamp.toISOString();
+        date.textContent = timestamp.toLocaleString();
+        item.appendChild(date);
+      }
+      list.appendChild(item);
+    });
+  }
+  function openCommentDialog(button) {
+    var id = button.dataset.engagementId;
+    commentTrigger = button;
+    $('#commentDialogTitle').textContent = 'Comments';
+    $('#commentDialogDescription').textContent = button.dataset.engagementTitle;
+    $('#commentForm').dataset.engagementId = id;
+    $('#commentText').value = '';
+    renderComments(id);
+    $('#commentDialog').showModal();
+    if (!$('#commentText').disabled) $('#commentText').focus();
+    else $('#closeCommentDialog').focus();
+  }
   function openShareDialog(button) {
     var title = button.dataset.shareTitle;
     var url = button.dataset.shareUrl;
@@ -1681,6 +1790,43 @@
       button.title = 'Likes unavailable in this browser';
       button.setAttribute('aria-label', 'Likes unavailable in this browser');
     }
+  });
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest('.comment-button');
+    if (button && !button.disabled) openCommentDialog(button);
+  });
+  $('#commentForm').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var field = $('#commentText');
+    var text = field.value.trim();
+    if (!text) {
+      field.setCustomValidity('Enter a comment before submitting.');
+      field.reportValidity();
+      field.setCustomValidity('');
+      return;
+    }
+    var id = this.dataset.engagementId;
+    var count = writeComment(id, text);
+    if (count === false) {
+      $('#commentStatus').textContent = 'The comment could not be saved in this browser. Check available browser storage and try again.';
+      return;
+    }
+    $$('.comment-button[data-engagement-id]').forEach(function (button) {
+      if (button.dataset.engagementId !== id) return;
+      button.querySelector('.engagement-count').textContent = String(count);
+      button.setAttribute('aria-label', 'Comments for ' + button.dataset.engagementTitle + ': ' + count + ' on this browser');
+    });
+    field.value = '';
+    renderComments(id);
+    $('#commentStatus').textContent = 'Comment saved in this browser only. It is not visible to other visitors.';
+  });
+  $('#closeCommentDialog').addEventListener('click', function () { $('#commentDialog').close(); });
+  $('#commentDialog').addEventListener('close', function () {
+    if (commentTrigger && commentTrigger.isConnected) commentTrigger.focus();
+    commentTrigger = null;
+  });
+  $('#commentDialog').addEventListener('click', function (event) {
+    if (event.target === this) this.close();
   });
   $('#closeShareDialog').addEventListener('click', function () { $('#shareDialog').close(); });
   $('#shareDialog').addEventListener('close', function () {
