@@ -307,7 +307,7 @@
   .block { padding: clamp(2.5rem, 5vw, 4rem) 0; border-top: 1px solid var(--line); }
   .block-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1rem; margin-bottom: 1rem; }
   .block-head h2 { margin: 0; }
-  .block-head a { position: relative; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: .74rem; }
+  .block-head a:not(.btn) { position: relative; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: .74rem; }
   .block-head a:not(.btn)::after { content: ""; position: absolute; left: 0; right: 0; bottom: -0.2rem; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .2s ease; }
   .block-head a:not(.btn):hover::after { transform: scaleX(1); }
   .page-head { padding: clamp(2rem, 5vw, 3.5rem) 0 1.5rem; }
