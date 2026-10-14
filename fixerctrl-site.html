@@ -115,19 +115,19 @@
   .main-nav a:hover { background: rgba(29, 155, 240, 0.08); }
   .main-nav a[aria-current="page"] { background: rgba(29, 155, 240, 0.12); box-shadow: inset 0 0 0 1px rgba(29, 155, 240, 0.28); text-decoration: none; }
   .tools { display: flex; gap: .25rem; }
-  .icon-btn { width: 2.5rem; height: 2.5rem; display: inline-grid; place-items: center; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 2px; cursor: pointer; }
+  .icon-btn { width: 2.75rem; height: 2.75rem; display: inline-grid; place-items: center; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 2px; cursor: pointer; }
   .icon-btn:hover { border-color: var(--accent); }
   .menu-btn { display: none; }
   .menu-btn .x { display: none; }
   .site-header.open .menu-btn .bars { display: none; }
   .site-header.open .menu-btn .x { display: block; }
-  @media (max-width: 780px) {
+  @media (max-width: 900px) {
     .menu-btn { display: inline-grid; }
     .tools { margin-left: auto; }
-    .main-nav { display: none; margin: 0; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg); border-bottom: 1px solid var(--line); padding: .5rem var(--gutter) 1rem; }
+    .main-nav { display: none; margin: 0; position: absolute; left: 0; right: 0; top: 100%; max-height: calc(100dvh - 5rem); overflow-y: auto; background: var(--bg); border-bottom: 1px solid var(--line); padding: .5rem var(--gutter) 1rem; box-shadow: 0 1rem 2rem rgba(0, 0, 0, .45); }
     .site-header.open .main-nav { display: block; }
-    .main-nav ul { flex-direction: column; }
-    .main-nav a { padding: .75rem .5rem; }
+    .main-nav ul { flex-direction: column; align-items: stretch; gap: .2rem; }
+    .main-nav a { min-height: 2.75rem; padding: .65rem .75rem; font-size: .9rem; }
   }
 
   /* Buttons */
@@ -221,34 +221,32 @@
   .hero-quote p { margin: 0; }
   .hero-quote cite { display: inline; margin-left: .35rem; color: var(--accent); font-size: .8rem; font-style: normal; }
   @media (max-width: 760px) {
-    .hero { min-height: 40rem; }
-    .hero::after { background: linear-gradient(90deg, rgba(10,10,10,0) 39%, rgba(10,10,10,.2) 51%, rgba(10,10,10,.84) 68%, #0A0A0A 82%); }
-    .hero-copy { width: 50%; margin-right: var(--gutter); padding: 4rem .5rem 5rem; }
-    .hero-copy h1 { font-size: clamp(2rem, 6vw, 3.6rem); }
-  }
-  @media (max-width: 540px) {
     .hero { min-height: 0; flex-direction: column; align-items: stretch; padding: 0; }
     .hero::after { display: none; }
     .hero-figure { position: relative; inset: auto; width: 100%; height: auto; aspect-ratio: 1584 / 672; flex: none; }
     .hero-banner-art { object-fit: contain; object-position: center; }
     .hero-copy { width: 100%; margin: 0; padding: 1.5rem var(--gutter) 2rem; }
+    .hero-copy h1 { font-size: clamp(2rem, 6vw, 3.6rem); }
+  }
+  @media (max-width: 540px) {
     .hero-copy h1, .hero-copy .lead, .hero-copy .eyebrow, .hero-copy .social-strip { position: relative; z-index: 2; }
     .hero-copy .actions { display: grid; grid-template-columns: 1fr; }
     .hero-copy .actions .btn { text-align: center; }
     .facts > div { grid-template-columns: 1fr; gap: .1rem; }
     .facts { text-align: left; }
     .episode-card::before { left: 0; right: 0; }
-    body { text-align: center; }
+    body { text-align: left; }
     .bar { position: relative; justify-content: center; }
     .brand img { max-width: min(65vw, 20rem); }
     .tools { position: absolute; top: 50%; right: var(--gutter); transform: translateY(-50%); }
-    .main-nav ul { align-items: center; }
-    h1, h2, h3, h4, h5, h6 { text-align: center; }
-    .btn { justify-self: center; text-align: center; }
-    form .btn { display: table; margin-inline: auto; }
+    .main-nav ul { align-items: stretch; }
+    h1, h2, h3, h4, h5, h6 { text-align: left; }
+    .btn { text-align: center; }
+    form .btn { display: inline-block; margin-inline: 0; }
     .wrap > :not(.hero), .page-head, .article-head, .prose, .faq-list, .roadmap { margin-inline: auto; }
-    .lead, .project p, .feature-card p, .post-row p, .faq-list details p, .footer-brand p, .footer-connect p { margin-inline: auto; }
-    .block-head, .project-head { justify-content: center; align-items: center; text-align: center; }
+    .lead, .project p, .feature-card p, .post-row p, .faq-list details p { margin-inline: 0; }
+    .footer-brand p, .footer-connect p { margin-inline: auto; }
+    .block-head, .project-head { justify-content: space-between; align-items: flex-start; text-align: left; }
     .block[aria-labelledby="approach-h"] .block-head { flex-direction: column; }
     .block[aria-labelledby="podcast-h"] .block-head { flex-direction: column; }
     .block[aria-labelledby="feat-h"] .block-head { flex-direction: column; }
@@ -257,21 +255,23 @@
     .block[aria-labelledby="freelance-work"] .block-head,
     .block[aria-labelledby="freelance-process"] .block-head,
     .block[aria-labelledby="freelance-next"] .block-head { flex-direction: column; }
-    .actions, .social-strip, .meta, .tags, .filters, .controls { justify-content: center; }
-    .feature-card .tag { justify-self: center; }
-    .episode-number, .episode-meta { text-align: center; }
-    .prose ul, .prose ol { padding-left: 0; list-style-position: inside; }
+    .actions, .social-strip, .meta, .tags, .filters, .controls { justify-content: flex-start; }
+    .feature-card .tag { justify-self: start; }
+    .episode-number, .episode-meta { text-align: left; }
+    .prose ul, .prose ol { padding-left: 1.25rem; list-style-position: outside; }
     .prose pre, .prose pre code, .table-wrap { text-align: left; }
     .prose, .transcript, .post-row p { text-align: left; }
     .roadmap { border-left: 0; padding: 1.5rem 0 0; }
     .roadmap li { padding: 1.5rem 0 2rem; }
     .roadmap li::before { top: 0; left: 50%; transform: translateX(-50%); }
-    .footer-main > * { align-items: center; }
-    .footer-nav ul { justify-items: center; }
-    .footer-email { display: inline-flex; justify-content: center; }
-    .footer-bottom-inner { justify-content: center; }
-    .pager { justify-content: center; }
-    .pager-newer { text-align: center; }
+    .footer-main > * { align-items: flex-start; }
+    .footer-nav ul { justify-items: start; }
+    .footer-email { display: inline-flex; justify-content: flex-start; }
+    .footer-bottom-inner { justify-content: space-between; }
+    .pager { justify-content: space-between; }
+    .pager-newer { text-align: right; }
+    .quick-find-link { min-height: 8rem; padding: .85rem; }
+    .quick-find-link small { font-size: .8rem; }
   }
   .podcast-highlight .editorial-art { display: block; width: 100%; height: 100%; min-height: 20rem; object-fit: cover; object-position: center; }
 
@@ -377,6 +377,15 @@
   .status.live { color: var(--accent); border-color: rgba(29, 155, 240, 0.4); background: rgba(29, 155, 240, 0.08); }
 
   .media-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+  .quick-find { padding: clamp(1.75rem, 3vw, 2.5rem) 0; border-bottom: 1px solid var(--line); }
+  .quick-find h2 { margin-bottom: 1rem; font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem); }
+  .quick-find-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
+  .quick-find-link { display: grid; align-content: start; gap: .35rem; min-height: 8.5rem; padding: 1rem; border: 1px solid var(--line); background: var(--surface); color: var(--fg); text-decoration: none; transition: border-color .18s ease, transform .18s ease, background .18s ease; }
+  .quick-find-link:hover { border-color: var(--accent); background: var(--surface-strong); transform: translateY(-2px); text-decoration: none; }
+  .quick-find-link span { color: var(--accent); font: 600 .72rem var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+  .quick-find-link strong { font-size: 1rem; line-height: 1.3; }
+  .quick-find-link small { color: var(--muted); font-size: .85rem; line-height: 1.45; }
+  @media (max-width: 760px) { .quick-find-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .feature-card { display: grid; gap: .7rem; padding: 1.15rem; border: 1px solid var(--line); border-radius: 2px; background: #111; box-shadow: 3px 3px 0 rgba(242,242,242,0.08); transition: border-color .18s ease; }
   .feature-icon { position: relative; isolation: isolate; display: grid; place-items: center; justify-self: center; width: 4rem; height: 4rem; margin-bottom: .15rem; border: 0; background: transparent; color: var(--accent); }
   .feature-icon::before { content: ""; position: absolute; z-index: -1; top: 50%; left: 50%; width: 9rem; height: 8rem; transform: translate(-50%, -38%); background: radial-gradient(ellipse at center 32%, rgba(210, 210, 210, .2), rgba(210, 210, 210, .08) 38%, transparent 72%); pointer-events: none; }
@@ -1168,6 +1177,16 @@
           '</div>' +
         '</section>' +
 
+        '<section class="quick-find" aria-labelledby="quick-find-title">' +
+          '<h2 id="quick-find-title">What are you looking for?</h2>' +
+          '<nav class="quick-find-grid" aria-label="Popular destinations">' +
+            '<a class="quick-find-link" href="#/freelancer"><span>IT &amp; Web support</span><strong>Get practical help</strong><small>Troubleshooting, security setup, and website work.</small></a>' +
+            '<a class="quick-find-link" href="#/projects"><span>Projects</span><strong>Explore selected work</strong><small>See apps, collaborations, and technical projects.</small></a>' +
+            '<a class="quick-find-link" href="#/blog"><span>Technical notes</span><strong>Read the writeups</strong><small>Browse practical notes on networking, Linux, and security.</small></a>' +
+            '<a class="quick-find-link" href="#/podcast"><span>Podcast</span><strong>Listen and explore</strong><small>Find conversations and recent episodes.</small></a>' +
+          '</nav>' +
+        '</section>' +
+
         '<section class="block" aria-labelledby="approach-h">' +
           '<div class="block-head"><h2 id="approach-h">How I work</h2><span class="section-label">Clear scope. Practical fixes.</span></div>' +
           '<div class="media-grid">' +
@@ -1217,7 +1236,7 @@
       html:
         pageBanner('Latest drop', 'FixerCtrl Podcast', 'Practical conversations on security, systems, and the messy realities of building with technology.', 'assets/image.png') +
         '<div class="controls">' +
-          '<div class="field search" style="margin:0"><label for="episodeSearch">Search episodes</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="episodeSearch" type="search" placeholder="Search here"></div></div>' +
+          '<div class="field search" style="margin:0"><label for="episodeSearch">Search episodes</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="episodeSearch" type="search" placeholder="Search episodes"></div></div>' +
           '<div class="filters" role="group" aria-label="Filter episodes by topic">' +
             episodeTags.map(function (tag) { return '<button class="chip" type="button" data-episode-tag="' + tag + '" aria-pressed="' + (tag === episodeTag) + '">' + tag + '</button>'; }).join('') +
           '</div>' +
@@ -1412,7 +1431,7 @@
       html:
         pageBanner('', 'Writeups', 'Practical notes on networking, Linux, cybersecurity, and technology fixes.', 'assets/outside.jpg') +
         '<div class="controls">' +
-          '<div class="field search" style="margin:0"><label for="q">Search posts</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="q" type="search" value="' + blogState.q.replace(/"/g, '&quot;') + '" placeholder="Search here"></div></div>' +
+          '<div class="field search" style="margin:0"><label for="q">Search posts</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="q" type="search" value="' + blogState.q.replace(/"/g, '&quot;') + '" placeholder="Search posts"></div></div>' +
           '<div class="filters" role="group" aria-label="Filter by topic">' +
             tags.map(function (t) { return '<button class="chip" type="button" data-tag="' + t + '" aria-pressed="' + (t === blogState.tag) + '">' + t + '</button>'; }).join('') +
           '</div>' +
