@@ -19,12 +19,12 @@
     --surface: #141414;
     --surface-strong: #171717;
     --field: #1B1B1B;
-    --accent: #00B4FF;
-    --accent-2: #00B4FF;
-    --accent-3: #00B4FF;
-    --link: #00B4FF;
-    --focus: #00B4FF;
-    --btn-border: rgba(0, 180, 255, 0.8);
+    --accent: #1D9BF0;
+    --accent-2: #1D9BF0;
+    --accent-3: #1D9BF0;
+    --link: #1D9BF0;
+    --focus: #1D9BF0;
+    --btn-border: rgba(29, 155, 240, 0.8);
     --term-bg: rgba(10, 10, 10, 0.96);
     --term-fg: #F2F2F2;
     --term-dim: #D1D1D1;
@@ -108,12 +108,12 @@
   .brand { font-family: var(--marker); font-size: 1.8rem; line-height: 1; letter-spacing: .03em; color: var(--fg); text-decoration: none; display: inline-flex; align-items: center; gap: .2em; }
   .brand:hover { text-decoration: none; }
   .brand img { display: block; height: clamp(2.5rem, 4vw, 5.5rem); width: auto; max-width: min(100%, 32rem); object-fit: contain; }
-  .brand .cur { display: inline-block; width: .55em; height: .17em; background: var(--accent); box-shadow: 0 0 12px rgba(0, 180, 255, 0.55); margin-bottom: .22em; }
+  .brand .cur { display: inline-block; width: .55em; height: .17em; background: var(--accent); box-shadow: 0 0 12px rgba(29, 155, 240, 0.55); margin-bottom: .22em; }
   .main-nav { margin-left: auto; }
   .main-nav ul { list-style: none; display: flex; gap: .15rem; margin: 0; padding: 0; }
   .main-nav a { display: block; padding: .55rem .9rem; color: var(--fg); text-decoration: none; border-radius: 2px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: .78rem; transition: background .2s ease, color .2s ease, box-shadow .2s ease; }
-  .main-nav a:hover { background: rgba(0, 180, 255, 0.08); }
-  .main-nav a[aria-current="page"] { background: rgba(0, 180, 255, 0.12); box-shadow: inset 0 0 0 1px rgba(0, 180, 255, 0.28); text-decoration: none; }
+  .main-nav a:hover { background: rgba(29, 155, 240, 0.08); }
+  .main-nav a[aria-current="page"] { background: rgba(29, 155, 240, 0.12); box-shadow: inset 0 0 0 1px rgba(29, 155, 240, 0.28); text-decoration: none; }
   .tools { display: flex; gap: .25rem; }
   .icon-btn { width: 2.5rem; height: 2.5rem; display: inline-grid; place-items: center; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 2px; cursor: pointer; }
   .icon-btn:hover { border-color: var(--accent); }
@@ -138,7 +138,10 @@
     .btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); box-shadow: none; }
     .btn.ghost:hover { border-color: var(--accent); }
     .btn.ghost:active { box-shadow: none; }
+  .share-link { display: inline-flex; align-items: center; gap: .55rem; }
+  .share-link svg { width: 1.05rem; height: 1.05rem; fill: currentColor; }
   .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+  .share-toolbar { display: flex; margin: 0 0 1.25rem; }
   .linkbtn { font: inherit; background: none; border: 0; padding: 0; color: var(--link); text-decoration: underline; cursor: pointer; }
 
   /* Hero */
@@ -167,13 +170,13 @@
   .hero-copy h1 { font-size: clamp(2.4rem, 4.3vw, 5rem); }
   .hero-copy .lead { color: #D8D8D8; }
   .hero-copy .social-icon { color: #F2F2F2; }
-  .eyebrow { display: inline-flex; align-items: center; gap: .5rem; padding: .35rem .7rem; margin: 0 0 1rem; border: 1px solid rgba(0, 180, 255, 0.48); background: rgba(0, 180, 255, 0.06); border-radius: 2px; color: var(--accent); font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
+  .eyebrow { display: inline-flex; align-items: center; gap: .5rem; padding: .35rem .7rem; margin: 0 0 1rem; border: 1px solid rgba(29, 155, 240, 0.48); background: rgba(29, 155, 240, 0.06); border-radius: 2px; color: var(--accent); font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
   .eyebrow::before { content: ""; width: .48rem; height: .48rem; background: var(--accent); }
   .lead { font-size: 1.18rem; color: var(--muted); max-width: 36rem; }
   .social-strip { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.5rem; }
   .social-icon { width: 3.25rem; height: 3.25rem; display: inline-grid; place-items: center; border: 1px solid var(--line); border-radius: 2px; background: rgba(10, 10, 10, 0.55); color: var(--fg); text-decoration: none; transition: border-color .2s ease, background .2s ease, transform .2s ease; }
   .social-icon svg { width: 1.4rem; height: 1.4rem; fill: currentColor; }
-  .social-icon:hover { border-color: var(--accent); background: rgba(0, 180, 255, 0.12); color: var(--accent); transform: translateY(-2px); text-decoration: none; }
+  .social-icon:hover { border-color: var(--accent); background: rgba(29, 155, 240, 0.12); color: var(--accent); transform: translateY(-2px); text-decoration: none; }
   .hero-quote { margin: 1.5rem 0 0; color: var(--fg); font-size: .95rem; font-weight: 700; }
   .hero-quote p { margin: 0; }
   .hero-quote cite { display: inline; margin-left: .35rem; color: var(--accent); font-size: .8rem; font-style: normal; }
@@ -273,7 +276,7 @@
     inset: 0;
     background:
       radial-gradient(circle at 30% 30%, rgba(242,242,242,0.18), transparent 20%),
-      radial-gradient(circle at 70% 60%, rgba(0,180,255,0.16), transparent 28%);
+      radial-gradient(circle at 70% 60%, rgba(29,155,240,0.16), transparent 28%);
   }
   .page-banner-art::after {
     content: "Image placeholder";
@@ -326,12 +329,12 @@
   @media (max-width: 600px) { .now > div { grid-template-columns: 1fr; gap: .1rem; } }
 
   .project { padding: 1.5rem 1.25rem 1.6rem; margin-top: 1rem; border: 1px solid var(--line); border-radius: 2px; background: #111; box-shadow: 4px 4px 0 rgba(242,242,242,0.08); transition: border-color .18s ease; }
-  .project:hover, .feature-card:hover, .post-row:hover, .episode-card:hover { border-color: rgba(0, 180, 255, .42); }
+  .project:hover, .feature-card:hover, .post-row:hover, .episode-card:hover { border-color: rgba(29, 155, 240, .42); }
   .project p { max-width: 66ch; }
   .project-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1rem; margin-bottom: .5rem; }
   .project-head h2, .project-head h3 { margin: 0; }
   .status { margin: 0; font-size: .92rem; font-weight: 500; padding: .18rem .65rem; border: 1px solid var(--line); border-radius: 2px; background: transparent; }
-  .status.live { color: var(--accent); border-color: rgba(0, 180, 255, 0.4); background: rgba(0, 180, 255, 0.08); }
+  .status.live { color: var(--accent); border-color: rgba(29, 155, 240, 0.4); background: rgba(29, 155, 240, 0.08); }
 
   .media-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
   .feature-card { display: grid; gap: .7rem; padding: 1.15rem; border: 1px solid var(--line); border-radius: 2px; background: #111; box-shadow: 3px 3px 0 rgba(242,242,242,0.08); transition: border-color .18s ease; }
@@ -340,7 +343,7 @@
   .feature-icon svg { width: 3.25rem; height: 3.25rem; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
   .feature-card h3 { margin: 0; font-size: 1.15rem; }
   .feature-card p { margin: 0; color: var(--muted); }
-  .feature-card .tag { display: inline-block; width: fit-content; padding: .25rem .6rem; border-radius: 2px; border: 1px solid rgba(0, 180, 255, 0.35); background: rgba(0, 180, 255, 0.06); color: var(--accent); font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .feature-card .tag { display: inline-block; width: fit-content; padding: .25rem .6rem; border-radius: 2px; border: 1px solid rgba(29, 155, 240, 0.35); background: rgba(29, 155, 240, 0.06); color: var(--accent); font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
   .faq-list { max-width: 52rem; border-top: 1px solid var(--line); }
   .faq-list details { border-bottom: 1px solid var(--line); }
   .faq-list summary { padding: 1rem 2rem 1rem 0; color: var(--fg); font-weight: 700; cursor: pointer; }
@@ -364,7 +367,7 @@
     margin-bottom: 1rem;
     padding: .35rem .8rem;
     border: 1px solid var(--line);
-    background: rgba(0, 180, 255, 0.05);
+    background: rgba(29, 155, 240, 0.05);
     color: var(--fg);
     font-family: var(--marker);
     letter-spacing: .04em;
@@ -386,7 +389,7 @@
     display: grid;
     place-items: center;
     background:
-      linear-gradient(135deg, rgba(0,180,255,0.08), transparent 58%),
+      linear-gradient(135deg, rgba(29,155,240,0.08), transparent 58%),
       repeating-linear-gradient(135deg, rgba(242,242,242,0.04) 0 1px, transparent 1px 12px),
       #101010;
     color: var(--muted);
@@ -692,9 +695,9 @@
         var radius = eased * 230;
         var remaining = 1 - progress;
         var gradient = context.createRadialGradient(ripple.x, ripple.y, 0, ripple.x, ripple.y, 230);
-        gradient.addColorStop(0, 'rgba(0, 180, 255, ' + (remaining * 0.11) + ')');
-        gradient.addColorStop(0.55, 'rgba(0, 110, 255, ' + (remaining * 0.045) + ')');
-        gradient.addColorStop(1, 'rgba(0, 90, 255, 0)');
+        gradient.addColorStop(0, 'rgba(29, 155, 240, ' + (remaining * 0.11) + ')');
+        gradient.addColorStop(0.55, 'rgba(29, 155, 240, ' + (remaining * 0.045) + ')');
+        gradient.addColorStop(1, 'rgba(29, 155, 240, 0)');
         context.fillStyle = gradient;
         context.beginPath();
         context.arc(ripple.x, ripple.y, 230, 0, Math.PI * 2);
@@ -717,8 +720,8 @@
           }
         }
 
-        context.fillStyle = '#00b4ff';
-        context.shadowColor = 'rgba(0, 180, 255, 0.35)';
+        context.fillStyle = '#1d9bf0';
+        context.shadowColor = 'rgba(29, 155, 240, 0.35)';
         context.shadowBlur = 7;
         buckets.forEach(function (dots, index) {
           if (!dots.length) return;
@@ -900,6 +903,14 @@
   function strip(html) { return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); }
   function mins(html) { return Math.max(1, Math.ceil(strip(html).split(' ').length / 200)); }
   function tagList(tags) { return '<ul class="tags" aria-label="Tags">' + tags.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>'; }
+  function xShareLink(title, path) {
+    var pageUrl = new URL(location.href);
+    pageUrl.hash = '/' + path;
+    var shareUrl = 'https://x.com/intent/post?text=' + encodeURIComponent(title) + '&url=' + encodeURIComponent(pageUrl.href);
+    return '<a class="btn ghost share-link" href="' + shareUrl + '" target="_blank" rel="noopener noreferrer" aria-label="Share ' + title + ' on X" title="Share on X">' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 6.3 7.7l1.4 1.4L11 5.8V15h2V5.8l3.3 3.3 1.4-1.4L12 2ZM4 12H2v10h20V12h-2v8H4v-8Z"/></svg>' +
+      'Share on X</a>';
+  }
   function postRow(p, level, withThumbnail, placeholderThumbnail) {
     level = level || 'h3';
     var hasThumbnail = withThumbnail || placeholderThumbnail;
@@ -1008,6 +1019,7 @@
       title: 'Podcast',
       html:
         pageBanner('Latest drop', 'FixerCtrl Podcast', 'Practical conversations on security, systems, and the messy realities of building with technology.', 'assets/image.png') +
+        '<div class="share-toolbar">' + xShareLink('FixerCtrl Podcast', 'podcast') + '</div>' +
         '<div class="controls">' +
           '<div class="field search" style="margin:0"><label for="episodeSearch">Search episodes</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="episodeSearch" type="search" placeholder="Search here"></div></div>' +
           '<div class="filters" role="group" aria-label="Filter episodes by topic">' +
@@ -1257,7 +1269,8 @@
         '<a class="back btn ghost" href="#/blog">All posts</a>' +
         pageBanner('', p.title, '') +
         '<header class="article-head"><p class="meta"><time datetime="' + p.date + '">' + fmtDate(p.date) + '</time><span>' + mins(p.body) + ' min read</span></p>' +
-          tagList(p.tags) + '</header>' +
+          tagList(p.tags) +
+          '<div class="share-toolbar">' + xShareLink(p.title, 'blog/' + p.slug) + '</div></header>' +
         '<article class="prose">' + p.body + '</article>' +
         '<nav class="pager" aria-label="More posts">' +
           (older ? '<a href="#/blog/' + older.slug + '"><small>Older post</small>' + older.title + '</a>' : '<span></span>') +
