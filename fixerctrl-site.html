@@ -233,14 +233,14 @@
     .hero-copy h1, .hero-copy .lead, .hero-copy .eyebrow, .hero-copy .social-strip { position: relative; z-index: 2; }
     .hero-copy .actions { display: grid; grid-template-columns: 1fr; }
     .hero-copy .actions .btn { text-align: center; }
-    body { text-align: center; }
+    body { text-align: left; }
     h1, h2, h3, h4, h5, h6 { text-align: center; }
     .hero-copy { text-align: center; }
     .hero-copy .lead, .page-banner-copy .lead { margin-inline: auto; }
     .hero-copy .actions, .social-strip { justify-content: center; }
     .hero-quote { text-align: center; }
     .facts > div { grid-template-columns: 1fr; gap: .1rem; }
-    .facts { text-align: center; }
+    .facts { text-align: left; }
     .episode-card::before { left: 0; right: 0; }
     .bar { position: relative; justify-content: center; }
     .brand img { max-width: min(55vw, 20rem); }
@@ -249,28 +249,41 @@
     form { text-align: left; }
     form .btn { display: block; margin-inline: auto; }
     .wrap > :not(.hero), .page-head, .article-head, .prose, .faq-list, .roadmap { margin-inline: auto; }
-    .lead, .project p, .feature-card p, .post-row p, .faq-list details p { margin-inline: auto; }
-    .project p, .feature-card p, .post-row p, .faq-list details p { text-align: center; }
-    .page-head, .article-head, .page-banner-copy { text-align: center; }
+    .lead { margin-inline: auto; }
+    .page-head, .page-banner-copy { text-align: center; }
     .page-banner-copy { align-items: center; }
+    .prose h1, .prose h2, .prose h3, .article-head h1 { text-align: left; }
+    .article-head, .meta, .tags { text-align: left; }
+    .article-head .meta, .article-head .tags { justify-content: flex-start; }
     .section-label { margin-inline: auto; }
-    .block-head, .project-head { flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+    .block-head { flex-direction: column; justify-content: center; align-items: center; text-align: center; }
     .block-head { width: 100%; }
-    .project-head { gap: .65rem; }
+    .project-head { align-items: flex-start; text-align: left; }
+    .project-head h2, .project-head h3, .post-row h2, .post-row h3, .cols h3 { text-align: left; }
     .actions, .social-strip, .meta, .tags, .filters, .controls { justify-content: center; }
     .controls { align-items: center; }
     .field.search, .search { width: min(100%, 22rem); }
     .search-wrap { width: 100%; }
     .quick-find h2 { text-align: center; }
     .quick-find-link { text-align: center; }
-    .feature-card { justify-items: center; text-align: center; }
+    .block[aria-labelledby="approach-h"] .feature-card { justify-items: center; text-align: center; }
+    .block[aria-labelledby="approach-h"] .feature-card h3,
+    .block[aria-labelledby="approach-h"] .feature-card p { text-align: center; }
     .feature-card .tag { justify-self: center; }
     .episode-card, .episode-top > div { text-align: center; }
     .episode-number, .episode-meta { text-align: center; }
     .podcast-copy { align-items: center; text-align: center; }
     .contact-grid > div > h2 { text-align: center; }
-    .count, .empty { text-align: center; }
-    .faq-list summary { padding-inline: 1rem; text-align: center; }
+    .count { text-align: center; }
+    .faq-list summary { padding-inline-end: 2rem; text-align: left; }
+    .service-overview .feature-card, .block[aria-labelledby^="freelance-"] .feature-card { justify-items: start; text-align: left; }
+    .service-overview .feature-card h3, .service-overview .feature-card p,
+    .block[aria-labelledby^="freelance-"] .feature-card h3,
+    .block[aria-labelledby^="freelance-"] .feature-card p { text-align: left; }
+    .service-overview .feature-card .tag, .block[aria-labelledby^="freelance-"] .feature-card .tag { justify-self: start; }
+    .block[aria-labelledby^="freelance-"] .lead,
+    .block[aria-labelledby^="freelance-"] .note { margin-inline: 0; text-align: left; }
+    .block[aria-labelledby^="freelance-"] .plain { text-align: left; }
     .footer-main > * { align-items: center; text-align: center; }
     .footer-brand img { object-position: center; }
     .footer-brand p, .footer-connect p { margin-inline: auto; }
@@ -391,6 +404,7 @@
   .project-head h2, .project-head h3 { margin: 0; }
   .status { margin: 0; font-size: .92rem; font-weight: 500; padding: .18rem .65rem; border: 1px solid var(--line); border-radius: 2px; background: transparent; }
   .status.live { color: var(--accent); border-color: rgba(29, 155, 240, 0.4); background: rgba(29, 155, 240, 0.08); }
+  .service-overview, .block[aria-labelledby^="freelance-"] { text-align: left; }
 
   .media-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
   .quick-find { padding: clamp(1.75rem, 3vw, 2.5rem) 0; border-bottom: 1px solid var(--line); }
@@ -1379,7 +1393,7 @@
       title: 'IT & Web Support',
       html:
         pageBanner('IT support / Web / Security', 'IT &amp; Web Support', 'Practical troubleshooting, security setup, and web solutions for individuals and small businesses.') +
-        '<section aria-label="IT and web services">' +
+        '<section class="service-overview" aria-label="IT and web services">' +
           '<div class="media-grid">' +
             '<article class="feature-card"><span class="tag">01 / IT support</span><h3>Everyday troubleshooting</h3><p>Diagnosis and practical help for common device, software, account, and connectivity issues. Clear options for individuals and small teams.</p><p class="status">Quoted to scope</p></article>' +
             '<article class="feature-card"><span class="tag">02 / Security</span><h3>Security setup and hygiene</h3><p>Help with account protection, device updates, backups, and safer configuration. Any security testing must be explicitly authorized and agreed in writing.</p><p class="status">Quoted after review</p></article>' +
