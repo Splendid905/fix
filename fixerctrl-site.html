@@ -152,6 +152,9 @@
   .comment-button svg { width: 1.2rem; height: 1.2rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .comment-button:hover { color: var(--accent); }
   .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+  .post-actions-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .25rem .75rem; margin-top: .65rem; }
+  .post-actions-row .actions { margin-top: 0; flex: 0 0 auto; justify-content: flex-start; }
+  .post-actions-row .engagement-bar { width: auto; margin-top: 0; padding-top: 0; justify-content: flex-end; gap: .4rem; flex: 0 1 auto; }
   .share-dialog { width: min(28rem, calc(100% - 2rem)); max-width: none; max-height: min(90dvh, 42rem); padding: 1.5rem; border: 1px solid var(--line); border-radius: 4px; background: var(--surface-strong); color: var(--fg); box-shadow: var(--shadow); }
   .share-dialog::backdrop { background: rgba(0, 0, 0, .72); }
   .share-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: .75rem; }
@@ -173,6 +176,12 @@
   .comment-form textarea { min-height: 6rem; }
   .comment-form .btn { justify-self: end; }
   .comment-local-note { margin: .75rem 0 0; color: var(--muted); font-size: .85rem; }
+  .comment-thread { display: grid; gap: .65rem; margin: .65rem 0 0; padding: 0 0 0 .9rem; border-left: 2px solid var(--line); list-style: none; }
+  .comment-entry-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4rem .8rem; margin-bottom: .35rem; color: var(--muted); font-size: .8rem; }
+  .comment-entry p { margin: 0; white-space: pre-wrap; }
+  .comment-reply { padding: .2rem 0; border: 0; background: none; color: var(--link); font: inherit; font-size: .8rem; cursor: pointer; }
+  .comment-reply:hover { text-decoration: underline; }
+  .comment-replying { color: var(--accent); font-size: .9rem; }
   .linkbtn { font: inherit; background: none; border: 0; padding: 0; color: var(--link); text-decoration: underline; cursor: pointer; }
 
   /* Hero */
@@ -658,6 +667,8 @@
   <p id="commentDialogDescription"></p>
   <ul class="comment-list" id="commentList" aria-live="polite"></ul>
   <form class="comment-form" id="commentForm">
+    <p class="comment-replying" id="replyingTo" hidden></p>
+    <button class="comment-reply" id="cancelReply" type="button" hidden>Cancel reply</button>
     <label for="commentText">Add a comment</label>
     <textarea id="commentText" maxlength="500" required placeholder="Write a comment (up to 500 characters)"></textarea>
     <button class="btn" id="submitComment" type="submit">Comment</button>
@@ -1013,24 +1024,59 @@
       var stored = window.localStorage.getItem('fixerctrl.engagement.comments.' + encodeURIComponent(id));
       if (stored === null) return [];
       var comments = JSON.parse(stored);
-      if (!Array.isArray(comments) || !comments.every(function (comment) {
-        return comment && typeof comment.text === 'string' && typeof comment.createdAt === 'string';
-      })) return null;
-      return comments;
+      if (!Array.isArray(comments)) return null;
+      function normalize(items, parentPath) {
+        if (!Array.isArray(items)) return null;
+        var normalized = [];
+        for (var index = 0; index < items.length; index++) {
+          var comment = items[index];
+          if (!comment || typeof comment.text !== 'string' || typeof comment.createdAt !== 'string') return null;
+          var replies = normalize(comment.replies || [], parentPath + index + '-');
+          if (!replies) return null;
+          normalized.push({
+            id: typeof comment.id === 'string' ? comment.id : 'legacy-' + parentPath + index,
+            text: comment.text,
+            createdAt: comment.createdAt,
+            replies: replies
+          });
+        }
+        return normalized;
+      }
+      return normalize(comments, '');
     } catch (error) {
       return null;
     }
   }
-  function writeComment(id, text) {
+  var commentSequence = 0;
+  function writeComment(id, text, parentId) {
     var comments = readComments(id);
     if (comments === null) return false;
-    comments.push({ text: text, createdAt: new Date().toISOString() });
+    var comment = { id: Date.now() + '-' + (++commentSequence), text: text, createdAt: new Date().toISOString(), replies: [] };
+    if (parentId) {
+      var parent = null;
+      function find(items) {
+        items.some(function (item) {
+          if (item.id === parentId) { parent = item; return true; }
+          return find(item.replies);
+        });
+      }
+      find(comments);
+      if (!parent) return false;
+      parent.replies.push(comment);
+    } else {
+      comments.push(comment);
+    }
     try {
       window.localStorage.setItem('fixerctrl.engagement.comments.' + encodeURIComponent(id), JSON.stringify(comments));
-      return comments.length;
+      return countComments(comments);
     } catch (error) {
       return false;
     }
+  }
+  function countComments(comments) {
+    return comments.reduce(function (count, comment) {
+      return count + 1 + countComments(comment.replies || []);
+    }, 0);
   }
   function shareButton(title, path) {
     var pageUrl = new URL(location.href);
@@ -1046,7 +1092,7 @@
     var comments = readComments(id);
     var likesLabel = liked === null ? '0' : (liked ? '1' : '0');
     var viewsLabel = views === null ? '0' : String(views);
-    var commentsLabel = comments === null ? '0' : String(comments.length);
+    var commentsLabel = comments === null ? '0' : String(countComments(comments));
     return '<div class="engagement-bar">' +
       '<button class="like-button" type="button" data-engagement-id="' + escapeHtml(id) + '" data-engagement-title="' + safeTitle + '" aria-pressed="' + (liked === true) + '" aria-label="Like ' + safeTitle + (liked === null ? '; unavailable' : (liked ? '; unlike, 1 like' : '; 0 likes')) + '" title="' + (liked === null ? 'Likes unavailable' : (liked ? 'Unlike' : 'Like')) + '"' + (liked === null ? ' disabled' : '') + '>' +
       '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>' +
@@ -1072,8 +1118,9 @@
       '<' + level + '><a href="#/blog/' + p.slug + '">' + p.title + '</a></' + level + '>' +
       '<p class="meta"><time datetime="' + p.date + '">' + fmtDate(p.date) + '</time><span>' + mins(p.body) + ' min read</span></p>' +
       '<p>' + p.summary + '</p>' + tagList(p.tags) +
-      (withThumbnail ? '<div class="actions"><a class="btn" href="#/blog/' + p.slug + '">Read now</a></div>' : '') +
-      engagementBar('post:' + p.slug, p.title, 'blog/' + p.slug) +
+      (withThumbnail
+        ? '<div class="post-actions-row"><div class="actions"><a class="btn" href="#/blog/' + p.slug + '">Read now</a></div>' + engagementBar('post:' + p.slug, p.title, 'blog/' + p.slug) + '</div>'
+        : engagementBar('post:' + p.slug, p.title, 'blog/' + p.slug)) +
       '</div></article>';
   }
 
@@ -1691,6 +1738,7 @@
 
   var shareTrigger = null;
   var commentTrigger = null;
+  var replyToCommentId = null;
   function renderComments(id) {
     var comments = readComments(id);
     var list = $('#commentList');
@@ -1711,21 +1759,39 @@
       list.appendChild(empty);
       return;
     }
-    comments.slice().reverse().forEach(function (comment) {
+    function appendComment(comment, parent) {
       var item = document.createElement('li');
       item.className = 'comment-entry';
       var content = document.createElement('p');
       content.textContent = comment.text;
       item.appendChild(content);
+      var header = document.createElement('div');
+      header.className = 'comment-entry-head';
       var timestamp = new Date(comment.createdAt);
       if (!Number.isNaN(timestamp.getTime())) {
         var date = document.createElement('time');
         date.dateTime = timestamp.toISOString();
         date.textContent = timestamp.toLocaleString();
-        item.appendChild(date);
+        header.appendChild(date);
       }
-      list.appendChild(item);
-    });
+      var reply = document.createElement('button');
+      reply.className = 'comment-reply';
+      reply.type = 'button';
+      reply.dataset.replyTo = comment.id;
+      reply.textContent = 'Reply';
+      reply.title = 'Reply to this comment';
+      header.appendChild(reply);
+      item.insertBefore(header, content);
+      if (comment.replies.length) {
+        var thread = document.createElement('ul');
+        thread.className = 'comment-thread';
+        thread.setAttribute('aria-label', 'Replies');
+        comment.replies.slice().reverse().forEach(function (child) { appendComment(child, thread); });
+        item.appendChild(thread);
+      }
+      parent.appendChild(item);
+    }
+    comments.slice().reverse().forEach(function (comment) { appendComment(comment, list); });
   }
   function openCommentDialog(button) {
     var id = button.dataset.engagementId;
@@ -1734,6 +1800,10 @@
     $('#commentDialogDescription').textContent = button.dataset.engagementTitle;
     $('#commentForm').dataset.engagementId = id;
     $('#commentText').value = '';
+    replyToCommentId = null;
+    $('#replyingTo').hidden = true;
+    $('#cancelReply').hidden = true;
+    $('#commentForm label[for="commentText"]').textContent = 'Add a comment';
     renderComments(id);
     $('#commentDialog').showModal();
     if (!$('#commentText').disabled) $('#commentText').focus();
@@ -1788,6 +1858,37 @@
     var button = event.target.closest('.comment-button');
     if (button && !button.disabled) openCommentDialog(button);
   });
+  $('#commentList').addEventListener('click', function (event) {
+    var button = event.target.closest('[data-reply-to]');
+    if (!button) return;
+    var comment = readComments($('#commentForm').dataset.engagementId);
+    function find(items) {
+      for (var index = 0; index < items.length; index++) {
+        if (items[index].id === button.dataset.replyTo) return items[index];
+        var nested = find(items[index].replies);
+        if (nested) return nested;
+      }
+      return null;
+    }
+    var target = comment && find(comment);
+    if (!target) {
+      $('#commentStatus').textContent = 'That comment is no longer available. Refresh the comment list and try again.';
+      return;
+    }
+    replyToCommentId = target.id;
+    $('#replyingTo').textContent = 'Replying to: ' + target.text;
+    $('#replyingTo').hidden = false;
+    $('#cancelReply').hidden = false;
+    $('#commentForm label[for="commentText"]').textContent = 'Your reply';
+    $('#commentText').focus();
+  });
+  $('#cancelReply').addEventListener('click', function () {
+    replyToCommentId = null;
+    $('#replyingTo').hidden = true;
+    this.hidden = true;
+    $('#commentForm label[for="commentText"]').textContent = 'Add a comment';
+    $('#commentText').focus();
+  });
   $('#commentForm').addEventListener('submit', function (event) {
     event.preventDefault();
     var field = $('#commentText');
@@ -1799,9 +1900,9 @@
       return;
     }
     var id = this.dataset.engagementId;
-    var count = writeComment(id, text);
+    var count = writeComment(id, text, replyToCommentId);
     if (count === false) {
-      $('#commentStatus').textContent = 'The comment could not be saved in this browser. Check available browser storage and try again.';
+      $('#commentStatus').textContent = 'The comment could not be saved. The parent comment may no longer exist, or browser storage may be unavailable.';
       return;
     }
     $$('.comment-button[data-engagement-id]').forEach(function (button) {
@@ -1810,6 +1911,10 @@
       button.setAttribute('aria-label', 'Comments for ' + button.dataset.engagementTitle + ': ' + count);
     });
     field.value = '';
+    replyToCommentId = null;
+    $('#replyingTo').hidden = true;
+    $('#cancelReply').hidden = true;
+    $('#commentForm label[for="commentText"]').textContent = 'Add a comment';
     renderComments(id);
     $('#commentStatus').textContent = 'Comment saved in this browser only. It is not visible to other visitors.';
   });
