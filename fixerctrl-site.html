@@ -19,12 +19,12 @@
     --surface: #141414;
     --surface-strong: #171717;
     --field: #1B1B1B;
-    --accent: #00B4FF;
-    --accent-2: #00B4FF;
-    --accent-3: #00B4FF;
-    --link: #00B4FF;
-    --focus: #00B4FF;
-    --btn-border: rgba(0, 180, 255, 0.8);
+    --accent: #1D9BF0;
+    --accent-2: #1D9BF0;
+    --accent-3: #1D9BF0;
+    --link: #1D9BF0;
+    --focus: #1D9BF0;
+    --btn-border: rgba(29, 155, 240, 0.8);
     --term-bg: rgba(10, 10, 10, 0.96);
     --term-fg: #F2F2F2;
     --term-dim: #D1D1D1;
@@ -108,38 +108,82 @@
   .brand { font-family: var(--marker); font-size: 1.8rem; line-height: 1; letter-spacing: .03em; color: var(--fg); text-decoration: none; display: inline-flex; align-items: center; gap: .2em; }
   .brand:hover { text-decoration: none; }
   .brand img { display: block; height: clamp(2.5rem, 4vw, 5.5rem); width: auto; max-width: min(100%, 32rem); object-fit: contain; }
-  .brand .cur { display: inline-block; width: .55em; height: .17em; background: var(--accent); box-shadow: 0 0 12px rgba(0, 180, 255, 0.55); margin-bottom: .22em; }
+  .brand .cur { display: inline-block; width: .55em; height: .17em; background: var(--accent); box-shadow: 0 0 12px rgba(29, 155, 240, 0.55); margin-bottom: .22em; }
   .main-nav { margin-left: auto; }
   .main-nav ul { list-style: none; display: flex; gap: .15rem; margin: 0; padding: 0; }
   .main-nav a { display: block; padding: .55rem .9rem; color: var(--fg); text-decoration: none; border-radius: 2px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: .78rem; transition: background .2s ease, color .2s ease, box-shadow .2s ease; }
-  .main-nav a:hover { background: rgba(0, 180, 255, 0.08); }
-  .main-nav a[aria-current="page"] { background: rgba(0, 180, 255, 0.12); box-shadow: inset 0 0 0 1px rgba(0, 180, 255, 0.28); text-decoration: none; }
+  .main-nav a:hover { background: rgba(29, 155, 240, 0.08); }
+  .main-nav a[aria-current="page"] { background: rgba(29, 155, 240, 0.12); box-shadow: inset 0 0 0 1px rgba(29, 155, 240, 0.28); text-decoration: none; }
   .tools { display: flex; gap: .25rem; }
-  .icon-btn { width: 2.5rem; height: 2.5rem; display: inline-grid; place-items: center; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 2px; cursor: pointer; }
+  .icon-btn { width: 3rem; height: 3rem; display: inline-grid; place-items: center; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 2px; cursor: pointer; }
   .icon-btn:hover { border-color: var(--accent); }
   .menu-btn { display: none; }
   .menu-btn .x { display: none; }
   .site-header.open .menu-btn .bars { display: none; }
   .site-header.open .menu-btn .x { display: block; }
-  @media (max-width: 780px) {
+  @media (max-width: 900px) {
     .menu-btn { display: inline-grid; }
     .tools { margin-left: auto; }
-    .main-nav { display: none; margin: 0; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg); border-bottom: 1px solid var(--line); padding: .5rem var(--gutter) 1rem; }
+    .main-nav { display: none; margin: 0; position: absolute; left: 0; right: 0; top: 100%; max-height: calc(100dvh - 5rem); overflow-y: auto; background: var(--surface-strong); border-bottom: 1px solid var(--line); padding: .65rem var(--gutter) 1rem; box-shadow: 0 1rem 2rem rgba(0, 0, 0, .45); }
     .site-header.open .main-nav { display: block; }
-    .main-nav ul { flex-direction: column; }
-    .main-nav a { padding: .75rem .5rem; }
+    .main-nav ul { flex-direction: column; align-items: stretch; gap: .25rem; max-width: 36rem; margin-inline: auto; }
+    .main-nav a { display: grid; place-items: center; min-height: 3rem; padding: .65rem .75rem; border: 1px solid transparent; font-size: .9rem; }
+    .main-nav a:hover, .main-nav a[aria-current="page"] { border-color: rgba(29, 155, 240, 0.35); }
   }
 
   /* Buttons */
-    .btn { display: inline-block; font: inherit; font-weight: 700; padding: .8rem 1.3rem; border-radius: 2px; text-decoration: none; cursor: pointer;
+    .btn { display: inline-flex; flex: 0 1 10.5rem; align-items: center; justify-content: center; width: 10.5rem; max-width: 100%; min-height: 2.75rem; padding: .55rem .75rem; border-radius: 2px; font: inherit; font-weight: 700; line-height: 1.25; text-align: center; text-decoration: none; white-space: nowrap; cursor: pointer;
       border: 1px solid var(--btn-border); background: var(--accent); color: #0A0A0A; box-shadow: 3px 3px 0 rgba(242, 242, 242, 0.22); transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease; }
     .btn:hover { border-color: var(--accent); text-decoration: none; }
     .btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(242, 242, 242, 0.22); }
     .btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); box-shadow: none; }
     .btn.ghost:hover { border-color: var(--accent); }
     .btn.ghost:active { box-shadow: none; }
+  .share-button { display: inline-grid; place-items: center; width: 3rem; height: 3rem; padding: 0; border: 1px solid transparent; border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; transition: color .18s ease, background .18s ease, border-color .18s ease; }
+  .share-button:hover { color: var(--accent); background: rgba(29, 155, 240, 0.12); border-color: rgba(29, 155, 240, 0.35); }
+  .share-button svg { width: 1.25rem; height: 1.25rem; fill: currentColor; }
+  .engagement-bar { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: .75rem 1.5rem; width: 100%; margin-top: auto; padding-top: .65rem; position: relative; z-index: 1; }
+  .engagement-item { display: inline-flex; align-items: center; gap: .3rem; color: var(--muted); font-size: .82rem; }
+  .engagement-count { min-width: 1ch; font-family: var(--mono); font-size: .76rem; }
+  .like-button { display: inline-flex; align-items: center; gap: .35rem; min-height: 3rem; padding: 0 .4rem; border: 0; border-radius: 0; background: transparent; color: var(--muted); font: inherit; cursor: pointer; transition: color .18s ease; }
+  .like-button svg, .view-icon { width: 1.2rem; height: 1.2rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .like-button:hover, .like-button[aria-pressed="true"] { color: #F45D8C; }
+  .like-button[aria-pressed="true"] svg { fill: currentColor; }
+  .comment-button { display: inline-flex; align-items: center; gap: .35rem; min-height: 3rem; padding: 0 .4rem; border: 0; border-radius: 0; background: transparent; color: var(--muted); font: inherit; cursor: pointer; transition: color .18s ease; }
+  .comment-button svg { width: 1.2rem; height: 1.2rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .comment-button:hover { color: var(--accent); }
   .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
-  .linkbtn { font: inherit; background: none; border: 0; padding: 0; color: var(--link); text-decoration: underline; cursor: pointer; }
+  .post-actions-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .25rem .75rem; margin-top: .65rem; }
+  .post-actions-row .actions { margin-top: 0; flex: 0 0 auto; justify-content: flex-start; }
+  .post-actions-row .engagement-bar { width: auto; margin-top: 0; padding-top: 0; justify-content: flex-end; gap: .4rem; flex: 0 1 auto; }
+  .share-dialog { width: min(28rem, calc(100% - 2rem)); max-width: none; max-height: min(90dvh, 42rem); padding: 1.5rem; border: 1px solid var(--line); border-radius: 4px; background: var(--surface-strong); color: var(--fg); box-shadow: var(--shadow); }
+  .share-dialog::backdrop { background: rgba(0, 0, 0, .72); }
+  .share-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: .75rem; }
+  .share-dialog-head h2 { margin: 0; font-size: 1.5rem; }
+  .share-dialog-head .section-label { margin: 0 0 .35rem; }
+  .share-dialog-close { flex: 0 0 auto; width: 3rem; height: 3rem; display: inline-grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--fg); cursor: pointer; }
+  .share-dialog-close:hover { border-color: var(--accent); color: var(--accent); }
+  .share-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-top: 1rem; }
+  .share-option { display: inline-flex; align-items: center; min-height: 3rem; padding: .6rem .8rem; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); color: var(--fg); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+  .share-option:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+  .share-url-label { display: block; margin-top: 1rem; font-size: .85rem; font-weight: 600; }
+  .share-dialog input { width: 100%; margin-top: .35rem; padding: .6rem .7rem; border: 1px solid var(--line); border-radius: 2px; background: var(--bg); color: var(--fg); font: .85rem var(--mono); }
+  .share-status { min-height: 1.5em; margin: .55rem 0 0; color: var(--muted); font-size: .9rem; }
+  .comment-dialog { width: min(34rem, calc(100% - 2rem)); }
+  .comment-list { display: grid; gap: .65rem; max-height: min(40dvh, 18rem); overflow-y: auto; margin: 1rem 0; padding: 0; list-style: none; }
+  .comment-entry { padding: .75rem; border: 1px solid var(--line); background: var(--surface); overflow-wrap: anywhere; }
+  .comment-empty { color: var(--muted); }
+  .comment-form { display: grid; gap: .6rem; }
+  .comment-form textarea { min-height: 6rem; }
+  .comment-form .btn { justify-self: center; }
+  .comment-local-note { margin: .75rem 0 0; color: var(--muted); font-size: .85rem; }
+  .comment-thread { display: grid; gap: .65rem; margin: .65rem 0 0; padding: 0 0 0 .9rem; border-left: 2px solid var(--line); list-style: none; }
+  .comment-entry-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4rem .8rem; margin-bottom: .35rem; color: var(--muted); font-size: .8rem; }
+  .comment-entry p { margin: 0; white-space: pre-wrap; }
+  .comment-reply { display: inline-flex; align-items: center; min-height: 3rem; padding: 0 .35rem; border: 0; background: none; color: var(--link); font: inherit; font-size: .8rem; cursor: pointer; }
+  .comment-reply:hover { text-decoration: underline; }
+  .comment-replying { color: var(--accent); font-size: .9rem; }
+  .linkbtn { display: inline-flex; align-items: center; min-height: 3rem; font: inherit; background: none; border: 0; padding: 0; color: var(--link); text-decoration: underline; cursor: pointer; }
 
   /* Hero */
   .hero {
@@ -167,68 +211,95 @@
   .hero-copy h1 { font-size: clamp(2.4rem, 4.3vw, 5rem); }
   .hero-copy .lead { color: #D8D8D8; }
   .hero-copy .social-icon { color: #F2F2F2; }
-  .eyebrow { display: inline-flex; align-items: center; gap: .5rem; padding: .35rem .7rem; margin: 0 0 1rem; border: 1px solid rgba(0, 180, 255, 0.48); background: rgba(0, 180, 255, 0.06); border-radius: 2px; color: var(--accent); font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
+  .eyebrow { display: inline-flex; align-items: center; gap: .5rem; padding: .35rem .7rem; margin: 0 0 1rem; border: 1px solid rgba(29, 155, 240, 0.48); background: rgba(29, 155, 240, 0.06); border-radius: 2px; color: var(--accent); font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
   .eyebrow::before { content: ""; width: .48rem; height: .48rem; background: var(--accent); }
   .lead { font-size: 1.18rem; color: var(--muted); max-width: 36rem; }
   .social-strip { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.5rem; }
   .social-icon { width: 3.25rem; height: 3.25rem; display: inline-grid; place-items: center; border: 1px solid var(--line); border-radius: 2px; background: rgba(10, 10, 10, 0.55); color: var(--fg); text-decoration: none; transition: border-color .2s ease, background .2s ease, transform .2s ease; }
   .social-icon svg { width: 1.4rem; height: 1.4rem; fill: currentColor; }
-  .social-icon:hover { border-color: var(--accent); background: rgba(0, 180, 255, 0.12); color: var(--accent); transform: translateY(-2px); text-decoration: none; }
+  .social-icon:hover { border-color: var(--accent); background: rgba(29, 155, 240, 0.12); color: var(--accent); transform: translateY(-2px); text-decoration: none; }
   .hero-quote { margin: 1.5rem 0 0; color: var(--fg); font-size: .95rem; font-weight: 700; }
   .hero-quote p { margin: 0; }
   .hero-quote cite { display: inline; margin-left: .35rem; color: var(--accent); font-size: .8rem; font-style: normal; }
   @media (max-width: 760px) {
-    .hero { min-height: 40rem; }
-    .hero::after { background: linear-gradient(90deg, rgba(10,10,10,0) 39%, rgba(10,10,10,.2) 51%, rgba(10,10,10,.84) 68%, #0A0A0A 82%); }
-    .hero-copy { width: 50%; margin-right: var(--gutter); padding: 4rem .5rem 5rem; }
-    .hero-copy h1 { font-size: clamp(2rem, 6vw, 3.6rem); }
-  }
-  @media (max-width: 540px) {
     .hero { min-height: 0; flex-direction: column; align-items: stretch; padding: 0; }
     .hero::after { display: none; }
     .hero-figure { position: relative; inset: auto; width: 100%; height: auto; aspect-ratio: 1584 / 672; flex: none; }
     .hero-banner-art { object-fit: contain; object-position: center; }
     .hero-copy { width: 100%; margin: 0; padding: 1.5rem var(--gutter) 2rem; }
+    .hero-copy h1 { font-size: clamp(2rem, 6vw, 3.6rem); }
+  }
+  @media (max-width: 540px) {
     .hero-copy h1, .hero-copy .lead, .hero-copy .eyebrow, .hero-copy .social-strip { position: relative; z-index: 2; }
-    .hero-copy .actions { display: grid; grid-template-columns: 1fr; }
+    .hero-copy .actions { display: grid; grid-template-columns: 1fr; justify-items: center; }
     .hero-copy .actions .btn { text-align: center; }
+    body { text-align: left; }
+    h1, h2, h3, h4, h5, h6 { text-align: center; }
+    .hero-copy { text-align: center; }
+    .hero-copy .lead, .page-banner-copy .lead { margin-inline: auto; }
+    .hero-copy .actions, .social-strip { justify-content: center; }
+    .hero-quote { text-align: center; }
     .facts > div { grid-template-columns: 1fr; gap: .1rem; }
     .facts { text-align: left; }
     .episode-card::before { left: 0; right: 0; }
-    body { text-align: center; }
     .bar { position: relative; justify-content: center; }
-    .brand img { max-width: min(65vw, 20rem); }
+    .brand img { max-width: min(55vw, 20rem); }
     .tools { position: absolute; top: 50%; right: var(--gutter); transform: translateY(-50%); }
-    .main-nav ul { align-items: center; }
-    h1, h2, h3, h4, h5, h6 { text-align: center; }
-    .btn { justify-self: center; text-align: center; }
-    form .btn { display: table; margin-inline: auto; }
+    form { text-align: left; }
+    form .btn { display: flex; margin-inline: auto; }
     .wrap > :not(.hero), .page-head, .article-head, .prose, .faq-list, .roadmap { margin-inline: auto; }
-    .lead, .project p, .feature-card p, .post-row p, .faq-list details p, .footer-brand p, .footer-connect p { margin-inline: auto; }
-    .block-head, .project-head { justify-content: center; align-items: center; text-align: center; }
-    .block[aria-labelledby="approach-h"] .block-head { flex-direction: column; }
-    .block[aria-labelledby="podcast-h"] .block-head { flex-direction: column; }
-    .block[aria-labelledby="feat-h"] .block-head { flex-direction: column; }
-    .block[aria-labelledby="latest-h"] .block-head { flex-direction: column; }
-    .block[aria-labelledby="freelance-skills"] .block-head,
-    .block[aria-labelledby="freelance-work"] .block-head,
-    .block[aria-labelledby="freelance-process"] .block-head,
-    .block[aria-labelledby="freelance-next"] .block-head { flex-direction: column; }
+    .lead { margin-inline: auto; }
+    .page-head, .page-banner-copy { text-align: center; }
+    .page-banner-copy { align-items: center; }
+    .prose h1, .prose h2, .prose h3, .article-head h1 { text-align: left; }
+    .article-head, .meta, .tags { text-align: left; }
+    .article-head .meta, .article-head .tags { justify-content: flex-start; }
+    .section-label { margin-inline: auto; }
+    .block-head { width: 100%; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+    .project-head { align-items: flex-start; text-align: left; }
+    .project-head h2, .project-head h3, .post-row h2, .post-row h3, .cols h3 { text-align: left; }
     .actions, .social-strip, .meta, .tags, .filters, .controls { justify-content: center; }
+    .post-actions-row, .post-actions-row .actions { justify-content: center; }
+    .controls { align-items: center; }
+    .field.search, .search { width: min(100%, 22rem); }
+    .search-wrap { width: 100%; }
+    .quick-find h2 { text-align: center; }
+    .quick-find-link { text-align: center; }
+    .block[aria-labelledby="approach-h"] .feature-card { justify-items: center; text-align: center; }
+    .block[aria-labelledby="approach-h"] .feature-card h3,
+    .block[aria-labelledby="approach-h"] .feature-card p { text-align: center; }
     .feature-card .tag { justify-self: center; }
+    .episode-card, .episode-top > div { text-align: center; }
     .episode-number, .episode-meta { text-align: center; }
-    .prose ul, .prose ol { padding-left: 0; list-style-position: inside; }
-    .prose pre, .prose pre code, .table-wrap { text-align: left; }
-    .prose, .transcript, .post-row p { text-align: left; }
+    .podcast-copy { align-items: center; text-align: center; }
+    .contact-grid > div > h2 { text-align: center; }
+    .count { text-align: center; }
+    .faq-list summary { padding-inline-end: 2rem; text-align: left; }
+    .service-overview .feature-card, .block[aria-labelledby^="freelance-"] .feature-card { justify-items: start; text-align: left; }
+    .service-overview .feature-card h3, .service-overview .feature-card p,
+    .block[aria-labelledby^="freelance-"] .feature-card h3,
+    .block[aria-labelledby^="freelance-"] .feature-card p { text-align: left; }
+    .service-overview .feature-card .tag, .block[aria-labelledby^="freelance-"] .feature-card .tag { justify-self: start; }
+    .block[aria-labelledby^="freelance-"] .lead,
+    .block[aria-labelledby^="freelance-"] .note { margin-inline: 0; text-align: left; }
+    .block[aria-labelledby^="freelance-"] .plain { text-align: left; }
+    .footer-main > * { align-items: center; text-align: center; }
+    .footer-brand img { object-position: center; }
+    .footer-brand p, .footer-connect p { margin-inline: auto; }
+    .prose ul, .prose ol { padding-left: 1.25rem; list-style-position: outside; }
+    .prose, .transcript, .post-row p, .table-wrap, .roadmap, .roadmap li { text-align: left; }
+    .prose pre, .prose pre code { text-align: left; }
     .roadmap { border-left: 0; padding: 1.5rem 0 0; }
     .roadmap li { padding: 1.5rem 0 2rem; }
     .roadmap li::before { top: 0; left: 50%; transform: translateX(-50%); }
-    .footer-main > * { align-items: center; }
     .footer-nav ul { justify-items: center; }
-    .footer-email { display: inline-flex; justify-content: center; }
-    .footer-bottom-inner { justify-content: center; }
-    .pager { justify-content: center; }
+    .footer-email { justify-content: center; }
+    .footer-bottom-inner { justify-content: center; text-align: center; }
+    .footer-top { justify-content: center; }
+    .pager { justify-content: center; text-align: center; }
     .pager-newer { text-align: center; }
+    .quick-find-link { min-height: 8rem; padding: .85rem; }
+    .quick-find-link small { font-size: .8rem; }
   }
   .podcast-highlight .editorial-art { display: block; width: 100%; height: 100%; min-height: 20rem; object-fit: cover; object-position: center; }
 
@@ -273,7 +344,7 @@
     inset: 0;
     background:
       radial-gradient(circle at 30% 30%, rgba(242,242,242,0.18), transparent 20%),
-      radial-gradient(circle at 70% 60%, rgba(0,180,255,0.16), transparent 28%);
+      radial-gradient(circle at 70% 60%, rgba(29,155,240,0.16), transparent 28%);
   }
   .page-banner-art::after {
     content: "Image placeholder";
@@ -326,21 +397,31 @@
   @media (max-width: 600px) { .now > div { grid-template-columns: 1fr; gap: .1rem; } }
 
   .project { padding: 1.5rem 1.25rem 1.6rem; margin-top: 1rem; border: 1px solid var(--line); border-radius: 2px; background: #111; box-shadow: 4px 4px 0 rgba(242,242,242,0.08); transition: border-color .18s ease; }
-  .project:hover, .feature-card:hover, .post-row:hover, .episode-card:hover { border-color: rgba(0, 180, 255, .42); }
+  .project:hover, .feature-card:hover, .post-row:hover, .episode-card:hover { border-color: rgba(29, 155, 240, .42); }
   .project p { max-width: 66ch; }
   .project-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1rem; margin-bottom: .5rem; }
   .project-head h2, .project-head h3 { margin: 0; }
   .status { margin: 0; font-size: .92rem; font-weight: 500; padding: .18rem .65rem; border: 1px solid var(--line); border-radius: 2px; background: transparent; }
-  .status.live { color: var(--accent); border-color: rgba(0, 180, 255, 0.4); background: rgba(0, 180, 255, 0.08); }
+  .status.live { color: var(--accent); border-color: rgba(29, 155, 240, 0.4); background: rgba(29, 155, 240, 0.08); }
+  .service-overview, .block[aria-labelledby^="freelance-"] { text-align: left; }
 
   .media-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+  .quick-find { padding: clamp(1.75rem, 3vw, 2.5rem) 0; border-bottom: 1px solid var(--line); }
+  .quick-find h2 { margin-bottom: 1rem; font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem); }
+  .quick-find-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
+  .quick-find-link { display: grid; align-content: start; gap: .35rem; min-height: 8.5rem; padding: 1rem; border: 1px solid var(--line); background: var(--surface); color: var(--fg); text-decoration: none; transition: border-color .18s ease, transform .18s ease, background .18s ease; }
+  .quick-find-link:hover { border-color: var(--accent); background: var(--surface-strong); transform: translateY(-2px); text-decoration: none; }
+  .quick-find-link span { color: var(--accent); font: 600 .72rem var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+  .quick-find-link strong { font-size: 1rem; line-height: 1.3; }
+  .quick-find-link small { color: var(--muted); font-size: .85rem; line-height: 1.45; }
+  @media (max-width: 760px) { .quick-find-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .feature-card { display: grid; gap: .7rem; padding: 1.15rem; border: 1px solid var(--line); border-radius: 2px; background: #111; box-shadow: 3px 3px 0 rgba(242,242,242,0.08); transition: border-color .18s ease; }
   .feature-icon { position: relative; isolation: isolate; display: grid; place-items: center; justify-self: center; width: 4rem; height: 4rem; margin-bottom: .15rem; border: 0; background: transparent; color: var(--accent); }
   .feature-icon::before { content: ""; position: absolute; z-index: -1; top: 50%; left: 50%; width: 9rem; height: 8rem; transform: translate(-50%, -38%); background: radial-gradient(ellipse at center 32%, rgba(210, 210, 210, .2), rgba(210, 210, 210, .08) 38%, transparent 72%); pointer-events: none; }
   .feature-icon svg { width: 3.25rem; height: 3.25rem; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
   .feature-card h3 { margin: 0; font-size: 1.15rem; }
   .feature-card p { margin: 0; color: var(--muted); }
-  .feature-card .tag { display: inline-block; width: fit-content; padding: .25rem .6rem; border-radius: 2px; border: 1px solid rgba(0, 180, 255, 0.35); background: rgba(0, 180, 255, 0.06); color: var(--accent); font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .feature-card .tag { display: inline-block; width: fit-content; padding: .25rem .6rem; border-radius: 2px; border: 1px solid rgba(29, 155, 240, 0.35); background: rgba(29, 155, 240, 0.06); color: var(--accent); font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
   .faq-list { max-width: 52rem; border-top: 1px solid var(--line); }
   .faq-list details { border-bottom: 1px solid var(--line); }
   .faq-list summary { padding: 1rem 2rem 1rem 0; color: var(--fg); font-weight: 700; cursor: pointer; }
@@ -363,7 +444,7 @@
     margin-bottom: 1rem;
     padding: .35rem .8rem;
     border: 1px solid var(--line);
-    background: rgba(0, 180, 255, 0.05);
+    background: rgba(29, 155, 240, 0.05);
     color: var(--fg);
     font-family: var(--marker);
     letter-spacing: .04em;
@@ -385,7 +466,7 @@
     display: grid;
     place-items: center;
     background:
-      linear-gradient(135deg, rgba(0,180,255,0.08), transparent 58%),
+      linear-gradient(135deg, rgba(29,155,240,0.08), transparent 58%),
       repeating-linear-gradient(135deg, rgba(242,242,242,0.04) 0 1px, transparent 1px 12px),
       #101010;
     color: var(--muted);
@@ -395,6 +476,7 @@
   }
   .post-thumb.is-placeholder::before { content: "Image placeholder"; }
   .post-copy { min-width: 0; }
+  .post-row.has-thumb .post-copy { display: flex; flex-direction: column; align-self: stretch; }
   .post-row + .post-row { margin-top: 1rem; }
   .post-row h2, .post-row h3 { font-size: 1.4rem; margin: 0 0 .35rem; }
   .post-row h2 a, .post-row h3 a { color: var(--fg); text-decoration: none; }
@@ -461,7 +543,7 @@
     border: 1px solid var(--line);
     background: transparent;
     color: var(--fg);
-    min-height: 2.7rem;
+    min-height: 3rem;
     padding: .65rem .85rem;
     border-radius: 2px;
     cursor: pointer;
@@ -537,7 +619,7 @@
   .footer-bottom-inner p { margin: 0; }
   .footer-home { color: inherit; text-decoration: none; }
   .footer-home:hover { color: var(--fg); }
-  .footer-top { display: inline-flex; align-items: center; padding: 0; border: 0; background: none; color: var(--fg); font: inherit; font-weight: 600; cursor: pointer; }
+  .footer-top { display: inline-flex; align-items: center; min-height: 3rem; padding: 0; border: 0; background: none; color: var(--fg); font: inherit; font-weight: 600; cursor: pointer; }
   .footer-top:hover { color: var(--accent); }
   .footer-top:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
   @media (max-width: 680px) {
@@ -584,6 +666,53 @@
   <noscript><div class="wrap"><p>This site needs JavaScript to show its pages.</p></div></noscript>
 </main>
 
+<dialog class="share-dialog" id="shareDialog" aria-labelledby="shareDialogTitle" aria-describedby="shareDialogDescription">
+  <div class="share-dialog-head">
+    <div>
+      <p class="section-label">Share</p>
+      <h2 id="shareDialogTitle">Share this page</h2>
+    </div>
+    <button class="share-dialog-close" id="closeShareDialog" type="button" aria-label="Close share dialog">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <p id="shareDialogDescription">Choose an app to share this link.</p>
+  <div class="share-options">
+    <button class="share-option" id="deviceShare" type="button">More apps</button>
+    <a class="share-option" id="shareToX" href="#" target="_blank" rel="noopener noreferrer">X</a>
+    <a class="share-option" id="shareToFacebook" href="#" target="_blank" rel="noopener noreferrer">Facebook</a>
+    <a class="share-option" id="shareToLinkedIn" href="#" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+    <a class="share-option" id="shareToWhatsApp" href="#" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+    <a class="share-option" id="shareByEmail" href="#">Email</a>
+    <button class="share-option" id="copyShareLink" type="button">Copy link</button>
+  </div>
+  <label class="share-url-label" for="shareUrl">Link</label>
+  <input id="shareUrl" type="text" readonly>
+  <p class="share-status" id="shareStatus" role="status" aria-live="polite"></p>
+</dialog>
+
+<dialog class="share-dialog comment-dialog" id="commentDialog" aria-labelledby="commentDialogTitle" aria-describedby="commentDialogDescription">
+  <div class="share-dialog-head">
+    <div>
+      <p class="section-label">Comments · this browser</p>
+      <h2 id="commentDialogTitle">Comments</h2>
+    </div>
+    <button class="share-dialog-close" id="closeCommentDialog" type="button" aria-label="Close comments">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <p id="commentDialogDescription"></p>
+  <ul class="comment-list" id="commentList" aria-live="polite"></ul>
+  <form class="comment-form" id="commentForm">
+    <p class="comment-replying" id="replyingTo" hidden></p>
+    <button class="comment-reply" id="cancelReply" type="button" hidden>Cancel reply</button>
+    <label for="commentText">Add a comment</label>
+    <textarea id="commentText" maxlength="500" required placeholder="Write a comment (up to 500 characters)"></textarea>
+    <button class="btn" id="submitComment" type="submit">Comment</button>
+  </form>
+  <p class="comment-local-note" id="commentStatus" role="status" aria-live="polite">Comments are saved only in this browser. They are not posted to X or visible to other visitors.</p>
+</dialog>
+
 <footer class="site-footer">
   <div class="wrap footer-main">
     <div class="footer-brand">
@@ -629,8 +758,7 @@
     github: 'https://github.com/fixerctrl',
     linkedin: 'https://www.linkedin.com/in/fixerctrl/',
     x: 'https://x.com/fixerctrl',
-    youtube: 'https://youtube.com/@fixerctrl',
-    podcast: 'https://darknetdiaries.com'
+    youtube: 'https://youtube.com/@fixerctrl'
   };
 
   var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -691,9 +819,9 @@
         var radius = eased * 230;
         var remaining = 1 - progress;
         var gradient = context.createRadialGradient(ripple.x, ripple.y, 0, ripple.x, ripple.y, 230);
-        gradient.addColorStop(0, 'rgba(0, 180, 255, ' + (remaining * 0.11) + ')');
-        gradient.addColorStop(0.55, 'rgba(0, 110, 255, ' + (remaining * 0.045) + ')');
-        gradient.addColorStop(1, 'rgba(0, 90, 255, 0)');
+        gradient.addColorStop(0, 'rgba(29, 155, 240, ' + (remaining * 0.11) + ')');
+        gradient.addColorStop(0.55, 'rgba(29, 155, 240, ' + (remaining * 0.045) + ')');
+        gradient.addColorStop(1, 'rgba(29, 155, 240, 0)');
         context.fillStyle = gradient;
         context.beginPath();
         context.arc(ripple.x, ripple.y, 230, 0, Math.PI * 2);
@@ -716,8 +844,8 @@
           }
         }
 
-        context.fillStyle = '#00b4ff';
-        context.shadowColor = 'rgba(0, 180, 255, 0.35)';
+        context.fillStyle = '#1d9bf0';
+        context.shadowColor = 'rgba(29, 155, 240, 0.35)';
         context.shadowBlur = 7;
         buckets.forEach(function (dots, index) {
           if (!dots.length) return;
@@ -792,13 +920,14 @@
       ['YouTube', CONFIG.youtube, icons.youtube]
     ];
     if (includeContactLinks) {
-      links.push(['Podcast', CONFIG.podcast, '<path d="M12 2a4 4 0 0 0-4 4v5a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Zm-6 9a1 1 0 0 0-2 0 8 8 0 0 0 7 7.94V22h2v-3.06A8 8 0 0 0 20 11a1 1 0 0 0-2 0 6 6 0 0 1-12 0Z"/>']);
+      links.push(['Podcast', '#/podcast', '<path d="M12 2a4 4 0 0 0-4 4v5a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Zm-6 9a1 1 0 0 0-2 0 8 8 0 0 0 7 7.94V22h2v-3.06A8 8 0 0 0 20 11a1 1 0 0 0-2 0 6 6 0 0 1-12 0Z"/>']);
       links.push(['Email', 'mailto:' + CONFIG.email, '<path d="M3 4h18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm9 8.2L3.5 6h17L12 12.2ZM3 18V8l9 6.5L21 8v10H3Z"/>']);
     }
     return '<nav class="social-strip" aria-label="' + label + '">' +
       links.map(function (link) {
         var isEmail = link[1].indexOf('mailto:') === 0;
-        return '<a class="social-icon" href="' + link[1] + '"' + (isEmail ? '' : ' target="_blank" rel="noopener noreferrer') + ' aria-label="' + link[0] + '" title="' + link[0] + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + link[2] + '</svg></a>';
+        var isInternal = link[1].indexOf('#/') === 0;
+        return '<a class="social-icon" href="' + link[1] + '"' + (isEmail || isInternal ? '' : ' target="_blank" rel="noopener noreferrer') + ' aria-label="' + link[0] + '" title="' + link[0] + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + link[2] + '</svg></a>';
       }).join('') +
       '</nav>';
   }
@@ -896,9 +1025,124 @@
   function fmtDate(d) {
     return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, function (character) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character];
+    });
+  }
   function strip(html) { return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); }
   function mins(html) { return Math.max(1, Math.ceil(strip(html).split(' ').length / 200)); }
   function tagList(tags) { return '<ul class="tags" aria-label="Tags">' + tags.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>'; }
+  var seenContentViews = Object.create(null);
+  function readLikeState(id) {
+    try {
+      return window.localStorage.getItem('fixerctrl.engagement.like.' + encodeURIComponent(id)) === '1';
+    } catch (error) {
+      return null;
+    }
+  }
+  function recordContentView(id) {
+    var key = 'fixerctrl.engagement.views.' + encodeURIComponent(id);
+    try {
+      var views = Number(window.localStorage.getItem(key) || 0);
+      if (!Number.isSafeInteger(views) || views < 0) views = 0;
+      if (!seenContentViews[id]) {
+        views++;
+        window.localStorage.setItem(key, String(views));
+        seenContentViews[id] = true;
+      }
+      return views;
+    } catch (error) {
+      return null;
+    }
+  }
+  function readComments(id) {
+    try {
+      var stored = window.localStorage.getItem('fixerctrl.engagement.comments.' + encodeURIComponent(id));
+      if (stored === null) return [];
+      var comments = JSON.parse(stored);
+      if (!Array.isArray(comments)) return null;
+      function normalize(items, parentPath) {
+        if (!Array.isArray(items)) return null;
+        var normalized = [];
+        for (var index = 0; index < items.length; index++) {
+          var comment = items[index];
+          if (!comment || typeof comment.text !== 'string' || typeof comment.createdAt !== 'string') return null;
+          var replies = normalize(comment.replies || [], parentPath + index + '-');
+          if (!replies) return null;
+          normalized.push({
+            id: typeof comment.id === 'string' ? comment.id : 'legacy-' + parentPath + index,
+            text: comment.text,
+            createdAt: comment.createdAt,
+            replies: replies
+          });
+        }
+        return normalized;
+      }
+      return normalize(comments, '');
+    } catch (error) {
+      return null;
+    }
+  }
+  var commentSequence = 0;
+  function writeComment(id, text, parentId) {
+    var comments = readComments(id);
+    if (comments === null) return false;
+    var comment = { id: Date.now() + '-' + (++commentSequence), text: text, createdAt: new Date().toISOString(), replies: [] };
+    if (parentId) {
+      var parent = null;
+      function find(items) {
+        items.some(function (item) {
+          if (item.id === parentId) { parent = item; return true; }
+          return find(item.replies);
+        });
+      }
+      find(comments);
+      if (!parent) return false;
+      parent.replies.push(comment);
+    } else {
+      comments.push(comment);
+    }
+    try {
+      window.localStorage.setItem('fixerctrl.engagement.comments.' + encodeURIComponent(id), JSON.stringify(comments));
+      return countComments(comments);
+    } catch (error) {
+      return false;
+    }
+  }
+  function countComments(comments) {
+    return comments.reduce(function (count, comment) {
+      return count + 1 + countComments(comment.replies || []);
+    }, 0);
+  }
+  function shareButton(title, path) {
+    var pageUrl = new URL(location.href);
+    pageUrl.hash = '/' + path;
+    return '<button class="share-button" type="button" data-share-title="' + escapeHtml(title) + '" data-share-url="' + escapeHtml(pageUrl.href) + '" aria-label="Share ' + escapeHtml(title) + '" title="Share">' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3m0 0L7 8m5-5 5 5M4 14v6h16v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      '</button>';
+  }
+  function engagementBar(id, title, path) {
+    var safeTitle = escapeHtml(title);
+    var liked = readLikeState(id);
+    var views = recordContentView(id);
+    var comments = readComments(id);
+    var likesLabel = liked === null ? '0' : (liked ? '1' : '0');
+    var viewsLabel = views === null ? '0' : String(views);
+    var commentsLabel = comments === null ? '0' : String(countComments(comments));
+    return '<div class="engagement-bar">' +
+      '<button class="like-button" type="button" data-engagement-id="' + escapeHtml(id) + '" data-engagement-title="' + safeTitle + '" aria-pressed="' + (liked === true) + '" aria-label="Like ' + safeTitle + (liked === null ? '; unavailable' : (liked ? '; unlike, 1 like' : '; 0 likes')) + '" title="' + (liked === null ? 'Likes unavailable' : (liked ? 'Unlike' : 'Like')) + '"' + (liked === null ? ' disabled' : '') + '>' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>' +
+      '<span class="engagement-count" aria-hidden="true">' + likesLabel + '</span></button>' +
+      '<button class="comment-button" type="button" data-engagement-id="' + escapeHtml(id) + '" data-engagement-title="' + safeTitle + '" aria-label="Comments for ' + safeTitle + ': ' + commentsLabel + (comments === null ? '; unavailable' : '') + '" title="Comments"' + (comments === null ? ' disabled' : '') + '>' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg>' +
+      '<span class="engagement-count" aria-hidden="true">' + commentsLabel + '</span></button>' +
+      '<span class="engagement-item" title="Views" aria-label="' + viewsLabel + ' views">' +
+      '<svg class="view-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>' +
+      '<span class="engagement-count" aria-hidden="true">' + viewsLabel + '</span></span>' +
+      shareButton(title, path) +
+      '</div>';
+  }
   function postRow(p, level, withThumbnail, placeholderThumbnail) {
     level = level || 'h3';
     var hasThumbnail = withThumbnail || placeholderThumbnail;
@@ -911,7 +1155,9 @@
       '<' + level + '><a href="#/blog/' + p.slug + '">' + p.title + '</a></' + level + '>' +
       '<p class="meta"><time datetime="' + p.date + '">' + fmtDate(p.date) + '</time><span>' + mins(p.body) + ' min read</span></p>' +
       '<p>' + p.summary + '</p>' + tagList(p.tags) +
-      (withThumbnail ? '<div class="actions"><a class="btn" href="#/blog/' + p.slug + '">Read now</a></div>' : '') +
+      (withThumbnail
+        ? '<div class="post-actions-row"><div class="actions"><a class="btn" href="#/blog/' + p.slug + '">Read now</a></div>' + engagementBar('post:' + p.slug, p.title, 'blog/' + p.slug) + '</div>'
+        : engagementBar('post:' + p.slug, p.title, 'blog/' + p.slug)) +
       '</div></article>';
   }
 
@@ -953,10 +1199,20 @@
           '<div class="hero-copy">' +
             '<h1>Practical IT support. Secure web solutions.</h1>' +
             '<p class="lead">I help individuals and small businesses troubleshoot everyday technology issues, improve their websites, and strengthen day-to-day security—with clear communication and practical fixes.</p>' +
-            '<div class="actions"><a class="btn" href="#/projects">Explore my projects</a><a class="btn ghost" href="#/freelancer">Freelance services</a></div>' +
+            '<div class="actions"><a class="btn" href="#/projects">View projects</a><a class="btn ghost" href="#/freelancer">Freelance services</a></div>' +
             socialIconLinks(false, 'Social media') +
             '<blockquote class="hero-quote"><p>“Every Day Go Evolve” <cite>— EDGE</cite></p></blockquote>' +
           '</div>' +
+        '</section>' +
+
+        '<section class="quick-find" aria-labelledby="quick-find-title">' +
+          '<h2 id="quick-find-title">What are you looking for?</h2>' +
+          '<nav class="quick-find-grid" aria-label="Popular destinations">' +
+            '<a class="quick-find-link" href="#/freelancer"><span>IT &amp; Web support</span><strong>Get practical help</strong><small>Troubleshooting, security setup, and website work.</small></a>' +
+            '<a class="quick-find-link" href="#/projects"><span>Projects</span><strong>Explore selected work</strong><small>See apps, collaborations, and technical projects.</small></a>' +
+            '<a class="quick-find-link" href="#/blog"><span>Technical notes</span><strong>Read the writeups</strong><small>Browse practical notes on networking, Linux, and security.</small></a>' +
+            '<a class="quick-find-link" href="#/podcast"><span>Podcast</span><strong>Listen and explore</strong><small>Find conversations and recent episodes.</small></a>' +
+          '</nav>' +
         '</section>' +
 
         '<section class="block" aria-labelledby="approach-h">' +
@@ -969,14 +1225,14 @@
         '</section>' +
 
         '<section class="block" aria-labelledby="podcast-h">' +
-          '<div class="block-head"><h2 id="podcast-h">Podcast &amp; technical notes</h2><a class="btn ghost" href="' + CONFIG.podcast + '" target="_blank" rel="noopener">Listen in</a></div>' +
+          '<div class="block-head"><h2 id="podcast-h">Podcast &amp; technical notes</h2><a class="btn ghost" href="#/podcast">Listen in</a></div>' +
           '<div class="podcast-panel">' +
             '<div class="podcast-highlight">' + editorialArt('podcast') + '</div>' +
             '<div class="podcast-copy">' +
               '<span class="tag">Featured</span>' +
               '<h3>Thoughtful conversations on cybersecurity, systems, and the tech behind the work.</h3>' +
               '<p>Technical conversations on cybersecurity, systems, and the realities of building with technology, alongside notes and insights from practical projects.</p>' +
-              '<div class="actions"><a class="btn" href="#/blog">Browse technical notes</a><a class="btn ghost" href="' + CONFIG.podcast + '" target="_blank" rel="noopener">Listen in</a></div>' +
+              '<div class="actions"><a class="btn" href="#/blog">Browse notes</a><a class="btn ghost" href="#/podcast">Listen in</a></div>' +
             '</div>' +
           '</div>' +
         '</section>' +
@@ -1008,7 +1264,7 @@
       html:
         pageBanner('Latest drop', 'FixerCtrl Podcast', 'Practical conversations on security, systems, and the messy realities of building with technology.', 'assets/image.png') +
         '<div class="controls">' +
-          '<div class="field search" style="margin:0"><label for="episodeSearch">Search episodes</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="episodeSearch" type="search" placeholder="Search here"></div></div>' +
+          '<div class="field search" style="margin:0"><label for="episodeSearch">Search episodes</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="episodeSearch" type="search" placeholder="Search episodes"></div></div>' +
           '<div class="filters" role="group" aria-label="Filter episodes by topic">' +
             episodeTags.map(function (tag) { return '<button class="chip" type="button" data-episode-tag="' + tag + '" aria-pressed="' + (tag === episodeTag) + '">' + tag + '</button>'; }).join('') +
           '</div>' +
@@ -1028,6 +1284,7 @@
             '<p><code>&gt; latest_episode</code> on the current signal: how attackers target weak assumptions, and why strong systems come from boring fundamentals.</p>' +
             '<p>We look at how detection, response, and operational discipline fit together in a realistic environment, then break down a few patterns that show up again and again in real security incidents.</p>' +
           '</div>' +
+          engagementBar('episode:07', 'Episode 07: Signals, systems, and the work behind the breach', 'podcast') +
         '</section>' +
         '<section class="block" aria-labelledby="episodes-list">' +
           '<div class="block-head"><h2 id="episodes-list">Recent episodes</h2></div>' +
@@ -1047,7 +1304,7 @@
           var matches = filteredEpisodes();
           $('#episodeList').innerHTML = matches.length
             ? matches.map(function (episode) {
-              return '<article class="feature-card"><span class="episode-number">EP ' + episode.number + '</span><h3>' + episode.title + '</h3><p>' + episode.description + '</p><div class="episode-meta">' + episode.date + '</div>' + tagList(episode.tags) + '</article>';
+              return '<article class="feature-card"><span class="episode-number">EP ' + episode.number + '</span><h3>' + episode.title + '</h3><p>' + episode.description + '</p><div class="episode-meta">' + episode.date + '</div>' + tagList(episode.tags) + engagementBar('episode:' + episode.number, 'Episode ' + episode.number + ': ' + episode.title, 'podcast') + '</article>';
             }).join('')
             : '<p class="empty">No episodes match that search. <button class="linkbtn" type="button" id="clearEpisodeFilters">Clear search and filter</button></p>';
           $('#episodeCount').textContent = matches.length + (matches.length === 1 ? ' episode' : ' episodes');
@@ -1088,7 +1345,7 @@
           '<h3>Explain the result</h3><p>You get a clear summary of what changed, what to expect, and any useful next steps.</p>' +
           '<h2>Beyond the code</h2>' +
           '<p>I also contribute to Mini Circles, a multimedia knowledge-sharing project spanning video, social media, and a website.</p>' +
-          '<div class="actions"><a class="btn" href="#/projects">See what I\'ve built</a><a class="btn ghost" href="#/contact">Get in touch</a></div>' +
+          '<div class="actions"><a class="btn" href="#/projects">View my work</a><a class="btn ghost" href="#/contact">Get in touch</a></div>' +
         '</div>'
     };
   }
@@ -1134,7 +1391,7 @@
       title: 'IT & Web Support',
       html:
         pageBanner('IT support / Web / Security', 'IT &amp; Web Support', 'Practical troubleshooting, security setup, and web solutions for individuals and small businesses.') +
-        '<section aria-label="IT and web services">' +
+        '<section class="service-overview" aria-label="IT and web services">' +
           '<div class="media-grid">' +
             '<article class="feature-card"><span class="tag">01 / IT support</span><h3>Everyday troubleshooting</h3><p>Diagnosis and practical help for common device, software, account, and connectivity issues. Clear options for individuals and small teams.</p><p class="status">Quoted to scope</p></article>' +
             '<article class="feature-card"><span class="tag">02 / Security</span><h3>Security setup and hygiene</h3><p>Help with account protection, device updates, backups, and safer configuration. Any security testing must be explicitly authorized and agreed in writing.</p><p class="status">Quoted after review</p></article>' +
@@ -1202,7 +1459,7 @@
       html:
         pageBanner('', 'Writeups', 'Practical notes on networking, Linux, cybersecurity, and technology fixes.', 'assets/outside.jpg') +
         '<div class="controls">' +
-          '<div class="field search" style="margin:0"><label for="q">Search posts</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="q" type="search" value="' + blogState.q.replace(/"/g, '&quot;') + '" placeholder="Search here"></div></div>' +
+          '<div class="field search" style="margin:0"><label for="q">Search posts</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="q" type="search" value="' + blogState.q.replace(/"/g, '&quot;') + '" placeholder="Search posts"></div></div>' +
           '<div class="filters" role="group" aria-label="Filter by topic">' +
             tags.map(function (t) { return '<button class="chip" type="button" data-tag="' + t + '" aria-pressed="' + (t === blogState.tag) + '">' + t + '</button>'; }).join('') +
           '</div>' +
@@ -1256,8 +1513,9 @@
         '<a class="back btn ghost" href="#/blog">All posts</a>' +
         pageBanner('', p.title, '') +
         '<header class="article-head"><p class="meta"><time datetime="' + p.date + '">' + fmtDate(p.date) + '</time><span>' + mins(p.body) + ' min read</span></p>' +
-          tagList(p.tags) + '</header>' +
-        '<article class="prose">' + p.body + '</article>' +
+          tagList(p.tags) +
+          '</header>' +
+        '<article class="prose">' + p.body + engagementBar('post:' + p.slug, p.title, 'blog/' + p.slug) + '</article>' +
         '<nav class="pager" aria-label="More posts">' +
           (older ? '<a href="#/blog/' + older.slug + '"><small>Older post</small>' + older.title + '</a>' : '<span></span>') +
           (newer ? '<a class="pager-newer" href="#/blog/' + newer.slug + '"><small>Newer post</small>' + newer.title + '</a>' : '') +
@@ -1274,10 +1532,10 @@
           '<div><h2>Find me online</h2>' + socialIconLinks(true, 'Social media and contact links') + '</div>' +
           '<div><h2>Send a message</h2>' +
             '<form id="contactForm">' +
-              '<div class="field"><label for="cName">Your name</label><input id="cName" type="text" autocomplete="name" required></div>' +
-              '<div class="field"><label for="cEmail">Your email</label><input id="cEmail" type="email" autocomplete="email" required></div>' +
-              '<div class="field"><label for="cMsg">Message</label><textarea id="cMsg" required></textarea></div>' +
-              '<button class="btn" type="submit">Open in my email app</button>' +
+              '<div class="field"><label for="cName">Your name</label><input id="cName" type="text" autocomplete="name" placeholder="e.g. Alex Smith" required></div>' +
+              '<div class="field"><label for="cEmail">Your email</label><input id="cEmail" type="email" autocomplete="email" placeholder="you@example.com" required></div>' +
+              '<div class="field"><label for="cMsg">Message</label><textarea id="cMsg" placeholder="How can I help? Include the service you need, a little context, and any deadlines." required></textarea></div>' +
+              '<button class="btn" type="submit">Email me</button>' +
               '<p class="note" style="margin-top:1rem">This opens your email app with the message filled in. Nothing is sent from this page.</p>' +
               '<div id="sent" class="sent" hidden></div>' +
             '</form>' +
@@ -1327,7 +1585,7 @@
           '<h3>Information and how it is handled</h3>' +
           '<p>The contact form asks for your name, email address, and message. It uses your device’s email application; the site does not submit the form to a FixerCtrl website database or server. Your details are sent to FixerCtrl only if you choose to send the email. Your email provider and the receiving email service will also process the message.</p>' +
           '<p>The site loads fonts from Google Fonts. Your browser may send ordinary technical request information to Google when retrieving those fonts. Links to social networks and other external sites may also disclose information to those providers if you follow them. Their privacy notices and processing practices are separate from this site.</p>' +
-          '<p>The current site code does not include an analytics script or a site-managed tracking cookie. The site’s hosting provider may process technical request or security logs as part of serving the pages; check the host’s current privacy terms for details.</p>' +
+          '<p>Likes, view counts, and comments on posts and podcast episodes are stored in your browser’s local storage and are only visible in that browser; they are not sent to FixerCtrl, X, or other platforms and are not site-wide analytics. You can clear them by clearing this site’s browser data. The site does not include an analytics script or a site-managed tracking cookie. The hosting provider may process technical request or security logs as part of serving the pages; check the host’s current privacy terms for details.</p>' +
           '<h3>Purpose, sharing, and retention</h3>' +
           '<p>If you email, your information is used to respond to your enquiry, prepare a quote, communicate about work you request, and keep records where reasonably necessary for the relationship or a legal obligation. It is not sold. Information may be handled by email, hosting, or other service providers needed to deliver the site or respond to you, or disclosed where the law requires it. Some providers may process information outside South Africa under their own terms.</p>' +
           '<p>Messages and project records are kept only for as long as reasonably needed for those purposes and applicable legal obligations, then securely deleted where practicable.</p>' +
@@ -1495,6 +1753,7 @@
   /* ----- Router ----- */
   var first = true;
   function render() {
+    seenContentViews = Object.create(null);
     var parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
     var page = parts[0] || 'home', view;
     if (page === 'home') view = home();
@@ -1514,9 +1773,7 @@
     $$('.main-nav a').forEach(function (a) {
       if (a.dataset.nav === page) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
-    $('#siteHeader').classList.remove('open');
-    $('#menuBtn').setAttribute('aria-expanded', 'false');
-    $('#menuBtn').setAttribute('aria-label', 'Open menu');
+    setMenuOpen(false);
     window.scrollTo(0, 0);
     updateReadingProgress();
     if (!first) main.focus({ preventScroll: true });
@@ -1524,15 +1781,249 @@
     if (view.after) view.after();
   }
 
+  var shareTrigger = null;
+  var commentTrigger = null;
+  var replyToCommentId = null;
+  function renderComments(id) {
+    var comments = readComments(id);
+    var list = $('#commentList');
+    list.textContent = '';
+    if (comments === null) {
+      $('#commentStatus').textContent = 'Comments are unavailable because this browser could not read local storage.';
+      $('#commentText').disabled = true;
+      $('#submitComment').disabled = true;
+      return;
+    }
+    $('#commentText').disabled = false;
+    $('#submitComment').disabled = false;
+    $('#commentStatus').textContent = 'Saved only in this browser. Comments are not posted to X or visible to other visitors.';
+    if (!comments.length) {
+      var empty = document.createElement('li');
+      empty.className = 'comment-empty';
+      empty.textContent = 'No comments yet in this browser.';
+      list.appendChild(empty);
+      return;
+    }
+    function appendComment(comment, parent) {
+      var item = document.createElement('li');
+      item.className = 'comment-entry';
+      var content = document.createElement('p');
+      content.textContent = comment.text;
+      item.appendChild(content);
+      var header = document.createElement('div');
+      header.className = 'comment-entry-head';
+      var timestamp = new Date(comment.createdAt);
+      if (!Number.isNaN(timestamp.getTime())) {
+        var date = document.createElement('time');
+        date.dateTime = timestamp.toISOString();
+        date.textContent = timestamp.toLocaleString();
+        header.appendChild(date);
+      }
+      var reply = document.createElement('button');
+      reply.className = 'comment-reply';
+      reply.type = 'button';
+      reply.dataset.replyTo = comment.id;
+      reply.textContent = 'Reply';
+      reply.title = 'Reply to this comment';
+      header.appendChild(reply);
+      item.insertBefore(header, content);
+      if (comment.replies.length) {
+        var thread = document.createElement('ul');
+        thread.className = 'comment-thread';
+        thread.setAttribute('aria-label', 'Replies');
+        comment.replies.slice().reverse().forEach(function (child) { appendComment(child, thread); });
+        item.appendChild(thread);
+      }
+      parent.appendChild(item);
+    }
+    comments.slice().reverse().forEach(function (comment) { appendComment(comment, list); });
+  }
+  function openCommentDialog(button) {
+    var id = button.dataset.engagementId;
+    commentTrigger = button;
+    $('#commentDialogTitle').textContent = 'Comments';
+    $('#commentDialogDescription').textContent = button.dataset.engagementTitle;
+    $('#commentForm').dataset.engagementId = id;
+    $('#commentText').value = '';
+    replyToCommentId = null;
+    $('#replyingTo').hidden = true;
+    $('#cancelReply').hidden = true;
+    $('#commentForm label[for="commentText"]').textContent = 'Add a comment';
+    renderComments(id);
+    $('#commentDialog').showModal();
+    if (!$('#commentText').disabled) $('#commentText').focus();
+    else $('#closeCommentDialog').focus();
+  }
+  function openShareDialog(button) {
+    var title = button.dataset.shareTitle;
+    var url = button.dataset.shareUrl;
+    var encodedUrl = encodeURIComponent(url);
+    var encodedText = encodeURIComponent(title + ' ' + url);
+    var xUrl = new URL('https://x.com/intent/post');
+    xUrl.searchParams.set('text', title);
+    xUrl.searchParams.set('url', url);
+    $('#shareDialogTitle').textContent = 'Share';
+    $('#shareDialogDescription').textContent = title;
+    $('#shareUrl').value = url;
+    $('#shareToX').href = xUrl.href;
+    $('#shareToFacebook').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodedUrl;
+    $('#shareToLinkedIn').href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodedUrl;
+    $('#shareToWhatsApp').href = 'https://wa.me/?text=' + encodedText;
+    $('#shareByEmail').href = 'mailto:?subject=' + encodeURIComponent(title) + '&body=' + encodeURIComponent(url);
+    $('#shareStatus').textContent = '';
+    $('#deviceShare').hidden = typeof navigator.share !== 'function';
+    shareTrigger = button;
+    $('#shareDialog').showModal();
+    $('#closeShareDialog').focus();
+  }
+
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest('.share-button');
+    if (button) openShareDialog(button);
+  });
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest('.like-button');
+    if (!button) return;
+    var key = 'fixerctrl.engagement.like.' + encodeURIComponent(button.dataset.engagementId);
+    try {
+      var liked = button.getAttribute('aria-pressed') === 'true';
+      if (liked) window.localStorage.removeItem(key);
+      else window.localStorage.setItem(key, '1');
+      button.setAttribute('aria-pressed', String(!liked));
+      button.querySelector('.engagement-count').textContent = liked ? '0' : '1';
+      button.setAttribute('aria-label', 'Like ' + button.dataset.engagementTitle + (liked ? '; 0 likes' : '; unlike, 1 like'));
+      button.title = liked ? 'Like' : 'Unlike';
+    } catch (error) {
+      button.disabled = true;
+      button.title = 'Likes unavailable';
+      button.setAttribute('aria-label', 'Likes unavailable');
+    }
+  });
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest('.comment-button');
+    if (button && !button.disabled) openCommentDialog(button);
+  });
+  $('#commentList').addEventListener('click', function (event) {
+    var button = event.target.closest('[data-reply-to]');
+    if (!button) return;
+    var comment = readComments($('#commentForm').dataset.engagementId);
+    function find(items) {
+      for (var index = 0; index < items.length; index++) {
+        if (items[index].id === button.dataset.replyTo) return items[index];
+        var nested = find(items[index].replies);
+        if (nested) return nested;
+      }
+      return null;
+    }
+    var target = comment && find(comment);
+    if (!target) {
+      $('#commentStatus').textContent = 'That comment is no longer available. Refresh the comment list and try again.';
+      return;
+    }
+    replyToCommentId = target.id;
+    $('#replyingTo').textContent = 'Replying to: ' + target.text;
+    $('#replyingTo').hidden = false;
+    $('#cancelReply').hidden = false;
+    $('#commentForm label[for="commentText"]').textContent = 'Your reply';
+    $('#commentText').focus();
+  });
+  $('#cancelReply').addEventListener('click', function () {
+    replyToCommentId = null;
+    $('#replyingTo').hidden = true;
+    this.hidden = true;
+    $('#commentForm label[for="commentText"]').textContent = 'Add a comment';
+    $('#commentText').focus();
+  });
+  $('#commentForm').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var field = $('#commentText');
+    var text = field.value.trim();
+    if (!text) {
+      field.setCustomValidity('Enter a comment before submitting.');
+      field.reportValidity();
+      field.setCustomValidity('');
+      return;
+    }
+    var id = this.dataset.engagementId;
+    var count = writeComment(id, text, replyToCommentId);
+    if (count === false) {
+      $('#commentStatus').textContent = 'The comment could not be saved. The parent comment may no longer exist, or browser storage may be unavailable.';
+      return;
+    }
+    $$('.comment-button[data-engagement-id]').forEach(function (button) {
+      if (button.dataset.engagementId !== id) return;
+      button.querySelector('.engagement-count').textContent = String(count);
+      button.setAttribute('aria-label', 'Comments for ' + button.dataset.engagementTitle + ': ' + count);
+    });
+    field.value = '';
+    replyToCommentId = null;
+    $('#replyingTo').hidden = true;
+    $('#cancelReply').hidden = true;
+    $('#commentForm label[for="commentText"]').textContent = 'Add a comment';
+    renderComments(id);
+    $('#commentStatus').textContent = 'Comment saved in this browser only. It is not visible to other visitors.';
+  });
+  $('#closeCommentDialog').addEventListener('click', function () { $('#commentDialog').close(); });
+  $('#commentDialog').addEventListener('close', function () {
+    if (commentTrigger && commentTrigger.isConnected) commentTrigger.focus();
+    commentTrigger = null;
+  });
+  $('#commentDialog').addEventListener('click', function (event) {
+    if (event.target === this) this.close();
+  });
+  $('#closeShareDialog').addEventListener('click', function () { $('#shareDialog').close(); });
+  $('#shareDialog').addEventListener('close', function () {
+    if (shareTrigger && shareTrigger.isConnected) shareTrigger.focus();
+    shareTrigger = null;
+  });
+  $('#shareDialog').addEventListener('click', function (event) {
+    if (event.target === this) this.close();
+  });
+  $('#deviceShare').addEventListener('click', function () {
+    navigator.share({
+      title: $('#shareDialogDescription').textContent,
+      text: $('#shareDialogDescription').textContent,
+      url: $('#shareUrl').value
+    }).catch(function (error) {
+      if (error.name !== 'AbortError') $('#shareStatus').textContent = 'The device share sheet could not be opened. Choose an app above instead.';
+    });
+  });
+  $('#copyShareLink').addEventListener('click', function () {
+    var field = $('#shareUrl');
+    if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+      field.focus();
+      field.select();
+      $('#shareStatus').textContent = 'Copy is unavailable here. The link is selected; copy it to share.';
+      return;
+    }
+    navigator.clipboard.writeText(field.value).then(function () {
+      $('#shareStatus').textContent = 'Link copied.';
+    }, function () {
+      field.focus();
+      field.select();
+      $('#shareStatus').textContent = 'Copy was blocked. The link is selected; copy it to share.';
+    });
+  });
+
   /* ----- Chrome: menu, footer ----- */
+  function setMenuOpen(open) {
+    $('#siteHeader').classList.toggle('open', open);
+    $('#menuBtn').setAttribute('aria-expanded', String(open));
+    $('#menuBtn').setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  }
+
   $('#menuBtn').addEventListener('click', function () {
-    var h = $('#siteHeader'), open = !h.classList.contains('open');
-    h.classList.toggle('open', open);
-    this.setAttribute('aria-expanded', String(open));
-    this.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    setMenuOpen(!$('#siteHeader').classList.contains('open'));
+  });
+  $('#siteHeader').addEventListener('click', function (event) {
+    if (event.target.closest('.main-nav a, .brand')) setMenuOpen(false);
+  });
+  document.addEventListener('click', function (event) {
+    var header = $('#siteHeader');
+    if (header.classList.contains('open') && !header.contains(event.target)) setMenuOpen(false);
   });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && $('#siteHeader').classList.contains('open')) { $('#menuBtn').click(); $('#menuBtn').focus(); }
+    if (e.key === 'Escape' && $('#siteHeader').classList.contains('open')) { setMenuOpen(false); $('#menuBtn').focus(); }
   });
 
   $('#yr').textContent = new Date().getFullYear();
