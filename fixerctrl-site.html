@@ -199,8 +199,16 @@
     overflow: hidden;
   }
   .hero::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, rgba(10,10,10,0) 40%, rgba(10,10,10,.16) 50%, rgba(10,10,10,.82) 68%, #0A0A0A 76%); }
-  .hero-figure { position: absolute; inset: 0; min-height: 0; padding: 0; }
-  .hero-banner-art { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+  .hero-figure { position: absolute; inset: 0; min-height: 0; padding: 0; overflow: hidden; }
+  .hero-banner-art { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; opacity: 0; transition: opacity .55s ease; }
+  .hero-banner-art.is-active { opacity: 1; }
+  .hero-carousel-controls { position: absolute; z-index: 4; left: var(--gutter); bottom: 1.25rem; display: flex; align-items: center; gap: .45rem; padding: .35rem; border: 1px solid rgba(242, 242, 242, .24); background: rgba(10, 10, 10, .8); }
+  .hero-carousel-btn, .hero-carousel-dot { display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0; border: 1px solid transparent; background: transparent; color: var(--fg); cursor: pointer; }
+  .hero-carousel-btn:hover, .hero-carousel-dot:hover, .hero-carousel-dot[aria-current="true"] { border-color: var(--accent); color: var(--accent); }
+  .hero-carousel-btn svg { width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .hero-carousel-dots { display: flex; gap: .25rem; }
+  .hero-carousel-dot { width: 2rem; height: 2.75rem; }
+  .hero-carousel-dot::before { content: ""; width: .45rem; height: .45rem; border: 1px solid currentColor; border-radius: 50%; background: currentColor; }
   .hero-copy {
     position: relative; z-index: 3;
     width: min(44%, 48rem);
@@ -224,8 +232,9 @@
   @media (max-width: 760px) {
     .hero { min-height: 0; flex-direction: column; align-items: stretch; padding: 0; }
     .hero::after { display: none; }
-    .hero-figure { position: relative; inset: auto; width: 100%; height: auto; aspect-ratio: 1584 / 672; flex: none; }
-    .hero-banner-art { object-fit: contain; object-position: center; }
+    .hero-figure { position: relative; inset: auto; width: 100%; height: auto; aspect-ratio: 1.9 / 1; flex: none; }
+    .hero-banner-art { object-fit: cover; object-position: center; }
+    .hero-carousel-controls { left: var(--gutter); bottom: .75rem; }
     .hero-copy { width: 100%; margin: 0; padding: 1.5rem var(--gutter) 2rem; }
     .hero-copy h1 { font-size: clamp(2rem, 6vw, 3.6rem); }
   }
@@ -903,7 +912,114 @@
   }
 
   function fixerBannerArt() {
-    return '<img class="hero-banner-art" src="assets/fixerctrl-kasi-banner.jpg" alt="Faceless hooded cybersecurity professional working at a laptop in a South African neighborhood at night">';
+    var banners = [
+      ['assets/fixerctrl-kasi-banner.jpg', 'Cybersecurity and data protection in a South African neighborhood at night'],
+      ['assets/outside.jpg', 'A hooded professional working on a laptop outside at night'],
+      ['assets/uthukela.jpg', 'A cybersecurity workspace with a hooded professional at a desktop computer'],
+      ['assets/image.png', 'A hooded professional using a laptop beside a brick wall']
+    ];
+    return '<div class="hero-figure" data-hero-carousel role="region" aria-roledescription="carousel" aria-label="Featured artwork">' +
+      banners.map(function (banner, index) {
+        return '<img class="hero-banner-art' + (index === 0 ? ' is-active' : '') + '" src="' + banner[0] + '" alt="' + banner[1] + '"' + (index === 0 ? ' fetchpriority="high"' : ' loading="lazy"') + ' aria-hidden="' + (index !== 0) + '">';
+      }).join('') +
+      '<div class="hero-carousel-controls">' +
+        '<button class="hero-carousel-btn" type="button" data-hero-previous aria-label="Previous banner"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>' +
+        '<div class="hero-carousel-dots" role="group" aria-label="Choose a banner">' +
+          banners.map(function (banner, index) {
+            return '<button class="hero-carousel-dot" type="button" data-hero-slide="' + index + '" aria-label="Show banner ' + (index + 1) + '" aria-current="' + (index === 0) + '"></button>';
+          }).join('') +
+        '</div>' +
+        '<button class="hero-carousel-btn" type="button" data-hero-toggle aria-label="Pause banner rotation" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>' +
+        '<button class="hero-carousel-btn" type="button" data-hero-next aria-label="Next banner"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function initHeroCarousel() {
+    var carousel = $('[data-hero-carousel]', main);
+    if (!carousel) return;
+
+    var slides = $$('.hero-banner-art', carousel);
+    var dots = $$('.hero-carousel-dot', carousel);
+    var activeIndex = 0;
+    var timer = 0;
+    var touchStartX = null;
+    var userPaused = false;
+    var isHovered = false;
+    var hasFocus = false;
+    var toggleButton = $('[data-hero-toggle]', carousel);
+
+    function showSlide(index) {
+      activeIndex = (index + slides.length) % slides.length;
+      slides.forEach(function (slide, slideIndex) {
+        var active = slideIndex === activeIndex;
+        slide.classList.toggle('is-active', active);
+        slide.setAttribute('aria-hidden', String(!active));
+      });
+      dots.forEach(function (dot, dotIndex) {
+        dot.setAttribute('aria-current', String(dotIndex === activeIndex));
+      });
+    }
+
+    function stopRotation() {
+      window.clearInterval(timer);
+      timer = 0;
+    }
+
+    function startRotation() {
+      stopRotation();
+      if (reduceMotion || document.hidden || userPaused || isHovered || hasFocus || slides.length < 2) return;
+      timer = window.setInterval(function () { showSlide(activeIndex + 1); }, 6500);
+    }
+
+    $('[data-hero-previous]', carousel).addEventListener('click', function () {
+      showSlide(activeIndex - 1);
+      startRotation();
+    });
+    $('[data-hero-next]', carousel).addEventListener('click', function () {
+      showSlide(activeIndex + 1);
+      startRotation();
+    });
+    dots.forEach(function (dot) {
+      dot.addEventListener('click', function () {
+        showSlide(Number(dot.getAttribute('data-hero-slide')));
+        startRotation();
+      });
+    });
+    toggleButton.addEventListener('click', function () {
+      userPaused = !userPaused;
+      toggleButton.setAttribute('aria-pressed', String(userPaused));
+      toggleButton.setAttribute('aria-label', userPaused ? 'Resume banner rotation' : 'Pause banner rotation');
+      toggleButton.innerHTML = userPaused
+        ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 12 7-12 7V5Z"/></svg>'
+        : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>';
+      if (userPaused) stopRotation(); else startRotation();
+    });
+    carousel.addEventListener('mouseenter', function () { isHovered = true; stopRotation(); });
+    carousel.addEventListener('mouseleave', function () { isHovered = false; startRotation(); });
+    carousel.addEventListener('focusin', function () { hasFocus = true; stopRotation(); });
+    carousel.addEventListener('focusout', function (event) {
+      if (!carousel.contains(event.relatedTarget)) {
+        hasFocus = false;
+        startRotation();
+      }
+    });
+    carousel.addEventListener('pointerdown', function (event) {
+      if (event.pointerType === 'touch' && !event.target.closest('button')) touchStartX = event.clientX;
+    }, { passive: true });
+    carousel.addEventListener('pointerup', function (event) {
+      if (touchStartX === null) return;
+      var distance = event.clientX - touchStartX;
+      touchStartX = null;
+      if (Math.abs(distance) < 48) return;
+      showSlide(activeIndex + (distance < 0 ? 1 : -1));
+      startRotation();
+    }, { passive: true });
+    carousel.addEventListener('pointercancel', function () { touchStartX = null; });
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) stopRotation(); else startRotation();
+    });
+    startRotation();
   }
 
   function socialIconLinks(includeContactLinks, label) {
@@ -1195,7 +1311,7 @@
       title: 'Home',
       html:
         '<section class="hero">' +
-          '<div class="hero-figure">' + fixerBannerArt() + '</div>' +
+          fixerBannerArt() +
           '<div class="hero-copy">' +
             '<h1>Practical IT support. Secure web solutions.</h1>' +
             '<p class="lead">I help individuals and small businesses troubleshoot everyday technology issues, improve their websites, and strengthen day-to-day security—with clear communication and practical fixes.</p>' +
@@ -1768,6 +1884,7 @@
     else view = notFound();
 
     main.innerHTML = '<div class="wrap">' + view.html + '</div>';
+    initHeroCarousel();
     initPageInteractions();
     document.title = (view.title === 'Home' ? 'FixerCtrl | IT Support, Web & Security' : view.title + ' | FixerCtrl');
     $$('.main-nav a').forEach(function (a) {
