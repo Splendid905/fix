@@ -7,7 +7,7 @@ export function json(data: unknown, status = 200, headers: HeadersInit = {}): Re
 
 export function corsHeaders(request: Request): HeadersInit {
   const origin = request.headers.get('origin') || '';
-  const allowed = (Deno.env.get('PORTAL_ALLOWED_ORIGINS') || '').split(',').map((item) => item.trim()).filter(Boolean);
+  const allowed = (Deno.env.get('https://splendid905.github.io,http://localhost:4173') || '').split(',').map((item) => item.trim()).filter(Boolean);
   return {
     ...(allowed.includes(origin) ? { 'access-control-allow-origin': origin } : {}),
     'access-control-allow-headers': 'authorization, apikey, content-type, x-client-info',
