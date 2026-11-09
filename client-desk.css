@@ -2,7 +2,7 @@
 .client-desk { min-height: 65vh; padding: clamp(2rem, 5vw, 4rem) 0; }
 .client-desk-head { display: flex; align-items: end; justify-content: space-between; gap: 1.5rem; padding-bottom: 1.4rem; border-bottom: 1px solid var(--desk-line); }
 .client-desk-kicker { margin: 0 0 .45rem; color: var(--accent); font: 600 .75rem var(--mono); letter-spacing: .08em; text-transform: uppercase; }
-.client-desk-head h1 { margin: 0; font-size: clamp(2rem, 3.5vw, 3.6rem); }
+.client-desk-head h2 { margin: 0; font-size: clamp(2rem, 3.5vw, 3.6rem); }
 .client-desk-head p { max-width: 42rem; margin: .6rem 0 0; color: var(--muted); }
 .client-desk-account { display: flex; align-items: center; gap: .75rem; }
 .client-desk-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 18rem; gap: 2rem; padding-top: 1.5rem; }
@@ -73,6 +73,11 @@
 .client-desk-provider { display: flex; align-items: center; gap: .5rem; color: var(--muted); font-size: .85rem; }
 .client-desk-provider input { width: 1rem; min-height: auto; accent-color: var(--accent); }
 .client-desk-owner-tools { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.client-desk-account-role { display: grid; grid-template-columns: minmax(0, 1fr) minmax(8rem, .7fr) auto; align-items: center; gap: .75rem; padding: .8rem 0; border-top: 1px solid var(--desk-line); }
+.client-desk-account-role > div { display: grid; }
+.client-desk-account-role select { min-height: 2.6rem; padding: .45rem .6rem; border: 1px solid var(--desk-line); border-radius: 2px; background: var(--bg); color: var(--fg); font: inherit; }
+.client-desk fieldset { display: grid; gap: .5rem; margin: 0; padding: .75rem; border: 1px solid var(--desk-line); }
+.client-desk fieldset legend { padding: 0 .35rem; }
 .client-desk-footnote { color: var(--muted); font-size: .78rem; }
 .client-desk [hidden] { display: none !important; }
 @media (max-width: 760px) {
@@ -85,6 +90,7 @@
   .client-desk-grid, .client-desk-field-grid { grid-template-columns: minmax(0, 1fr); }
   .client-desk-account { width: 100%; justify-content: space-between; }
   .client-desk-section-head { align-items: flex-start; flex-direction: column; }
+  .client-desk-account-role { grid-template-columns: minmax(0, 1fr); }
   .client-desk-table { min-width: 38rem; }
   .client-desk-controls { display: grid; grid-template-columns: 1fr 1fr; }
 }

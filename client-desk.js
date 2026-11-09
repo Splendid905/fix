@@ -50,8 +50,9 @@
 
   function renderShell(content, profile) {
     var name = profile ? (profile.display_name || profile.email || 'Customer') : 'Private workspace';
-    portalRoot.innerHTML = '<header class="client-desk-head"><div><p class="client-desk-kicker">FixerCtrl / Client Desk</p><h1>Project control room</h1><p>Clear scope, visible progress, and payment details in one private workspace.</p></div>' +
-      (profile ? '<div class="client-desk-account"><span class="client-desk-label">' + escapeHtml(name) + '</span><button class="btn ghost" type="button" data-action="signout">Sign out</button></div>' : '') +
+    var role = profile ? (profile.role === 'owner' ? 'Admin' : profile.role === 'freelancer' ? 'Freelancer' : 'Customer') : '';
+    portalRoot.innerHTML = '<header class="client-desk-head"><div><p class="client-desk-kicker">FixerCtrl / Client Desk</p><h2>Project control room</h2><p>Clear scope, visible progress, and payment details in one private workspace.</p></div>' +
+      (profile ? '<div class="client-desk-account"><span><span class="client-desk-label">' + escapeHtml(role) + '</span><strong>' + escapeHtml(name) + '</strong></span><button class="btn ghost" type="button" data-action="signout">Sign out</button></div>' : '') +
       '</header>' + content;
   }
 
@@ -87,7 +88,7 @@
       '<div class="field"><label class="client-desk-label" for="portalEmail">Email address</label><input id="portalEmail" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></div>' +
       '<div class="field"><label class="client-desk-label" for="portalPassword">Password</label><input id="portalPassword" name="password" type="password" autocomplete="current-password" required></div>' +
       '<button class="btn" type="submit">Sign in</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p>' +
-      '<p class="client-desk-footnote">Only your account can access your projects and files. Keep your password private.</p></form>', null);
+      '<p class="client-desk-footnote">Only your account can access your projects and files. Keep your password private. Need portal access or a password reset? <a href="#/contact">Contact FixerCtrl</a>.</p></form>', null);
   }
 
   function buildRequestForm() {
@@ -123,8 +124,8 @@
   function renderTimeline(project) {
     var events = projectEvents(project.id);
     if (!events.length) return '<p class="client-desk-footnote">Progress updates will appear here as work moves forward.</p>';
-    return '<ol class="client-desk-timeline">' + events.map(function (event) {
-      return '<li class="' + (event.status === project.status ? 'is-current' : 'is-done') + '"><strong>' + escapeHtml(event.title) + '</strong><br>' + escapeHtml(event.description || '') + '<br><small>' + escapeHtml(dateLabel(event.created_at)) + '</small></li>';
+    return '<ol class="client-desk-timeline">' + events.map(function (event, index) {
+      return '<li class="' + (index === events.length - 1 ? 'is-current' : 'is-done') + '"><strong>' + escapeHtml(event.title) + '</strong><br>' + escapeHtml(event.description || '') + '<br><small>' + escapeHtml(dateLabel(event.created_at)) + '</small></li>';
     }).join('') + '</ol>';
   }
 
@@ -132,8 +133,8 @@
     var items = projectChecklist(project.id);
     if (!items.length) return '<p class="client-desk-footnote">No outstanding items.</p>';
     return '<ul class="client-desk-checklist">' + items.map(function (item) {
-      var owner = item.owner_kind === 'customer' ? 'You' : 'FixerCtrl';
-      var canComplete = item.owner_kind === 'customer' && !item.completed_at;
+      var owner = item.owner_kind === 'customer' ? (activeProfile.role === 'freelancer' ? 'Client' : 'You') : 'FixerCtrl';
+      var canComplete = activeProfile.role === 'customer' && item.owner_kind === 'customer' && !item.completed_at;
       return '<li><input type="checkbox" data-action="checklist" data-id="' + escapeHtml(item.id) + '" ' + (item.completed_at ? 'checked disabled' : canComplete ? '' : 'disabled') + ' aria-label="' + escapeHtml(owner + ': ' + item.title) + '"><span><strong>' + escapeHtml(owner) + ':</strong> ' + escapeHtml(item.title) + (item.due_at ? '<br><small>Due ' + escapeHtml(dateLabel(item.due_at)) + '</small>' : '') + '</span></li>';
     }).join('') + '</ul>';
   }
@@ -143,6 +144,7 @@
     return '<ul class="client-desk-message-list">' + (messages.length ? messages.map(function (message) {
       var author = 'FixerCtrl';
       if (message.author_id === activeProfile.id) author = activeProfile.role === 'owner' ? 'FixerCtrl' : 'You';
+      else if (activeProfile.role === 'freelancer') author = 'Project update';
       else if (activeProfile.role === 'owner') {
         var authorProfile = (relatedData.profiles || []).find(function (profile) { return profile.id === message.author_id; });
         author = authorProfile ? authorProfile.email : 'Customer';
@@ -189,22 +191,54 @@
 
   function renderOwnerTools(project) {
     if (activeProfile.role !== 'owner') return '';
-    return '<div class="client-desk-card"><h3>Owner controls</h3><div class="client-desk-field-grid"><div class="field"><label class="client-desk-label" for="status-' + escapeHtml(project.id) + '">Project status</label><select id="status-' + escapeHtml(project.id) + '" data-action="set-status" data-project="' + escapeHtml(project.id) + '">' + statuses.map(function (entry) { return '<option value="' + entry[0] + '" ' + (project.status === entry[0] ? 'selected' : '') + '>' + entry[1] + '</option>'; }).join('') + '</select></div><div class="field"><label class="client-desk-label" for="next-' + escapeHtml(project.id) + '">Next action</label><input id="next-' + escapeHtml(project.id) + '" data-action="set-next" data-project="' + escapeHtml(project.id) + '" type="text" maxlength="240" value="' + escapeHtml(project.next_action || '') + '" placeholder="e.g. Review homepage draft"></div></div><button class="btn ghost" type="button" data-action="save-project" data-project="' + escapeHtml(project.id) + '">Save project update</button>' +
+    return '<div class="client-desk-card"><h3>Admin controls</h3><div class="client-desk-field-grid"><div class="field"><label class="client-desk-label" for="status-' + escapeHtml(project.id) + '">Project status</label><select id="status-' + escapeHtml(project.id) + '" data-action="set-status" data-project="' + escapeHtml(project.id) + '">' + statuses.map(function (entry) { return '<option value="' + entry[0] + '" ' + (project.status === entry[0] ? 'selected' : '') + '>' + entry[1] + '</option>'; }).join('') + '</select></div><div class="field"><label class="client-desk-label" for="next-' + escapeHtml(project.id) + '">Next action</label><input id="next-' + escapeHtml(project.id) + '" data-action="set-next" data-project="' + escapeHtml(project.id) + '" type="text" maxlength="240" value="' + escapeHtml(project.next_action || '') + '" placeholder="e.g. Review homepage draft"></div></div><button class="btn ghost" type="button" data-action="save-project" data-project="' + escapeHtml(project.id) + '">Save project update</button>' +
       '<details><summary>Manage customer checklist</summary><form class="client-desk-message-form" data-action="checklist-add" data-project="' + escapeHtml(project.id) + '"><label class="client-desk-label">Item</label><input name="title" type="text" required maxlength="240" placeholder="e.g. Upload site logo"><div class="client-desk-field-grid"><div class="field"><label class="client-desk-label">Assigned to</label><select name="owner_kind"><option value="customer">Customer</option><option value="owner">FixerCtrl</option></select></div><div class="field"><label class="client-desk-label">Due date (optional)</label><input name="due_at" type="date"></div></div><label class="client-desk-checkline"><input name="internal" type="checkbox"><span>Private owner-only item</span></label><button class="btn ghost" type="submit">Add checklist item</button></form></details>' +
-      renderQuoteBuilder(project) + '</div>';
+      renderQuoteBuilder(project) + '</div>' + renderTeamTools(project);
+  }
+
+  function renderTeamTools(project) {
+    if (activeProfile.role !== 'owner') return '';
+    var freelancers = relatedData.freelancers || [];
+    var assignments = (relatedData.teamAssignments || []).filter(function (assignment) { return assignment.project_id === project.id; });
+    var assignedIds = assignments.map(function (assignment) { return assignment.user_id; });
+    return '<details class="client-desk-card"><summary><strong>Project team</strong></summary><p class="client-desk-footnote">Assigned freelancers can see this project, share public updates, and add project files. They cannot see private notes, quotes, or invoices.</p>' +
+      (freelancers.length ? '<form class="client-desk-message-form" data-action="team" data-project="' + escapeHtml(project.id) + '"><fieldset><legend class="client-desk-label">Freelancers with access</legend>' + freelancers.map(function (freelancer) {
+        var displayName = freelancer.display_name || freelancer.email;
+        return '<label class="client-desk-checkline"><input type="checkbox" name="freelancer" value="' + escapeHtml(freelancer.id) + '" ' + (assignedIds.indexOf(freelancer.id) !== -1 ? 'checked' : '') + '><span>' + escapeHtml(displayName) + ' / ' + escapeHtml(freelancer.email) + '</span></label>';
+      }).join('') + '</fieldset><button class="btn ghost" type="submit">Save project team</button></form>' : '<p class="client-desk-footnote">No freelancer accounts yet. Add an Auth account in Supabase, then enable freelancer access below.</p>') + '</details>';
+  }
+
+  function renderFreelancerTools(project) {
+    if (activeProfile.role !== 'freelancer') return '';
+    return '<div class="client-desk-card"><h3>Update client progress</h3><p class="client-desk-footnote">Saving a status or next step adds a dated update to the client’s project timeline. No message is required.</p><div class="client-desk-field-grid"><div class="field"><label class="client-desk-label" for="status-' + escapeHtml(project.id) + '">Project status</label><select id="status-' + escapeHtml(project.id) + '" data-action="set-status" data-project="' + escapeHtml(project.id) + '">' + statuses.map(function (entry) { return '<option value="' + entry[0] + '" ' + (project.status === entry[0] ? 'selected' : '') + '>' + entry[1] + '</option>'; }).join('') + '</select></div><div class="field"><label class="client-desk-label" for="next-' + escapeHtml(project.id) + '">Next action</label><input id="next-' + escapeHtml(project.id) + '" data-action="set-next" data-project="' + escapeHtml(project.id) + '" type="text" maxlength="240" value="' + escapeHtml(project.next_action || '') + '" placeholder="e.g. Test the updated checkout"></div></div><button class="btn ghost" type="button" data-action="save-project" data-project="' + escapeHtml(project.id) + '">Save progress update</button></div>';
   }
 
   function renderProject(project) {
     var status = statuses.find(function (entry) { return entry[0] === project.status; });
+    var freelancer = activeProfile.role === 'freelancer';
     return '<details class="client-desk-project" data-project-details><summary><span><span class="client-desk-label">' + escapeHtml(project.reference || project.id.slice(0, 8)) + ' / ' + escapeHtml(project.service_category.replace('_', ' ')) + '</span><strong>' + escapeHtml(project.title) + '</strong></span><span class="client-desk-status">' + escapeHtml(status ? status[1] : project.status) + '</span></summary>' +
       '<div class="client-desk-project-body"><div><div class="client-desk-section-head"><h2>Progress</h2><span class="client-desk-footnote">Updated ' + escapeHtml(dateLabel(project.updated_at)) + '</span></div>' + (project.next_action ? '<div class="client-desk-notice"><div><strong>Next step</strong><p>' + escapeHtml(project.next_action) + '</p></div></div>' : '') + renderTimeline(project) +
-      '<div class="client-desk-section-head"><h2>Conversation</h2></div>' + renderMessages(project) + '</div><div><h3>What is needed</h3>' + renderChecklist(project) + renderFiles(project) + '<div class="client-desk-section-head"><h2>Quote</h2></div>' + renderQuotes(project) + '<div class="client-desk-section-head"><h2>Payments</h2></div>' + renderInvoices(project) + '</div></div>' + renderOwnerTools(project) + '</details>';
+      '<div class="client-desk-section-head"><h2>Conversation</h2></div>' + renderMessages(project) + '</div><div><h3>What is needed</h3>' + renderChecklist(project) + renderFiles(project) + (freelancer ? '' : '<div class="client-desk-section-head"><h2>Quote</h2></div>' + renderQuotes(project) + '<div class="client-desk-section-head"><h2>Payments</h2></div>' + renderInvoices(project)) + '</div></div>' + renderOwnerTools(project) + renderFreelancerTools(project) + '</details>';
   }
 
   function renderOwnerSummary() {
     if (activeProfile.role !== 'owner') return '';
     var waiting = projectCache.filter(function (project) { return ['received', 'awaiting_customer', 'awaiting_approval', 'awaiting_payment'].indexOf(project.status) !== -1; }).length;
     return '<div class="client-desk-grid"><article class="client-desk-card"><span class="client-desk-label">Open projects</span><p class="client-desk-money">' + projectCache.filter(function (project) { return project.status !== 'complete'; }).length + '</p></article><article class="client-desk-card"><span class="client-desk-label">Awaiting an action</span><p class="client-desk-money">' + waiting + '</p></article></div>';
+  }
+
+  function renderFreelancerSummary() {
+    var active = projectCache.filter(function (project) { return project.status !== 'complete'; }).length;
+    return '<div class="client-desk-grid"><article class="client-desk-card"><span class="client-desk-label">Assigned projects</span><p class="client-desk-money">' + projectCache.length + '</p></article><article class="client-desk-card"><span class="client-desk-label">Still active</span><p class="client-desk-money">' + active + '</p></article></div>';
+  }
+
+  function renderFreelancerAccounts() {
+    if (activeProfile.role !== 'owner') return '';
+    var profiles = (relatedData.profiles || []).filter(function (profile) { return profile.role !== 'owner'; });
+    return '<details class="client-desk-card"><summary><strong>Freelancer accounts</strong></summary><p class="client-desk-footnote">Create or invite accounts in Supabase Auth first. Enabling freelancer access here limits each account to projects you assign.</p>' +
+      (profiles.length ? profiles.map(function (profile) {
+        return '<form class="client-desk-account-role" data-action="freelancer-role"><div><strong>' + escapeHtml(profile.display_name || profile.email) + '</strong><span class="client-desk-footnote">' + escapeHtml(profile.email) + '</span></div><label class="client-desk-label" for="role-' + escapeHtml(profile.id) + '">Portal access</label><select id="role-' + escapeHtml(profile.id) + '" name="role"><option value="customer" ' + (profile.role === 'customer' ? 'selected' : '') + '>Customer</option><option value="freelancer" ' + (profile.role === 'freelancer' ? 'selected' : '') + '>Freelancer</option></select><input name="user_id" type="hidden" value="' + escapeHtml(profile.id) + '"><button class="btn ghost" type="submit">Save access</button></form>';
+      }).join('') : '<p class="client-desk-footnote">No other accounts have signed in yet. Create an account in Supabase Auth first.</p>') + '</details>';
   }
 
   function renderPaymentSettings() {
@@ -229,7 +263,7 @@
     if (projectResult.error) throw projectResult.error;
     projectCache = projectResult.data || [];
     var ids = projectCache.map(function (project) { return project.id; });
-    relatedData = { checklist: [], messages: [], invoices: [], quotes: [], events: [], files: [], profiles: [], providers: [] };
+    relatedData = { checklist: [], messages: [], invoices: [], quotes: [], events: [], files: [], profiles: [], providers: [], freelancers: [], teamAssignments: [] };
     if (ids.length) {
       var queries = await Promise.all([
         client.from('project_checklist').select('*').in('project_id', ids).order('position'),
@@ -237,9 +271,10 @@
         client.from('invoices').select('*').in('project_id', ids).order('created_at'),
         client.from('quotes').select('*').in('project_id', ids).order('version', { ascending: false }),
         client.from('project_events').select('*').in('project_id', ids).order('created_at'),
-        client.from('project_files').select('*').in('project_id', ids).order('created_at')
+        client.from('project_files').select('*').in('project_id', ids).order('created_at'),
+        client.from('project_team_members').select('project_id,user_id').in('project_id', ids)
       ]);
-      var names = ['checklist', 'messages', 'invoices', 'quotes', 'events', 'files'];
+      var names = ['checklist', 'messages', 'invoices', 'quotes', 'events', 'files', 'teamAssignments'];
       queries.forEach(function (result, index) {
         if (result.error) throw result.error;
         relatedData[names[index]] = result.data || [];
@@ -249,8 +284,12 @@
         file.signed_url = signed.error ? '' : signed.data.signedUrl;
       }));
     }
-    var profiles = await client.from('client_profiles').select('id,email,display_name');
-    if (!profiles.error) relatedData.profiles = profiles.data || [];
+    if (activeProfile.role === 'owner') {
+      var profiles = await client.from('client_profiles').select('id,email,display_name,role');
+      if (profiles.error) throw profiles.error;
+      relatedData.profiles = profiles.data || [];
+      relatedData.freelancers = relatedData.profiles.filter(function (profile) { return profile.role === 'freelancer'; });
+    }
     var providersQuery = client.from('payment_providers').select('provider,label,is_enabled,public_instructions');
     if (activeProfile.role !== 'owner') providersQuery = providersQuery.eq('is_enabled', true);
     var providers = await providersQuery;
@@ -260,10 +299,14 @@
 
   function renderDashboard() {
     var owner = activeProfile.role === 'owner';
-    var content = '<div class="client-desk-workspace"><div class="client-desk-main"><div class="client-desk-section-head"><div><h2>' + (owner ? 'Work queue' : 'Your projects') + '</h2><p class="client-desk-footnote">' + escapeHtml(activeProfile.email) + '</p></div><div class="client-desk-owner-tools"><button class="btn ghost" type="button" data-action="refresh" aria-label="Refresh projects"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5.5 9A7 7 0 0 1 18 6l2 2M4 16l2 2a7 7 0 0 0 12.5-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' + (!owner ? '<button class="btn" type="button" data-action="new-request">New request</button>' : '') + '</div></div>' +
-      (owner ? renderOwnerSummary() + renderPaymentSettings() : buildRequestForm()) + '<p class="client-desk-form-status" data-portal-status aria-live="polite"></p>' +
-      (projectCache.length ? projectCache.map(renderProject).join('') : '<div class="client-desk-empty"><h3>' + (owner ? 'No requests yet' : 'Nothing in progress') + '</h3><p>' + (owner ? 'New customer requests will appear here.' : 'Send a request to start a conversation about your project.') + '</p></div>') +
-      '</div><aside class="client-desk-sidebar"><h2>Payment clarity</h2><p>Every quote states the agreed scope, total, due conditions, and any third-party costs before work begins.</p><p>Invoices are sent on the date shown in your agreed schedule. A project status change never charges you by itself.</p><p class="client-desk-footnote">Payments are processed by the selected provider. FixerCtrl does not store card details.</p>' + (!owner ? '<h2>Indicative service guide</h2><ul><li>Landing page: R1,500–R3,000</li><li>Up to 5 website pages: R3,500–R7,500</li><li>Website updates: R250/hour</li><li>Setup: from R500</li><li>Features: from R800</li></ul><p class="client-desk-footnote">IT and security work is quoted after review. These are guides, not your quote. <a href="#/freelancer">Full pricing details</a></p>' : '') + '</aside></div>';
+    var freelancer = activeProfile.role === 'freelancer';
+    var heading = owner ? 'Admin work queue' : freelancer ? 'Assigned work' : 'Your projects';
+    var emptyHeading = owner ? 'No requests yet' : freelancer ? 'No projects assigned' : 'Nothing in progress';
+    var emptyMessage = owner ? 'New customer requests will appear here.' : freelancer ? 'Projects assigned to you by the FixerCtrl admin will appear here.' : 'Send a request to start a conversation about your project.';
+    var content = '<div class="client-desk-workspace"><div class="client-desk-main"><div class="client-desk-section-head"><div><h2>' + heading + '</h2><p class="client-desk-footnote">' + escapeHtml(activeProfile.email) + '</p></div><div class="client-desk-owner-tools"><button class="btn ghost" type="button" data-action="refresh" aria-label="Refresh projects"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5.5 9A7 7 0 0 1 18 6l2 2M4 16l2 2a7 7 0 0 0 12.5-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' + (!owner && !freelancer ? '<button class="btn" type="button" data-action="new-request">New request</button>' : '') + '</div></div>' +
+      (owner ? renderOwnerSummary() + renderPaymentSettings() + renderFreelancerAccounts() : freelancer ? renderFreelancerSummary() + '<div class="client-desk-notice"><div><strong>Keep the client dashboard current</strong><p>Save a status or next step when work progresses. These updates are added to the client’s project timeline without requiring a message.</p></div></div>' : buildRequestForm()) + '<p class="client-desk-form-status" data-portal-status aria-live="polite"></p>' +
+      (projectCache.length ? projectCache.map(renderProject).join('') : '<div class="client-desk-empty"><h3>' + emptyHeading + '</h3><p>' + emptyMessage + '</p></div>') +
+      '</div><aside class="client-desk-sidebar">' + (freelancer ? '<h2>Assigned access</h2><p>You can view the projects assigned to your account, post client-visible progress and conversation updates, and share project files.</p><p>You cannot access client invoices, payment settings, private owner notes, or unassigned projects.</p>' : '<h2>Payment clarity</h2><p>Every quote states the agreed scope, total, due conditions, and any third-party costs before work begins.</p><p>Invoices are sent on the date shown in your agreed schedule. A project status change never charges you by itself.</p><p class="client-desk-footnote">Payments are processed by the selected provider. FixerCtrl does not store card details.</p>') + (!owner && !freelancer ? '<h2>Indicative service guide</h2><ul><li>Landing page: R1,500–R3,000</li><li>Up to 5 website pages: R3,500–R7,500</li><li>Website updates: R250/hour</li><li>Setup: from R500</li><li>Features: from R800</li></ul><p class="client-desk-footnote">IT and security work is quoted after review. These are guides, not your quote. <a href="#/freelancer">Full pricing details</a></p>' : '') + '</aside></div>';
     renderShell(content, activeProfile);
   }
 
@@ -322,6 +365,29 @@
     }
     await loadWorkspace();
     setStatus('Payment methods saved.', false);
+  }
+
+  async function submitFreelancerRole(form) {
+    if (activeProfile.role !== 'owner') throw new Error('Admin access is required.');
+    var data = new FormData(form);
+    var result = await client.rpc('owner_set_freelancer_role', {
+      p_user_id: data.get('user_id'),
+      p_role: data.get('role')
+    });
+    if (result.error) throw result.error;
+    await loadWorkspace();
+    setStatus('Account access saved.', false);
+  }
+
+  async function submitProjectTeam(form) {
+    if (activeProfile.role !== 'owner') throw new Error('Admin access is required.');
+    var result = await client.rpc('owner_set_project_team', {
+      p_project_id: form.dataset.project,
+      p_freelancer_ids: new FormData(form).getAll('freelancer')
+    });
+    if (result.error) throw result.error;
+    await loadWorkspace();
+    setStatus('Project team saved.', false);
   }
 
   async function submitFile(form) {
@@ -490,6 +556,8 @@
       else if (action === 'upload') await submitFile(form);
       else if (action === 'checklist-add') await submitChecklistItem(form);
       else if (action === 'payment-settings') await submitPaymentSettings(form);
+      else if (action === 'freelancer-role') await submitFreelancerRole(form);
+      else if (action === 'team') await submitProjectTeam(form);
       else if (action === 'manual-paid') {
         if (activeProfile.role !== 'owner' || !new FormData(form).get('verified')) throw new Error('Confirm the bank receipt before recording payment.');
         var reconciliation = await client.rpc('owner_mark_invoice_paid', { p_invoice_id: form.dataset.invoice });
@@ -507,7 +575,7 @@
 
   function handleChange(event) {
     var target = event.target.closest('[data-action="set-status"], [data-action="set-next"]');
-    if (!target || activeProfile.role !== 'owner') return;
+    if (!target || (activeProfile.role !== 'owner' && activeProfile.role !== 'freelancer')) return;
     var project = projectCache.find(function (item) { return item.id === target.dataset.project; });
     if (project) project[target.dataset.action === 'set-status' ? 'status' : 'next_action'] = target.value;
   }

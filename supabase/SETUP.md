@@ -5,10 +5,10 @@ The Client Desk is prepared in the static site and Supabase project files. It do
 ## 1. Create Supabase Project
 
 1. Create a Supabase project in a region appropriate for the business and customer data.
-2. Apply `migrations/202611080001_client_desk.sql` using the Supabase CLI or SQL editor. Review the migration in a non-production project first.
+2. Apply `migrations/202611080001_client_desk.sql`, then `migrations/202611090001_client_desk_team.sql`, using the Supabase CLI or SQL editor. Review the migrations in a non-production project first.
 3. Enable email-and-password sign-in in Supabase Auth, disable public signups, and configure Auth rate limits. The Client Desk supports sign-in only; it does not create accounts or provide password reset.
 4. Provision customer accounts through a trusted administrative process and securely provide their initial credentials. Existing magic-link accounts need a password set before they can use the Client Desk password sign-in.
-5. Create the first owner account in Supabase Auth with a password, then promote only that account in the SQL editor:
+5. Create your account in Supabase Auth with a password. Sign in at the site's **Client Desk** using that email and password. To enable the admin dashboard, promote that verified account in the Supabase SQL editor:
 
    ```sql
    update public.client_profiles
@@ -16,7 +16,11 @@ The Client Desk is prepared in the static site and Supabase project files. It do
    where email = 'the-verified-owner-address@example.com';
    ```
 
-   Never expose an owner-role control to customers. The migration defaults all new accounts to `customer`.
+   The database role is `owner`; the dashboard labels it **Admin**. The account must already exist in `auth.users` so the profile trigger has created its `client_profiles` row. Never expose an owner-role control to customers.
+
+6. To onboard a freelancer, first create/invite their Auth account in Supabase, then sign in to the Client Desk as Admin. Under **Freelancer accounts**, change their portal access from Customer to Freelancer. Assign them to individual projects under each project's **Project team** controls. Freelancers only see assigned projects and can post client-visible status/next-step updates, messages, and files; they cannot access invoices, quotes, payment settings, private notes, or unassigned projects. Changing a freelancer back to Customer removes their project assignments.
+
+Saving a project status or next step automatically adds a dated event to the project timeline. Clients see these updates in their dashboard when they open or refresh the Client Desk; progress changes do not send a separate email or require a message.
 
 ## 2. Configure Public Site Settings
 
@@ -76,7 +80,7 @@ Configure `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` as server-only secrets
 
 ### Manual EFT
 
-Enable EFT only after adding the correct public transfer instructions in the owner dashboard. Customers should see the invoice reference and instructions. FixerCtrl must verify receipt in the bank account before using the owner-only reconciliation action. Never ask a customer to provide card details or banking passwords.
+Enable EFT only after adding the correct public transfer instructions in the Admin dashboard. Customers should see the invoice reference and instructions. FixerCtrl must verify receipt in the bank account before using the admin-only reconciliation action. Never ask a customer to provide card details or banking passwords.
 
 Payment success/cancel redirects are informational only. The verified server webhook is the source of truth. No progress status change triggers a charge; every quote total and milestone schedule must be explicitly accepted.
 
@@ -86,13 +90,13 @@ Before using this with real customers:
 
 - Confirm the Terms and privacy page is no longer a draft and has complete operator disclosures and reviewed payment, cancellation, refund, tax, and privacy terms.
 - Verify that customer A cannot read customer B's profiles, project rows, messages, invoices, checklist, or files by calling the Supabase API directly.
-- Verify that only the owner can see internal notes, internal checklist items, and internal attachments.
+- Verify that only the admin can see internal notes, internal checklist items, internal attachments, and billing controls; a freelancer can see only assigned projects and non-internal files/messages.
 - Test signed file links expire and unsupported/oversized files are rejected.
 - Test quote acceptance is customer-owned, unexpired, and bound to a milestone schedule whose sum exactly matches the quote total.
 - Test a payment callback with a wrong amount/currency, invalid signature, duplicate event, and unknown invoice. All must leave the invoice unpaid.
 - Test the scheduler's wrong-token response, retries, duplicate invocations, and delayed invoice send time.
 - Verify the production build includes `client-desk.css`, `client-desk.js`, `client-desk-config.js`, and `assets/`.
 - Use sandbox/test merchant accounts until these checks pass. The local static preview cannot validate real provider webhooks, auth email delivery, cron scheduling, or RLS isolation.
-- The SQL migration was syntax-applied and basic role-isolation checks were run in a temporary PostgreSQL 16 instance with mocked Supabase schemas. Repeat the checks against a real non-production Supabase project before launch; the mock does not verify Supabase Auth, Storage, Edge gateway, or provider behavior.
+- The original Client Desk migration was syntax-applied and basic customer/owner role-isolation checks were run in a temporary PostgreSQL 16 instance with mocked Supabase schemas. The freelancer-team migration and new role boundaries still need equivalent checks in a disposable database and a real non-production Supabase project before launch; mocks do not verify Supabase Auth, Storage, Edge gateway, or provider behavior.
 
 The implementation is a deployment foundation, not a claim that the system is secure by all means or legally ready. Security requires correct account configuration, ongoing monitoring, testing, backups, and timely updates.

@@ -8,9 +8,9 @@ The Client Desk should reduce uncertainty and awkward payment conversations. It 
 
 ## Implementation Status
 
-The first implementation is now present in the site at `#/client-desk`, with a responsive customer and owner workspace, email-and-password sign-in flow, requests, messages, customer-visible progress, owner-only notes, checklists, private file uploads, quote approval, multi-milestone invoices, provider selection, and manual EFT reconciliation. GitHub Pages now includes the Client Desk assets.
+The first implementation is now present in the site at `#/client-desk`, with a responsive customer, admin, and assigned-freelancer workspace; email-and-password sign-in; project assignment; customer-visible status and next-step history; requests; messages; owner-only notes; checklists; private file uploads; quote approval; multi-milestone invoices; provider selection; and manual EFT reconciliation. Public home, services, contact, and footer areas link visitors to the Client Desk.
 
-The Supabase migration adds row-level access rules, private storage, immutable sent/accepted quotes and agreed invoice amounts/due dates, verified-payment recording, scheduled invoice/message notification queues, and owner reconciliation for manual EFT. Edge Functions provide hosted PayFast and Stripe checkout, PayFast/Stripe webhook verification, Resend invoice/message emails, and retryable invoice dispatch. Quotes support up to twelve agreed milestones. Stripe checkout sessions expire; provider state must be stored before a checkout link is returned. The browser SDK is version-pinned with SRI, and the inline app script is authorized by a CSP hash rather than `unsafe-inline`.
+The Supabase migrations add row-level access rules, private storage, assigned-freelancer access, immutable sent/accepted quotes and agreed invoice amounts/due dates, verified-payment recording, scheduled invoice/message notification queues, and owner reconciliation for manual EFT. Status and next-step changes automatically add customer-visible activity events. Edge Functions provide hosted PayFast and Stripe checkout, PayFast/Stripe webhook verification, Resend invoice/message emails, and retryable invoice dispatch. Quotes support up to twelve agreed milestones. Stripe checkout sessions expire; provider state must be stored before a checkout link is returned. The browser SDK is version-pinned with SRI, and the inline app script is authorized by a CSP hash rather than `unsafe-inline`.
 
 This is not live billing yet. `client-desk-config.js` intentionally has empty public Supabase settings, all payment methods start disabled, and no Supabase, email, scheduler, or merchant secrets are configured in this repository. Follow [supabase/SETUP.md](supabase/SETUP.md) before enabling real accounts or payments. The invoice email currently sends an invoice summary and authenticated portal link, not a PDF attachment. Absolute security cannot be guaranteed; the security design still requires deployment review, provider sandbox testing, RLS isolation checks, monitoring, and ongoing maintenance.
 
@@ -18,8 +18,8 @@ This is not live billing yet. `client-desk-config.js` intentionally has empty pu
 
 ### Done in the repository
 
-- Customer accounts default to the customer role; the owner role requires a deliberate database-side promotion.
-- Database row-level security and least-privilege grants isolate customer projects, profiles, messages, quotes, invoices, and files. Internal messages/checklist entries/files are owner-only.
+- Customer accounts default to the customer role; the owner role requires a deliberate database-side promotion. Admins can grant freelancer access only to provisioned accounts.
+- Database row-level security and least-privilege grants isolate customer projects, profiles, messages, quotes, invoices, and files. Freelancers only see assigned projects and client-visible project data; internal messages/checklist entries/files and billing remain owner-only.
 - Customers cannot update roles, quote/invoice state, or payment status through direct browser table writes. Quote acceptance, payment reconciliation, and payment callbacks use guarded database functions.
 - Sent quotes and accepted quote terms are immutable. Invoice amounts and due dates are locked after quote acceptance. Milestone totals must equal the quote total.
 - Private uploads are limited to JPG, PNG, WebP, and PDF with a 10 MB per-file cap and short-lived signed links. The upload path has no antivirus scanning yet.
@@ -39,8 +39,8 @@ These are useful checks, not a production penetration test. The SQL test used mo
 
 ## Remaining Before Live Customers
 
-1. Create a Supabase project and apply the migration there. Confirm the schema, storage policies, and Auth profile trigger in Supabase itself.
-2. Enable email-and-password authentication, disable public signups unless an account-creation flow is added, configure Auth rate limits, provision customer accounts securely, and promote only the verified owner account.
+1. Create a Supabase project and apply both migrations in order. Confirm the schema, storage policies, team-access rules, and Auth profile trigger in Supabase itself.
+2. Enable email-and-password authentication, disable public signups unless an account-creation flow is added, configure Auth rate limits, provision customer and freelancer accounts securely, and promote only the verified admin account.
 3. Set the public Supabase URL and anon key in `client-desk-config.js`. Keep the service role key out of the site and repository.
 4. Deploy the three Edge Functions and set their server-side secrets through Supabase's protected secret configuration.
 5. Verify the email sender domain, configure Resend, and set a trusted 5–15 minute scheduler with the dispatch bearer secret. Test retries and failed-delivery monitoring.
@@ -52,7 +52,7 @@ These are useful checks, not a production penetration test. The SQL test used mo
 
 - No absolute security guarantee is possible. Keep provider methods disabled until all real-service tests pass; start with one payment provider and manual EFT only if you can reconcile it reliably.
 - Customer uploads have size/type checks and private access, but no malware scanning, quota/retention automation, or incident review workflow. Consider scanning uploads before production use and decide how long files are retained.
-- Invoice email is currently a summary with a sign-in link, not a downloadable PDF invoice. Confirm the required invoice fields and legal operator details, then decide whether a printable/PDF invoice is required.
+- Invoice email is currently a summary with a Client Desk link, not a downloadable PDF invoice. Confirm the required invoice fields and legal operator details, then decide whether a printable/PDF invoice is required.
 - Refunds are not automated. Define a manual refund and duplicate-payment process in your terms and operating checklist.
 - GitHub Pages supports the CSP meta policy but not all response security headers. If you later need HSTS, `frame-ancestors`, or other response-only headers, place the site behind a host/CDN that lets you configure them.
 - Keep the public price guide indicative; the customer-specific accepted quote and milestone schedule remain the binding project price.
@@ -99,7 +99,7 @@ FixerCtrl needs an admin-only view to:
 - Create payment milestones, issue payment requests, and reconcile manual EFT payments.
 - Upload deliverables and close out a project.
 
-For a single operator, keep the first version focused on one owner role. Add staff roles only if the workflow later requires them.
+The admin account retains all owner-level controls. Freelancers receive access only to projects explicitly assigned by the admin, with status, next-step, public-message, and shared-file capabilities; keep billing and private notes restricted to the admin.
 
 ## Current Public Price Guide
 
@@ -169,7 +169,7 @@ Keep money amounts in integer minor units (cents), with an explicit currency cod
 ## Architecture and Safety
 
 - GitHub Pages can continue serving public pages, but it is not the backend for a private portal.
-- Use Supabase Auth for email-link sign-in, Postgres for project records, and private Storage for customer uploads, with Row Level Security on every customer-owned record. The current [schema.sql](schema.sql) is only a blog/podcast starter schema; it does not configure this portal.
+- Use Supabase Auth for email-and-password sign-in, Postgres for project records, and private Storage for customer uploads, with Row Level Security on every customer-owned record. The current [schema.sql](schema.sql) is only a blog/podcast starter schema; it does not configure this portal.
 - Keep payment secrets and email-provider keys in backend secrets, never in the browser or a public repository.
 - Create checkout sessions and process verified payment callbacks in trusted server-side code, such as Supabase Edge Functions or an equivalent backend.
 - Send email from a verified business sender using a transactional provider. Include minimal information in email; link the customer to the authenticated portal rather than exposing sensitive project details or files in email.
@@ -183,13 +183,13 @@ The current terms page identifies itself as a draft and says the operator's full
 
 Before launch, have the appropriate South African professional review the customer terms, privacy notice, cancellation/refund/change process, tax and invoice wording, payment-provider arrangement, POPIA obligations, and any consumer-law disclosures that apply. State clearly whether listed prices include any applicable taxes, and identify third-party costs. This plan is product guidance, not legal or tax advice.
 
-## Delivery Phases
+## Deployment Milestones
 
-1. **Foundation:** decide the payment policy and provider; complete business/legal details; configure backend project, email sender, auth, and access policies.
-2. **Request and quote:** customer request form, owner inbox, clarification thread, quote versioning, and explicit acceptance.
-3. **Project tracking:** customer and owner dashboards, flexible checklists, status timeline, and notifications.
-4. **Payments:** invoice/milestone records, hosted checkout, verified callbacks, manual EFT reconciliation, receipts, and refunds/cancellations workflow.
-5. **Hardening and launch:** test account isolation, payment callback retries/failures, email delivery, upload permissions, mobile layouts, backups, and support procedures.
+1. Apply both Client Desk migrations in order and configure Supabase Auth, accounts, and the public site settings.
+2. Sign in as Admin, provision customers, and assign freelancer accounts only to the projects they need.
+3. Configure and test email delivery, scheduled invoice processing, payment-provider sandboxes, and EFT procedures before enabling production payment methods.
+4. Verify customer/customer and freelancer/project isolation, internal-note/file access, account recovery, backups, and monitoring in a non-production environment.
+5. Complete business/legal details and the remaining production-readiness checks before accepting real customer data or payments.
 
 Do not collect real customer payment or sensitive documents until authentication, access-control policies, terms, and payment callbacks have been tested end to end.
 
@@ -203,4 +203,4 @@ Do not collect real customer payment or sensitive documents until authentication
 - Which sender address should deliver account and project notifications?
 - What is the policy for cancellations, refunds, pauses, late customer materials, and scope changes?
 - What file types, size limits, and retention period should apply to customer uploads?
-- Will the first release include a customer portal sign-in, or should the first milestone be request/quote only?
+- What should the account invitation and password-reset process be? The current portal has no self-service signup or reset.
