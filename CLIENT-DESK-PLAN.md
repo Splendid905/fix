@@ -8,7 +8,7 @@ The Client Desk should reduce uncertainty and awkward payment conversations. It 
 
 ## Implementation Status
 
-The first implementation is now present in the site at `#/client-desk`, with a responsive customer and owner workspace, email-link sign-in flow, requests, messages, customer-visible progress, owner-only notes, checklists, private file uploads, quote approval, multi-milestone invoices, provider selection, and manual EFT reconciliation. GitHub Pages now includes the Client Desk assets.
+The first implementation is now present in the site at `#/client-desk`, with a responsive customer and owner workspace, email-and-password sign-in flow, requests, messages, customer-visible progress, owner-only notes, checklists, private file uploads, quote approval, multi-milestone invoices, provider selection, and manual EFT reconciliation. GitHub Pages now includes the Client Desk assets.
 
 The Supabase migration adds row-level access rules, private storage, immutable sent/accepted quotes and agreed invoice amounts/due dates, verified-payment recording, scheduled invoice/message notification queues, and owner reconciliation for manual EFT. Edge Functions provide hosted PayFast and Stripe checkout, PayFast/Stripe webhook verification, Resend invoice/message emails, and retryable invoice dispatch. Quotes support up to twelve agreed milestones. Stripe checkout sessions expire; provider state must be stored before a checkout link is returned. The browser SDK is version-pinned with SRI, and the inline app script is authorized by a CSP hash rather than `unsafe-inline`.
 
@@ -40,7 +40,7 @@ These are useful checks, not a production penetration test. The SQL test used mo
 ## Remaining Before Live Customers
 
 1. Create a Supabase project and apply the migration there. Confirm the schema, storage policies, and Auth profile trigger in Supabase itself.
-2. Configure magic-link email, production/local redirect URLs, Auth rate limits, CAPTCHA or equivalent signup abuse controls, and promote only the verified owner account.
+2. Enable email-and-password authentication, disable public signups unless an account-creation flow is added, configure Auth rate limits, provision customer accounts securely, and promote only the verified owner account.
 3. Set the public Supabase URL and anon key in `client-desk-config.js`. Keep the service role key out of the site and repository.
 4. Deploy the three Edge Functions and set their server-side secrets through Supabase's protected secret configuration.
 5. Verify the email sender domain, configure Resend, and set a trusted 5–15 minute scheduler with the dispatch bearer secret. Test retries and failed-delivery monitoring.
@@ -59,7 +59,7 @@ These are useful checks, not a production penetration test. The SQL test used mo
 
 ## Product Direction
 
-Use a client portal with email sign-in links rather than public, guessable ticket URLs. Each customer sees only their own projects and messages. The public website can remain a static GitHub Pages site, but private accounts, project data, file access, and payment confirmation require a trusted backend.
+Use a client portal with authenticated customer accounts rather than public, guessable ticket URLs. Each customer sees only their own projects and messages. The public website can remain a static GitHub Pages site, but private accounts, project data, file access, and payment confirmation require a trusted backend.
 
 The visual language should remain FixerCtrl: charcoal surfaces, electric-blue highlights, technical typography, restrained borders, and the existing identity. The portal itself should prioritize legibility and scanning over decorative effects.
 

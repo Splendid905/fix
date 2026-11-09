@@ -6,9 +6,9 @@ The Client Desk is prepared in the static site and Supabase project files. It do
 
 1. Create a Supabase project in a region appropriate for the business and customer data.
 2. Apply `migrations/202611080001_client_desk.sql` using the Supabase CLI or SQL editor. Review the migration in a non-production project first.
-3. Configure Auth for email magic links. Add the local preview URL and the production GitHub Pages URL to the Auth redirect allowlist. Use the actual project path, for example `http://localhost:4173/` and `https://splendid905.github.io/fix/`.
-4. Configure Auth rate limits and email templates. Use a short-lived sign-in link and verify the sender domain.
-5. Create the first owner account through the Client Desk, confirm its email, then promote only that verified account in the SQL editor:
+3. Enable email-and-password sign-in in Supabase Auth, disable public signups, and configure Auth rate limits. The Client Desk supports sign-in only; it does not create accounts or provide password reset.
+4. Provision customer accounts through a trusted administrative process and securely provide their initial credentials. Existing magic-link accounts need a password set before they can use the Client Desk password sign-in.
+5. Create the first owner account in Supabase Auth with a password, then promote only that account in the SQL editor:
 
    ```sql
    update public.client_profiles

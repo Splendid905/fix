@@ -83,10 +83,11 @@
 
   function renderSignIn() {
     renderShell('<form class="client-desk-form" data-action="signin"><p class="client-desk-kicker">Customer access</p><h2>Sign in to your workspace</h2>' +
-      '<p>We will email you a secure sign-in link. Use the same email address you gave for your project.</p>' +
+      '<p>Use the email address and password associated with your customer account.</p>' +
       '<div class="field"><label class="client-desk-label" for="portalEmail">Email address</label><input id="portalEmail" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></div>' +
-      '<button class="btn" type="submit">Email me a sign-in link</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p>' +
-      '<p class="client-desk-footnote">Only your account can access your projects and files. Do not share a sign-in link with anyone.</p></form>', null);
+      '<div class="field"><label class="client-desk-label" for="portalPassword">Password</label><input id="portalPassword" name="password" type="password" autocomplete="current-password" required></div>' +
+      '<button class="btn" type="submit">Sign in</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p>' +
+      '<p class="client-desk-footnote">Only your account can access your projects and files. Keep your password private.</p></form>', null);
   }
 
   function buildRequestForm() {
@@ -479,10 +480,11 @@
     if (submit) submit.disabled = true;
     try {
       if (action === 'signin') {
-        var email = String(new FormData(form).get('email')).trim();
-        var response = await client.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.origin + window.location.pathname + '#/client-desk' } });
+        var credentials = new FormData(form);
+        var email = String(credentials.get('email')).trim();
+        var password = String(credentials.get('password'));
+        var response = await client.auth.signInWithPassword({ email: email, password: password });
         if (response.error) throw response.error;
-        setStatus('Sign-in link sent. Check your inbox and spam folder.', false);
       } else if (action === 'request') await submitRequest(form);
       else if (action === 'message') await submitMessage(form);
       else if (action === 'upload') await submitFile(form);
