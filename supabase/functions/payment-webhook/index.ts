@@ -43,13 +43,24 @@ async function handleStripe(request: Request, raw: string): Promise<Response> {
   const signature = request.headers.get('stripe-signature') || '';
   if (!await verifyStripeSignature(raw, signature, env('STRIPE_WEBHOOK_SECRET'))) return json({ error: 'Invalid signature.' }, 400);
   const event = JSON.parse(raw);
-  if (!['checkout.session.completed', 'checkout.session.async_payment_succeeded'].includes(event.type)) return json({ received: true });
   const session = event.data && event.data.object;
-  if (!session || session.payment_status !== 'paid' || session.mode !== 'payment') return json({ error: 'Payment is not complete.' }, 400);
+  if (!session) return json({ error: 'Missing Checkout session.' }, 400);
   const attemptId = String(session.metadata && session.metadata.attempt_id || '');
   if (!/^[0-9a-f-]{36}$/i.test(attemptId)) return json({ error: 'Missing payment reference.' }, 400);
   const attempt = await getAttempt(attemptId, 'stripe');
   if (!attempt || attempt.provider_reference !== session.id) return json({ error: 'Unknown payment attempt.' }, 404);
+  if (session.metadata.invoice_id !== attempt.invoice_id || session.client_reference_id !== attemptId) return json({ error: 'Checkout references do not match.' }, 400);
+
+  if (event.type === 'checkout.session.expired' || event.type === 'checkout.session.async_payment_failed') {
+    if (attempt.status === 'pending') {
+      const status = event.type === 'checkout.session.expired' ? 'cancelled' : 'failed';
+      const update = await adminRequest('/rest/v1/payment_attempts?id=eq.' + encodeURIComponent(attempt.id), 'PATCH', { status });
+      if (!update.ok) throw new Error('Checkout attempt status could not be updated.');
+    }
+    return json({ received: true });
+  }
+  if (!['checkout.session.completed', 'checkout.session.async_payment_succeeded'].includes(event.type)) return json({ received: true });
+  if (session.payment_status !== 'paid' || session.mode !== 'payment') return json({ error: 'Payment is not complete.' }, 400);
   if (!Number.isSafeInteger(session.amount_total)) return json({ error: 'Invalid payment amount.' }, 400);
   await recordPayment('stripe', String(event.id), attempt, session.amount_total, String(session.currency || ''), String(event.type), raw);
   return json({ received: true });

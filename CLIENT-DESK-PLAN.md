@@ -10,9 +10,52 @@ The Client Desk should reduce uncertainty and awkward payment conversations. It 
 
 The first implementation is now present in the site at `#/client-desk`, with a responsive customer and owner workspace, email-link sign-in flow, requests, messages, customer-visible progress, owner-only notes, checklists, private file uploads, quote approval, multi-milestone invoices, provider selection, and manual EFT reconciliation. GitHub Pages now includes the Client Desk assets.
 
-The Supabase migration adds row-level access rules, private storage, immutable accepted quote/payment amounts, verified-payment recording, scheduled invoice/message notification queues, and owner reconciliation for manual EFT. Edge Functions provide hosted PayFast and Stripe checkout, PayFast/Stripe webhook verification, Resend invoice/message emails, and retryable invoice dispatch. Quotes support up to twelve agreed milestone invoices, and the owner dashboard lets the operator enable configured payment methods.
+The Supabase migration adds row-level access rules, private storage, immutable sent/accepted quotes and agreed invoice amounts/due dates, verified-payment recording, scheduled invoice/message notification queues, and owner reconciliation for manual EFT. Edge Functions provide hosted PayFast and Stripe checkout, PayFast/Stripe webhook verification, Resend invoice/message emails, and retryable invoice dispatch. Quotes support up to twelve agreed milestones. Stripe checkout sessions expire; provider state must be stored before a checkout link is returned. The browser SDK is version-pinned with SRI, and the inline app script is authorized by a CSP hash rather than `unsafe-inline`.
 
 This is not live billing yet. `client-desk-config.js` intentionally has empty public Supabase settings, all payment methods start disabled, and no Supabase, email, scheduler, or merchant secrets are configured in this repository. Follow [supabase/SETUP.md](supabase/SETUP.md) before enabling real accounts or payments. The invoice email currently sends an invoice summary and authenticated portal link, not a PDF attachment. Absolute security cannot be guaranteed; the security design still requires deployment review, provider sandbox testing, RLS isolation checks, monitoring, and ongoing maintenance.
+
+## Security Status
+
+### Done in the repository
+
+- Customer accounts default to the customer role; the owner role requires a deliberate database-side promotion.
+- Database row-level security and least-privilege grants isolate customer projects, profiles, messages, quotes, invoices, and files. Internal messages/checklist entries/files are owner-only.
+- Customers cannot update roles, quote/invoice state, or payment status through direct browser table writes. Quote acceptance, payment reconciliation, and payment callbacks use guarded database functions.
+- Sent quotes and accepted quote terms are immutable. Invoice amounts and due dates are locked after quote acceptance. Milestone totals must equal the quote total.
+- Private uploads are limited to JPG, PNG, WebP, and PDF with a 10 MB per-file cap and short-lived signed links. The upload path has no antivirus scanning yet.
+- Payment callbacks verify provider signatures/notifications, invoice amount and currency, and idempotent event IDs. Duplicate confirmed charges are recorded for follow-up rather than silently discarded.
+- Authenticated project request and customer message rates are limited in the database. Browser code escapes displayed customer-provided text.
+- The site CSP is hash-based for its inline app script; the Supabase JS CDN file is pinned to a version with Subresource Integrity.
+- Invoice and message email jobs are claimed transactionally, retried with a cap, and require a secret scheduler token. A failed invoice email can be retried by the owner.
+
+### Verified locally
+
+- The migration applied successfully to a temporary PostgreSQL 16 database with minimal mock Supabase auth/storage schemas.
+- RLS smoke checks passed: a customer saw only their own project/profile and public messages; could not see an internal note; could not promote their account; and could not mark an invoice paid directly. The owner saw both sample projects and the internal note.
+- Deno type-check passed for all Edge Function files.
+- Browser JS syntax, CSP hash consistency, editor diagnostics, `git diff --check`, and local preview asset responses passed.
+
+These are useful checks, not a production penetration test. The SQL test used mocked Supabase schemas; Supabase Auth, Storage, payment provider webhooks, email delivery, and scheduled invocation have not been exercised against real services.
+
+## Remaining Before Live Customers
+
+1. Create a Supabase project and apply the migration there. Confirm the schema, storage policies, and Auth profile trigger in Supabase itself.
+2. Configure magic-link email, production/local redirect URLs, Auth rate limits, CAPTCHA or equivalent signup abuse controls, and promote only the verified owner account.
+3. Set the public Supabase URL and anon key in `client-desk-config.js`. Keep the service role key out of the site and repository.
+4. Deploy the three Edge Functions and set their server-side secrets through Supabase's protected secret configuration.
+5. Verify the email sender domain, configure Resend, and set a trusted 5–15 minute scheduler with the dispatch bearer secret. Test retries and failed-delivery monitoring.
+6. Configure one payment provider in sandbox first. Test successful, cancelled, expired, failed, duplicate, wrong-amount, and invalid-signature flows before enabling it. Enable another gateway only after its full path is tested.
+7. Test customer A/customer B isolation and private file access against the real Supabase API, not only the UI. Add backups, restore tests, alerting, and an incident/credential-rotation process.
+8. Complete business identity and South African legal/tax/privacy review before sending invoices or accepting money. The current Terms & privacy page is still a draft.
+
+## Residual Risks and Suggestions
+
+- No absolute security guarantee is possible. Keep provider methods disabled until all real-service tests pass; start with one payment provider and manual EFT only if you can reconcile it reliably.
+- Customer uploads have size/type checks and private access, but no malware scanning, quota/retention automation, or incident review workflow. Consider scanning uploads before production use and decide how long files are retained.
+- Invoice email is currently a summary with a sign-in link, not a downloadable PDF invoice. Confirm the required invoice fields and legal operator details, then decide whether a printable/PDF invoice is required.
+- Refunds are not automated. Define a manual refund and duplicate-payment process in your terms and operating checklist.
+- GitHub Pages supports the CSP meta policy but not all response security headers. If you later need HSTS, `frame-ancestors`, or other response-only headers, place the site behind a host/CDN that lets you configure them.
+- Keep the public price guide indicative; the customer-specific accepted quote and milestone schedule remain the binding project price.
 
 ## Product Direction
 

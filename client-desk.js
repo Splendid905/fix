@@ -71,7 +71,9 @@
       return;
     }
     var script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0';
+    script.integrity = 'sha384-gnyZit14c5lnGcarmA166QQjjJXpucw25ogZXuwH3HxxY904zHkBqmxVpelsPorb';
+    script.crossOrigin = 'anonymous';
     script.async = true;
     script.dataset.supabaseClient = 'true';
     script.onload = done;

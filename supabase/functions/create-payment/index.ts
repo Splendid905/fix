@@ -80,6 +80,7 @@ Deno.serve(async (request: Request) => {
     if (provider === 'stripe') {
       const params = new URLSearchParams();
       params.set('mode', 'payment');
+      params.set('expires_at', String(Math.floor(Date.now() / 1000) + 45 * 60));
       params.set('success_url', siteUrl + '/?payment=success&invoice=' + encodeURIComponent(invoice.id) + '#/client-desk');
       params.set('cancel_url', siteUrl + '/?payment=cancelled&invoice=' + encodeURIComponent(invoice.id) + '#/client-desk');
       params.set('customer_email', String(user.email || ''));
@@ -102,11 +103,12 @@ Deno.serve(async (request: Request) => {
       });
       const session = await stripeResponse.json();
       if (!stripeResponse.ok || !session.url) throw new Error('Stripe could not start checkout.');
-      await adminRequest('/rest/v1/payment_attempts?id=eq.' + attemptId, 'PATCH', {
+      const saveSession = await adminRequest('/rest/v1/payment_attempts?id=eq.' + attemptId, 'PATCH', {
         provider_reference: session.id,
         checkout_url: session.url,
         status: 'pending'
       });
+      if (!saveSession.ok) throw new Error('Checkout could not be securely attached to its invoice.');
       return respond(request, { provider, checkout_url: session.url });
     }
 
@@ -126,7 +128,8 @@ Deno.serve(async (request: Request) => {
     };
     const passphrase = Deno.env.get('PAYFAST_PASSPHRASE') || '';
     fields.signature = payfastSignature(fields, passphrase);
-    await adminRequest('/rest/v1/payment_attempts?id=eq.' + attemptId, 'PATCH', { provider_reference: attemptId, status: 'pending' });
+    const saveAttempt = await adminRequest('/rest/v1/payment_attempts?id=eq.' + attemptId, 'PATCH', { provider_reference: attemptId, status: 'pending' });
+    if (!saveAttempt.ok) throw new Error('Checkout could not be securely attached to its invoice.');
     return respond(request, {
       provider,
       form_url: sandbox ? 'https://sandbox.payfast.co.za/eng/process' : 'https://www.payfast.co.za/eng/process',

@@ -22,7 +22,7 @@ The Client Desk is prepared in the static site and Supabase project files. It do
 
 Set `supabaseUrl` and the public `supabaseAnonKey` in `client-desk-config.js`. This file is deployed publicly. The anon key is safe to expose only because the migration enables Row Level Security and grants restricted operations; do not put a service role key here.
 
-The site Content Security Policy permits Supabase connections and the Supabase JS CDN. Keep the allowed origins narrow. Set `PORTAL_ALLOWED_ORIGINS` to the exact production origin and any local preview origin, without wildcards, for example `https://splendid905.github.io,http://localhost:4173`.
+The site Content Security Policy permits Supabase connections and the Supabase JS CDN. The SDK URL is pinned to a version and integrity hash in the portal script; update both only after verifying the package release and recomputing SRI. Keep the allowed origins narrow. Set `PORTAL_ALLOWED_ORIGINS` to the exact production origin and any local preview origin, without wildcards, for example `https://splendid905.github.io,http://localhost:4173`.
 
 ## 3. Deploy Edge Functions
 
@@ -72,7 +72,7 @@ The hosted checkout form is generated server-side and includes a signature. The 
 
 ### Stripe
 
-Configure `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` as server-only secrets. Register `https://<project-ref>.supabase.co/functions/v1/payment-webhook?provider=stripe` for checkout completion events. The endpoint validates the timestamped Stripe signature and checks the attempt, amount, currency, and paid state. Test successful checkout, cancellation, duplicate webhook delivery, and failed/async payment cases before enabling the provider.
+Configure `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` as server-only secrets. Register `https://<project-ref>.supabase.co/functions/v1/payment-webhook?provider=stripe` for `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, and `checkout.session.expired`. The endpoint validates the timestamped Stripe signature and checks the attempt, amount, currency, and paid state; sessions expire after 45 minutes. Test successful checkout, cancellation, expiry, duplicate webhook delivery, and failed/async payment cases before enabling the provider.
 
 ### Manual EFT
 
@@ -93,5 +93,6 @@ Before using this with real customers:
 - Test the scheduler's wrong-token response, retries, duplicate invocations, and delayed invoice send time.
 - Verify the production build includes `client-desk.css`, `client-desk.js`, `client-desk-config.js`, and `assets/`.
 - Use sandbox/test merchant accounts until these checks pass. The local static preview cannot validate real provider webhooks, auth email delivery, cron scheduling, or RLS isolation.
+- The SQL migration was syntax-applied and basic role-isolation checks were run in a temporary PostgreSQL 16 instance with mocked Supabase schemas. Repeat the checks against a real non-production Supabase project before launch; the mock does not verify Supabase Auth, Storage, Edge gateway, or provider behavior.
 
 The implementation is a deployment foundation, not a claim that the system is secure by all means or legally ready. Security requires correct account configuration, ongoing monitoring, testing, backups, and timely updates.
