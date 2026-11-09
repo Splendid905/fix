@@ -121,6 +121,7 @@ $$;
 
 alter table public.project_team_members enable row level security;
 
+drop policy if exists "project_team_read_owner_or_member" on public.project_team_members;
 create policy "project_team_read_owner_or_member" on public.project_team_members for select to authenticated
 using ((select public.is_client_desk_owner()) or user_id = (select auth.uid()));
 
