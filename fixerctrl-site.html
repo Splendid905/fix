@@ -5,9 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FixerCtrl | IT Support, Web &amp; Security</title>
 <meta name="description" content="Practical IT support, web development and security-focused help for individuals and small businesses in South Africa.">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; form-action 'self' https://www.payfast.co.za https://sandbox.payfast.co.za">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Permanent+Marker&family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+<link href="client-desk.css" rel="stylesheet">
 <style>
   :root {
     --bg: #0A0A0A;
@@ -659,6 +662,7 @@
         <li><a href="#/blog" data-nav="blog">Writeups</a></li>
         <li><a href="#/about" data-nav="about">About</a></li>
         <li><a href="#/freelancer" data-nav="freelancer">Services</a></li>
+        <li><a href="#/client-desk" data-nav="client-desk">Client Desk</a></li>
         <li><a href="#/contact" data-nav="contact">Contact</a></li>
       </ul>
     </nav>
@@ -756,6 +760,8 @@
   </div>
 </footer>
 
+<script src="client-desk-config.js"></script>
+<script src="client-desk.js"></script>
 <script>
 (function () {
   'use strict';
@@ -1639,6 +1645,14 @@
     };
   }
 
+  function clientDesk() {
+    return {
+      title: 'Client Desk',
+      html: '<section class="client-desk" aria-labelledby="client-desk-title"><div id="clientDeskApp" aria-live="polite"><p>Loading secure workspace...</p></div></section>',
+      after: function () { window.initClientDesk(); }
+    };
+  }
+
   function contact() {
     return {
       title: 'Contact',
@@ -1878,6 +1892,7 @@
     else if (page === 'projects') view = projects();
     else if (page === 'skills') view = skills();
     else if (page === 'freelancer') view = freelancer();
+    else if (page === 'client-desk') view = clientDesk();
     else if (page === 'blog') view = parts[1] ? post(parts[1]) : blog();
     else if (page === 'contact') view = contact();
     else if (page === 'terms') view = terms();

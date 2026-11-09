@@ -26,6 +26,7 @@ jobs:
         run: |
           mkdir -p _site/assets
           cp fixerctrl-site.html _site/index.html
+          cp client-desk.css client-desk.js client-desk-config.js _site/
           cp -R assets/. _site/assets/
 
       - name: Upload Pages artifact
