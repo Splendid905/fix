@@ -40,7 +40,7 @@ These are useful checks, not a production penetration test. The SQL test used mo
 ## Remaining Before Live Customers
 
 1. Create a Supabase project and apply both migrations in order. Confirm the schema, storage policies, team-access rules, and Auth profile trigger in Supabase itself.
-2. Enable email-and-password authentication, disable public signups unless an account-creation flow is added, configure Auth rate limits, provision customer and freelancer accounts securely, and promote only the verified admin account.
+2. Enable email-and-password authentication and customer signups, configure email confirmation and Auth rate limits, and promote only the verified admin account. Public registration must never grant owner or freelancer roles.
 3. Set the public Supabase URL and anon key in `client-desk-config.js`. Keep the service role key out of the site and repository.
 4. Deploy the three Edge Functions and set their server-side secrets through Supabase's protected secret configuration.
 5. Verify the email sender domain, configure Resend, and set a trusted 5–15 minute scheduler with the dispatch bearer secret. Test retries and failed-delivery monitoring.

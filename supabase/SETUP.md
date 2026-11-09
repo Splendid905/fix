@@ -6,17 +6,21 @@ The Client Desk is prepared in the static site and Supabase project files. It do
 
 1. Create a Supabase project in a region appropriate for the business and customer data.
 2. Apply `migrations/202611080001_client_desk.sql`, `migrations/202611090001_client_desk_team.sql`, `migrations/202611090002_customer_profile_deletion.sql`, then `migrations/202611090003_reclaim_orphaned_profile_email.sql`, using the Supabase CLI or SQL editor. Review the migrations in a non-production project first.
-3. Enable email-and-password sign-in in Supabase Auth, disable public signups, and configure Auth rate limits. The Client Desk supports sign-in only; it does not create accounts or provide password reset.
-4. Provision customer accounts through a trusted administrative process and securely provide their initial credentials. Existing magic-link accounts need a password set before they can use the Client Desk password sign-in.
-5. Create your account in Supabase Auth with a password. Sign in at the site's **Client Desk** using that email and password. To enable the admin dashboard, promote that verified account in the Supabase SQL editor:
+3. Enable email-and-password sign-in and customer signups in Supabase Auth, configure email confirmation and Auth rate limits, and set the correct Site URL and allowed redirect URLs. Public registration through the Client Desk creates customer accounts only; it cannot assign admin or freelancer roles.
+4. Customers can create an account from **New customer? Create an account** on the Client Desk sign-in page. They confirm their email if email confirmation is enabled, then sign in with their password. Existing magic-link accounts need a password set before they can use password sign-in.
+5. Create/invite the owner account through Supabase Auth, or register it through the Client Desk, then promote that account's profile in the Supabase SQL editor:
 
    ```sql
    update public.client_profiles
    set role = 'owner'
-   where email = 'the-verified-owner-address@example.com';
+   where id = (
+     select id from auth.users
+     where lower(email) = lower('the-verified-owner-address@example.com')
+   )
+   returning id, email, role;
    ```
 
-   The database role is `owner`; the dashboard labels it **Admin**. The account must already exist in `auth.users` so the profile trigger has created its `client_profiles` row. Never expose an owner-role control to customers.
+   The database role is `owner`; the dashboard labels it **Admin**. The account must exist in `auth.users` so the profile trigger has created its `client_profiles` row. Verify the query returns exactly one row. Admins sign in through the same form as customers; the profile role controls which dashboard they see. Never expose an owner-role control to customers.
 
    If Auth invitation fails with `client_profiles_email_key`, a profile row may remain after its Auth user was deleted. Check whether the matching profile's id still exists in `auth.users` before changing anything. When the old Auth user is absent, apply the following in the SQL editor, replacing the email with the exact address you are trying to invite. This anonymizes the orphaned profile but retains its project history; then invite the account again and promote its newly created profile.
 

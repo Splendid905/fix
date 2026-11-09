@@ -83,12 +83,18 @@
   }
 
   function renderSignIn() {
-    renderShell('<form class="client-desk-form" data-action="signin"><p class="client-desk-kicker">Customer access</p><h2>Sign in to your workspace</h2>' +
-      '<p>Use the email address and password associated with your customer account.</p>' +
-      '<div class="field"><label class="client-desk-label" for="portalEmail">Email address</label><input id="portalEmail" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></div>' +
+    renderShell('<div class="client-desk-form"><p class="client-desk-kicker">Client Desk</p><h2>Access your workspace</h2>' +
+      '<p>Sign in to view your projects or create a customer account to get started.</p>' +
+      '<form class="client-desk-message-form" data-action="signin"><div class="field"><label class="client-desk-label" for="portalEmail">Email address</label><input id="portalEmail" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></div>' +
       '<div class="field"><label class="client-desk-label" for="portalPassword">Password</label><input id="portalPassword" name="password" type="password" autocomplete="current-password" required></div>' +
-      '<button class="btn" type="submit">Sign in</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p>' +
-      '<p class="client-desk-footnote">Only your account can access your projects and files. Keep your password private. Need portal access or a password reset? <a href="#/contact">Contact FixerCtrl</a>.</p></form>', null);
+      '<button class="btn" type="submit">Sign in</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form>' +
+      '<details class="client-desk-card"><summary><strong>New customer? Create an account</strong></summary><form class="client-desk-message-form" data-action="signup">' +
+      '<div class="field"><label class="client-desk-label" for="signupName">Your name</label><input id="signupName" name="name" type="text" autocomplete="name" maxlength="100" required></div>' +
+      '<div class="field"><label class="client-desk-label" for="signupEmail">Email address</label><input id="signupEmail" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></div>' +
+      '<div class="field"><label class="client-desk-label" for="signupPassword">Create a password</label><input id="signupPassword" name="password" type="password" autocomplete="new-password" minlength="8" required></div>' +
+      '<button class="btn ghost" type="submit">Create customer account</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></details>' +
+      '<details class="client-desk-card"><summary><strong>Admin sign-in help</strong></summary><p>Admins use the same sign-in form. The account must first exist in Supabase Authentication and its Client Desk profile must have the <code>owner</code> role. Public registration only creates customer accounts; it cannot grant admin access.</p><p class="client-desk-footnote">If your credentials are rejected, confirm the account exists in Supabase Auth and has a password. Then have the project administrator check or promote its profile in Supabase SQL Editor. Need help? <a href="#/contact">Contact FixerCtrl</a>.</p></details>' +
+      '<p class="client-desk-footnote">Your projects and files are private to your account. Need a password reset or existing portal access? <a href="#/contact">Contact FixerCtrl</a>.</p></div>', null);
   }
 
   function buildRequestForm() {
@@ -567,6 +573,21 @@
         var password = String(credentials.get('password'));
         var response = await client.auth.signInWithPassword({ email: email, password: password });
         if (response.error) throw response.error;
+      } else if (action === 'signup') {
+        var signupData = new FormData(form);
+        var signupResponse = await client.auth.signUp({
+          email: String(signupData.get('email')).trim(),
+          password: String(signupData.get('password')),
+          options: { data: { full_name: String(signupData.get('name')).trim() } }
+        });
+        if (signupResponse.error) throw signupResponse.error;
+        if (signupResponse.data.session) {
+          form.reset();
+          setStatus('Customer account created. Your workspace is ready.', false, form);
+        } else {
+          form.reset();
+          setStatus('Account request received. Check your email to confirm your address, then sign in.', false, form);
+        }
       } else if (action === 'request') await submitRequest(form);
       else if (action === 'message') await submitMessage(form);
       else if (action === 'upload') await submitFile(form);
@@ -604,7 +625,7 @@
       }
       else if (action === 'quote') await submitQuote(form);
     } catch (error) {
-      setStatus(error.message || 'This request could not be completed.', true);
+      setStatus(error.message || 'This request could not be completed.', true, form);
     } finally {
       if (submit && document.body.contains(submit)) submit.disabled = false;
     }
