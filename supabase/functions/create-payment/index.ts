@@ -46,7 +46,9 @@ Deno.serve(async (request: Request) => {
 
     const profileResponse = await adminRequest('/rest/v1/client_profiles?id=eq.' + encodeURIComponent(String(user.id)) + '&select=role');
     const profiles = await readJson(profileResponse);
-    const isOwner = profiles && profiles[0] && profiles[0].role === 'owner';
+    const profileRole = profiles && profiles[0] && profiles[0].role;
+    const isOwner = profileRole === 'owner';
+    if (profileRole !== 'customer' && !isOwner) return respond(request, { error: 'Invoice not found.' }, 404);
     if (!isOwner && invoice.projects.customer_id !== user.id) return respond(request, { error: 'Invoice not found.' }, 404);
     if (!['scheduled', 'sent', 'overdue'].includes(invoice.status)) return respond(request, { error: 'This invoice is not payable.' }, 409);
     if (invoice.status === 'scheduled' && new Date(invoice.email_send_at).getTime() > Date.now()) {

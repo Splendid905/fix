@@ -6,3 +6,6 @@ verify_jwt = false
 
 [functions.dispatch-invoices]
 verify_jwt = false
+
+[functions.delete-client-profile]
+verify_jwt = true

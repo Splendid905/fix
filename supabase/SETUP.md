@@ -5,7 +5,7 @@ The Client Desk is prepared in the static site and Supabase project files. It do
 ## 1. Create Supabase Project
 
 1. Create a Supabase project in a region appropriate for the business and customer data.
-2. Apply `migrations/202611080001_client_desk.sql`, then `migrations/202611090001_client_desk_team.sql`, using the Supabase CLI or SQL editor. Review the migrations in a non-production project first.
+2. Apply `migrations/202611080001_client_desk.sql`, `migrations/202611090001_client_desk_team.sql`, then `migrations/202611090002_customer_profile_deletion.sql`, using the Supabase CLI or SQL editor. Review the migrations in a non-production project first.
 3. Enable email-and-password sign-in in Supabase Auth, disable public signups, and configure Auth rate limits. The Client Desk supports sign-in only; it does not create accounts or provide password reset.
 4. Provision customer accounts through a trusted administrative process and securely provide their initial credentials. Existing magic-link accounts need a password set before they can use the Client Desk password sign-in.
 5. Create your account in Supabase Auth with a password. Sign in at the site's **Client Desk** using that email and password. To enable the admin dashboard, promote that verified account in the Supabase SQL editor:
@@ -22,6 +22,8 @@ The Client Desk is prepared in the static site and Supabase project files. It do
 
 Saving a project status or next step automatically adds a dated event to the project timeline. Clients see these updates in their dashboard when they open or refresh the Client Desk; progress changes do not send a separate email or require a message.
 
+Customers can request account deletion from the **Delete my Client Desk account** section in their dashboard by re-entering their current password. The server removes the Auth login and anonymizes the profile. Project history, messages, shared files, quotes, and invoices are retained without the customer's name or email. If Auth removal fails after anonymization, portal access stays disabled and the customer can sign in to retry or contact FixerCtrl. The account deletion Edge Function must be deployed for this action to work.
+
 ## 2. Configure Public Site Settings
 
 Set `supabaseUrl` and the public `supabaseAnonKey` in `client-desk-config.js`. This file is deployed publicly. The anon key is safe to expose only because the migration enables Row Level Security and grants restricted operations; do not put a service role key here.
@@ -30,7 +32,7 @@ The site Content Security Policy permits Supabase connections and the Supabase J
 
 ## 3. Deploy Edge Functions
 
-Deploy the functions from the repository root using the Supabase CLI. `create-payment` requires a signed-in user. `payment-webhook` and `dispatch-invoices` are configured without gateway JWT verification because they perform their own provider-signature or secret-token validation.
+Deploy the functions from the repository root using the Supabase CLI. `create-payment` and `delete-client-profile` require a signed-in user. `payment-webhook` and `dispatch-invoices` are configured without gateway JWT verification because they perform their own provider-signature or secret-token validation.
 
 Required server secrets:
 
@@ -91,12 +93,13 @@ Before using this with real customers:
 - Confirm the Terms and privacy page is no longer a draft and has complete operator disclosures and reviewed payment, cancellation, refund, tax, and privacy terms.
 - Verify that customer A cannot read customer B's profiles, project rows, messages, invoices, checklist, or files by calling the Supabase API directly.
 - Verify that only the admin can see internal notes, internal checklist items, internal attachments, and billing controls; a freelancer can see only assigned projects and non-internal files/messages.
+- Test account deletion with no projects and with a full project, quote, invoice, message, and file history. Verify login removal, anonymized retained records, blocked access through an existing session, and no further notifications to the old email.
 - Test signed file links expire and unsupported/oversized files are rejected.
 - Test quote acceptance is customer-owned, unexpired, and bound to a milestone schedule whose sum exactly matches the quote total.
 - Test a payment callback with a wrong amount/currency, invalid signature, duplicate event, and unknown invoice. All must leave the invoice unpaid.
 - Test the scheduler's wrong-token response, retries, duplicate invocations, and delayed invoice send time.
 - Verify the production build includes `client-desk.css`, `client-desk.js`, `client-desk-config.js`, and `assets/`.
 - Use sandbox/test merchant accounts until these checks pass. The local static preview cannot validate real provider webhooks, auth email delivery, cron scheduling, or RLS isolation.
-- The original Client Desk migration was syntax-applied and basic customer/owner role-isolation checks were run in a temporary PostgreSQL 16 instance with mocked Supabase schemas. The freelancer-team migration and new role boundaries still need equivalent checks in a disposable database and a real non-production Supabase project before launch; mocks do not verify Supabase Auth, Storage, Edge gateway, or provider behavior.
+- The original Client Desk migration was syntax-applied and basic customer/owner role-isolation checks were run in a temporary PostgreSQL 16 instance with mocked Supabase schemas. The freelancer-team and account-deletion migrations and their new role boundaries still need equivalent checks in a disposable database and a real non-production Supabase project before launch; mocks do not verify Supabase Auth, Storage, Edge gateway, or provider behavior.
 
 The implementation is a deployment foundation, not a claim that the system is secure by all means or legally ready. Security requires correct account configuration, ongoing monitoring, testing, backups, and timely updates.

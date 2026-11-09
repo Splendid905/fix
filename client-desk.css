@@ -73,6 +73,8 @@
 .client-desk-provider { display: flex; align-items: center; gap: .5rem; color: var(--muted); font-size: .85rem; }
 .client-desk-provider input { width: 1rem; min-height: auto; accent-color: var(--accent); }
 .client-desk-owner-tools { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.client-desk-danger { border-color: rgba(235, 87, 87, .7); color: #ff8585; }
+.client-desk-danger:hover { border-color: #ff8585; background: rgba(235, 87, 87, .1); }
 .client-desk-account-role { display: grid; grid-template-columns: minmax(0, 1fr) minmax(8rem, .7fr) auto; align-items: center; gap: .75rem; padding: .8rem 0; border-top: 1px solid var(--desk-line); }
 .client-desk-account-role > div { display: grid; }
 .client-desk-account-role select { min-height: 2.6rem; padding: .45rem .6rem; border: 1px solid var(--desk-line); border-radius: 2px; background: var(--bg); color: var(--fg); font: inherit; }

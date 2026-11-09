@@ -40,8 +40,8 @@
     return Number.isNaN(date.getTime()) ? 'Not scheduled' : new Intl.DateTimeFormat('en-ZA', { dateStyle: 'medium' }).format(date);
   }
 
-  function setStatus(message, isError) {
-    var status = portalRoot && portalRoot.querySelector('[data-portal-status]');
+  function setStatus(message, isError, target) {
+    var status = target && target.querySelector('[data-portal-status]') || portalRoot && portalRoot.querySelector('[data-portal-status]');
     if (!status) return;
     status.textContent = message || '';
     status.setAttribute('role', isError ? 'alert' : 'status');
@@ -50,7 +50,7 @@
 
   function renderShell(content, profile) {
     var name = profile ? (profile.display_name || profile.email || 'Customer') : 'Private workspace';
-    var role = profile ? (profile.role === 'owner' ? 'Admin' : profile.role === 'freelancer' ? 'Freelancer' : 'Customer') : '';
+    var role = profile ? (profile.role === 'owner' ? 'Admin' : profile.role === 'freelancer' ? 'Freelancer' : profile.role === 'deleted' ? 'Deletion pending' : 'Customer') : '';
     portalRoot.innerHTML = '<header class="client-desk-head"><div><p class="client-desk-kicker">FixerCtrl / Client Desk</p><h2>Project control room</h2><p>Clear scope, visible progress, and payment details in one private workspace.</p></div>' +
       (profile ? '<div class="client-desk-account"><span><span class="client-desk-label">' + escapeHtml(role) + '</span><strong>' + escapeHtml(name) + '</strong></span><button class="btn ghost" type="button" data-action="signout">Sign out</button></div>' : '') +
       '</header>' + content;
@@ -147,7 +147,7 @@
       else if (activeProfile.role === 'freelancer') author = 'Project update';
       else if (activeProfile.role === 'owner') {
         var authorProfile = (relatedData.profiles || []).find(function (profile) { return profile.id === message.author_id; });
-        author = authorProfile ? authorProfile.email : 'Customer';
+        author = authorProfile ? (authorProfile.display_name || authorProfile.email) : 'Customer';
       }
       return '<li class="client-desk-message"><small>' + escapeHtml(author) + (message.is_internal ? ' / INTERNAL' : '') + ' / ' + escapeHtml(dateLabel(message.created_at)) + '</small><p>' + escapeHtml(message.body) + '</p></li>';
     }).join('') : '<li class="client-desk-footnote">No messages yet.</li>') + '</ul>' +
@@ -234,11 +234,23 @@
 
   function renderFreelancerAccounts() {
     if (activeProfile.role !== 'owner') return '';
-    var profiles = (relatedData.profiles || []).filter(function (profile) { return profile.role !== 'owner'; });
+    var profiles = (relatedData.profiles || []).filter(function (profile) { return profile.role === 'customer' || profile.role === 'freelancer'; });
     return '<details class="client-desk-card"><summary><strong>Freelancer accounts</strong></summary><p class="client-desk-footnote">Create or invite accounts in Supabase Auth first. Enabling freelancer access here limits each account to projects you assign.</p>' +
       (profiles.length ? profiles.map(function (profile) {
         return '<form class="client-desk-account-role" data-action="freelancer-role"><div><strong>' + escapeHtml(profile.display_name || profile.email) + '</strong><span class="client-desk-footnote">' + escapeHtml(profile.email) + '</span></div><label class="client-desk-label" for="role-' + escapeHtml(profile.id) + '">Portal access</label><select id="role-' + escapeHtml(profile.id) + '" name="role"><option value="customer" ' + (profile.role === 'customer' ? 'selected' : '') + '>Customer</option><option value="freelancer" ' + (profile.role === 'freelancer' ? 'selected' : '') + '>Freelancer</option></select><input name="user_id" type="hidden" value="' + escapeHtml(profile.id) + '"><button class="btn ghost" type="submit">Save access</button></form>';
       }).join('') : '<p class="client-desk-footnote">No other accounts have signed in yet. Create an account in Supabase Auth first.</p>') + '</details>';
+  }
+
+  function renderAccountDeletion() {
+    if (activeProfile.role !== 'customer') return '';
+    return '<details class="client-desk-card"><summary><strong>Delete my Client Desk account</strong></summary>' +
+      '<p>This permanently removes your sign-in and replaces your name and email with anonymized details. Project history, messages, shared files, quotes, and invoice records are retained for business records, but will no longer be linked to your identity. This cannot be undone.</p>' +
+      '<form class="client-desk-message-form" data-action="delete-profile"><div class="field"><label class="client-desk-label" for="deleteAccountPassword">Confirm with your current password</label><input id="deleteAccountPassword" name="password" type="password" autocomplete="current-password" required></div><label class="client-desk-checkline"><input type="checkbox" name="confirm" required><span>I understand my login will be removed and project records will be retained in anonymized form.</span></label><button class="btn ghost client-desk-danger" type="submit">Delete my account</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></details>';
+  }
+
+  function renderPendingDeletion() {
+    renderShell('<div class="client-desk-notice"><div><strong>Account deletion in progress</strong><p>Your profile has been anonymized and portal access is disabled. Finish removing the sign-in below. If the operation continues to fail, contact FixerCtrl for help.</p>' +
+      '<form class="client-desk-message-form" data-action="delete-profile"><div class="field"><label class="client-desk-label" for="finishDeletionPassword">Confirm with your current password</label><input id="finishDeletionPassword" name="password" type="password" autocomplete="current-password" required></div><label class="client-desk-checkline"><input type="checkbox" name="confirm" required><span>Continue removing this sign-in.</span></label><button class="btn ghost client-desk-danger" type="submit">Finish account deletion</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></div></div>', activeProfile);
   }
 
   function renderPaymentSettings() {
@@ -259,6 +271,10 @@
     var profileResult = await client.from('client_profiles').select('id,display_name,role').eq('id', activeProfile.id).single();
     if (profileResult.error) throw profileResult.error;
     activeProfile = Object.assign({}, profileResult.data, { email: activeProfile.email });
+    if (activeProfile.role === 'deleted') {
+      renderPendingDeletion();
+      return;
+    }
     var projectResult = await client.from('projects').select('*').order('updated_at', { ascending: false });
     if (projectResult.error) throw projectResult.error;
     projectCache = projectResult.data || [];
@@ -304,7 +320,7 @@
     var emptyHeading = owner ? 'No requests yet' : freelancer ? 'No projects assigned' : 'Nothing in progress';
     var emptyMessage = owner ? 'New customer requests will appear here.' : freelancer ? 'Projects assigned to you by the FixerCtrl admin will appear here.' : 'Send a request to start a conversation about your project.';
     var content = '<div class="client-desk-workspace"><div class="client-desk-main"><div class="client-desk-section-head"><div><h2>' + heading + '</h2><p class="client-desk-footnote">' + escapeHtml(activeProfile.email) + '</p></div><div class="client-desk-owner-tools"><button class="btn ghost" type="button" data-action="refresh" aria-label="Refresh projects"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5.5 9A7 7 0 0 1 18 6l2 2M4 16l2 2a7 7 0 0 0 12.5-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' + (!owner && !freelancer ? '<button class="btn" type="button" data-action="new-request">New request</button>' : '') + '</div></div>' +
-      (owner ? renderOwnerSummary() + renderPaymentSettings() + renderFreelancerAccounts() : freelancer ? renderFreelancerSummary() + '<div class="client-desk-notice"><div><strong>Keep the client dashboard current</strong><p>Save a status or next step when work progresses. These updates are added to the client’s project timeline without requiring a message.</p></div></div>' : buildRequestForm()) + '<p class="client-desk-form-status" data-portal-status aria-live="polite"></p>' +
+      (owner ? renderOwnerSummary() + renderPaymentSettings() + renderFreelancerAccounts() : freelancer ? renderFreelancerSummary() + '<div class="client-desk-notice"><div><strong>Keep the client dashboard current</strong><p>Save a status or next step when work progresses. These updates are added to the client’s project timeline without requiring a message.</p></div></div>' : buildRequestForm() + renderAccountDeletion()) + '<p class="client-desk-form-status" data-portal-status aria-live="polite"></p>' +
       (projectCache.length ? projectCache.map(renderProject).join('') : '<div class="client-desk-empty"><h3>' + emptyHeading + '</h3><p>' + emptyMessage + '</p></div>') +
       '</div><aside class="client-desk-sidebar">' + (freelancer ? '<h2>Assigned access</h2><p>You can view the projects assigned to your account, post client-visible progress and conversation updates, and share project files.</p><p>You cannot access client invoices, payment settings, private owner notes, or unassigned projects.</p>' : '<h2>Payment clarity</h2><p>Every quote states the agreed scope, total, due conditions, and any third-party costs before work begins.</p><p>Invoices are sent on the date shown in your agreed schedule. A project status change never charges you by itself.</p><p class="client-desk-footnote">Payments are processed by the selected provider. FixerCtrl does not store card details.</p>') + (!owner && !freelancer ? '<h2>Indicative service guide</h2><ul><li>Landing page: R1,500–R3,000</li><li>Up to 5 website pages: R3,500–R7,500</li><li>Website updates: R250/hour</li><li>Setup: from R500</li><li>Features: from R800</li></ul><p class="client-desk-footnote">IT and security work is quoted after review. These are guides, not your quote. <a href="#/freelancer">Full pricing details</a></p>' : '') + '</aside></div>';
     renderShell(content, activeProfile);
@@ -558,6 +574,27 @@
       else if (action === 'payment-settings') await submitPaymentSettings(form);
       else if (action === 'freelancer-role') await submitFreelancerRole(form);
       else if (action === 'team') await submitProjectTeam(form);
+      else if (action === 'delete-profile') {
+        var deletionCredentials = new FormData(form);
+        if ((activeProfile.role !== 'customer' && activeProfile.role !== 'deleted') || !deletionCredentials.get('confirm')) {
+          throw new Error('Confirm that you want to permanently delete this customer account.');
+        }
+        var reauthenticated = await client.auth.signInWithPassword({
+          email: activeProfile.email,
+          password: String(deletionCredentials.get('password'))
+        });
+        if (reauthenticated.error) throw reauthenticated.error;
+        var deletion = await client.functions.invoke('delete-client-profile');
+        if (deletion.error) {
+          await loadWorkspace();
+          setStatus(deletion.error.message || 'Account deletion could not be completed. Retry or contact FixerCtrl.', true);
+          return;
+        }
+        await client.auth.signOut({ scope: 'local' });
+        activeProfile = null;
+        renderSignIn();
+        setStatus('Your Client Desk sign-in has been removed. Project records remain in anonymized form.', false);
+      }
       else if (action === 'manual-paid') {
         if (activeProfile.role !== 'owner' || !new FormData(form).get('verified')) throw new Error('Confirm the bank receipt before recording payment.');
         var reconciliation = await client.rpc('owner_mark_invoice_paid', { p_invoice_id: form.dataset.invoice });
