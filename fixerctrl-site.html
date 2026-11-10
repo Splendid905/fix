@@ -6,7 +6,7 @@
 <title>FixerCtrl | IT Support, Web &amp; Security</title>
 <meta name="description" content="Practical IT support, web development and security-focused help for individuals and small businesses in South Africa.">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-iHNoCn5Rk26VvZM9heq5eEftbCCeebGZwUowA11zq4Y=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; form-action 'self' https://www.payfast.co.za https://sandbox.payfast.co.za">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-EmtmP+TgxYnEadOcZKtImpbqt2DHXfWz5Zolnn6knSw=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; form-action 'self' https://www.payfast.co.za https://sandbox.payfast.co.za">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Permanent+Marker&family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
@@ -237,7 +237,7 @@
     .hero { min-height: 0; flex-direction: column; align-items: stretch; padding: 0; }
     .hero::after { display: none; }
     .hero-carousel { position: relative; inset: auto; width: 100%; flex: none; }
-    .hero-figure { position: relative; inset: auto; width: 100%; height: auto; aspect-ratio: 3 / 2; flex: none; }
+    .hero-figure { position: relative; inset: auto; width: 100%; height: auto; aspect-ratio: 3 / 2; flex: none; border-bottom: 1px solid var(--line); }
     .hero-banner-art { object-fit: cover; object-position: center; }
     .hero-carousel-controls { position: relative; left: auto; bottom: auto; width: fit-content; margin: .75rem auto 0; }
     .hero-copy { width: 100%; margin: 0; padding: 1.5rem var(--gutter) 2rem; }
@@ -630,6 +630,7 @@
   .footer-social { gap: .5rem; margin-top: 1rem; }
   .footer-social .social-icon { width: 2.75rem; height: 2.75rem; background: rgba(242, 242, 242, .04); }
   .footer-social .social-icon svg { width: 1.15rem; height: 1.15rem; }
+  .social-icon svg.email-icon, .footer-email svg.email-icon { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .footer-bottom { border-top: 1px solid var(--line); }
   .footer-bottom-inner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .75rem 1.5rem; padding-block: 1rem; color: var(--muted); font-size: .88rem; }
   .footer-bottom-inner p { margin: 0; }
@@ -753,7 +754,7 @@
     <section class="footer-connect" aria-labelledby="footer-connect-title">
       <h2 id="footer-connect-title">Get in touch</h2>
       <p>For opportunities, questions, and collaborations:</p>
-      <a class="footer-email" id="footerEmail" href="mailto:fixerctrl@gmail.com"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm9 8.2L3.5 6h17L12 12.2ZM3 18V8l9 6.5L21 8v10H3Z"/></svg><span id="footerEmailAddress">fixerctrl@gmail.com</span></a>
+      <a class="footer-email" id="footerEmail" href="mailto:fixerctrl@gmail.com"><svg class="email-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.25 6.25h15.5a1.5 1.5 0 0 1 1.5 1.5v8.5a1.5 1.5 0 0 1-1.5 1.5H4.25a1.5 1.5 0 0 1-1.5-1.5v-8.5a1.5 1.5 0 0 1 1.5-1.5Z"/><path d="m3.5 7.5 8.5 6 8.5-6"/></svg><span id="footerEmailAddress">fixerctrl@gmail.com</span></a>
       <div id="footerSocial"></div>
     </section>
   </div>
@@ -1042,6 +1043,7 @@
       x: '<path d="M18.9 2H22l-6.78 7.75L23.2 22h-6.25l-4.9-7.43L5.55 22H2.4l7.25-8.29L1.8 2h6.4l4.43 6.77L18.9 2Zm-1.1 17.86h1.73L7.27 4.03H5.42L17.8 19.86Z"/>',
       youtube: '<path d="M23.5 6.2a3 3 0 0 0-2.12-2.12C19.51 3.57 12 3.57 12 3.57s-7.51 0-9.38.5A3 3 0 0 0 .5 6.2 31.2 31.2 0 0 0 0 12a31.2 31.2 0 0 0 .5 5.8 3 3 0 0 0 2.12 2.12c1.87.5 9.38.5 9.38.5s7.51 0 9.38-.5a3 3 0 0 0 2.12-2.12A31.2 31.2 0 0 0 24 12a31.2 31.2 0 0 0-.5-5.8ZM9.55 15.58V8.42L15.82 12l-6.27 3.58Z"/>'
     };
+    icons.email = '<path d="M4.25 6.25h15.5a1.5 1.5 0 0 1 1.5 1.5v8.5a1.5 1.5 0 0 1-1.5 1.5H4.25a1.5 1.5 0 0 1-1.5-1.5v-8.5a1.5 1.5 0 0 1 1.5-1.5Z"/><path d="m3.5 7.5 8.5 6 8.5-6"/>';
     var links = [
       ['GitHub', CONFIG.github, icons.github],
       ['LinkedIn', CONFIG.linkedin, icons.linkedin],
@@ -1050,13 +1052,13 @@
     ];
     if (includeContactLinks) {
       links.push(['Podcast', '#/podcast', '<path d="M12 2a4 4 0 0 0-4 4v5a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4Zm-6 9a1 1 0 0 0-2 0 8 8 0 0 0 7 7.94V22h2v-3.06A8 8 0 0 0 20 11a1 1 0 0 0-2 0 6 6 0 0 1-12 0Z"/>']);
-      links.push(['Email', 'mailto:' + CONFIG.email, '<path d="M3 4h18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm9 8.2L3.5 6h17L12 12.2ZM3 18V8l9 6.5L21 8v10H3Z"/>']);
+      links.push(['Email', 'mailto:' + CONFIG.email, icons.email]);
     }
     return '<nav class="social-strip" aria-label="' + label + '">' +
       links.map(function (link) {
         var isEmail = link[1].indexOf('mailto:') === 0;
         var isInternal = link[1].indexOf('#/') === 0;
-        return '<a class="social-icon" href="' + link[1] + '"' + (isEmail || isInternal ? '' : ' target="_blank" rel="noopener noreferrer') + ' aria-label="' + link[0] + '" title="' + link[0] + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + link[2] + '</svg></a>';
+        return '<a class="social-icon" href="' + link[1] + '"' + (isEmail || isInternal ? '' : ' target="_blank" rel="noopener noreferrer') + ' aria-label="' + link[0] + '" title="' + link[0] + '"><svg' + (isEmail ? ' class="email-icon"' : '') + ' viewBox="0 0 24 24" aria-hidden="true">' + link[2] + '</svg></a>';
       }).join('') +
       '</nav>';
   }

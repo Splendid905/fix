@@ -10,6 +10,8 @@ Keep the homepage banner edge-to-edge so it remains a distinctive first impressi
 - **Mobile image:** At widths up to 760px, the hero image now uses a `3 / 2` aspect ratio instead of `1.9 / 1`. At a 390px image width, this is about 260px tall rather than about 205px.
 - **Mobile carousel controls:** The controls now sit in a compact rail below the image at mobile widths, rather than overlaying the artwork. Their existing labels and pause behavior are retained.
 - **Desktop composition:** The carousel remains full-bleed, with the controls over the artwork at desktop sizes and the copy layered on the right.
+- **Mobile image boundary:** A subtle border now separates the bottom of the artwork from the carousel controls, so dark slides have a clearer edge.
+- **Email icons:** The contact-page and footer email icons now use the same crisp, outlined envelope with consistent sizing and current-color styling.
 - **Content Security Policy:** The inline script's allowlisted SHA-256 hash must include the newline immediately after its opening `<script>` tag. The hash is now calculated from the exact script text the browser executes; a mismatch had blocked page rendering.
 
 ## Relationship to inner-page banners
