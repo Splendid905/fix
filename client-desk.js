@@ -51,7 +51,7 @@
   function renderShell(content, profile) {
     var name = profile ? (profile.display_name || profile.email || 'Customer') : 'Private workspace';
     var role = profile ? (profile.role === 'owner' ? 'Admin' : profile.role === 'freelancer' ? 'Freelancer' : profile.role === 'deleted' ? 'Deletion pending' : 'Customer') : '';
-    portalRoot.innerHTML = '<header class="client-desk-head"><div><p class="client-desk-kicker">FixerCtrl / Client Desk</p><h2>Project control room</h2><p>Clear scope, visible progress, and payment details in one private workspace.</p></div>' +
+    portalRoot.innerHTML = '<header class="client-desk-head"><div><p class="client-desk-kicker">FixerCtrl / Client Portal</p><h2>Project control room</h2><p>Clear scope, visible progress, and payment details in one private workspace.</p></div>' +
       (profile ? '<div class="client-desk-account"><span><span class="client-desk-label">' + escapeHtml(role) + '</span><strong>' + escapeHtml(name) + '</strong></span><button class="btn ghost" type="button" data-action="signout">Sign out</button></div>' : '') +
       '</header>' + content;
   }
@@ -83,7 +83,7 @@
   }
 
   function renderSignIn() {
-    renderShell('<div class="client-desk-form"><p class="client-desk-kicker">Client Desk</p><h2>Access your workspace</h2>' +
+    renderShell('<div class="client-desk-form"><p class="client-desk-kicker">Client Portal</p><h2>Access your workspace</h2>' +
       '<p>Sign in to view your projects or create a customer account to get started.</p>' +
       '<form class="client-desk-message-form" data-action="signin"><div class="field"><label class="client-desk-label" for="portalEmail">Email address</label><input id="portalEmail" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></div>' +
       '<div class="field"><label class="client-desk-label" for="portalPassword">Password</label><input id="portalPassword" name="password" type="password" autocomplete="current-password" required></div>' +
@@ -93,7 +93,7 @@
       '<div class="field"><label class="client-desk-label" for="signupEmail">Email address</label><input id="signupEmail" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></div>' +
       '<div class="field"><label class="client-desk-label" for="signupPassword">Create a password</label><input id="signupPassword" name="password" type="password" autocomplete="new-password" minlength="8" required></div>' +
       '<button class="btn ghost" type="submit">Create customer account</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></details>' +
-      '<details class="client-desk-card"><summary><strong>Admin sign-in help</strong></summary><p>Admins use the same sign-in form. The account must first exist in Supabase Authentication and its Client Desk profile must have the <code>owner</code> role. Public registration only creates customer accounts; it cannot grant admin access.</p><p class="client-desk-footnote">If your credentials are rejected, confirm the account exists in Supabase Auth and has a password. Then have the project administrator check or promote its profile in Supabase SQL Editor. Need help? <a href="#/contact">Contact FixerCtrl</a>.</p></details>' +
+      '<details class="client-desk-card"><summary><strong>Admin sign-in help</strong></summary><p>Admins use the same sign-in form. The account must first exist in Supabase Authentication and its Client Portal profile must have the <code>owner</code> role. Public registration only creates customer accounts; it cannot grant admin access.</p><p class="client-desk-footnote">If your credentials are rejected, confirm the account exists in Supabase Auth and has a password. Then have the project administrator check or promote its profile in Supabase SQL Editor. Need help? <a href="#/contact">Contact FixerCtrl</a>.</p></details>' +
       '<p class="client-desk-footnote">Your projects and files are private to your account. Need a password reset or existing portal access? <a href="#/contact">Contact FixerCtrl</a>.</p></div>', null);
   }
 
@@ -249,7 +249,7 @@
 
   function renderAccountDeletion() {
     if (activeProfile.role !== 'customer') return '';
-    return '<details class="client-desk-card"><summary><strong>Delete my Client Desk account</strong></summary>' +
+    return '<details class="client-desk-card"><summary><strong>Delete my Client Portal account</strong></summary>' +
       '<p>This permanently removes your sign-in and replaces your name and email with anonymized details. Project history, messages, shared files, quotes, and invoice records are retained for business records, but will no longer be linked to your identity. This cannot be undone.</p>' +
       '<form class="client-desk-message-form" data-action="delete-profile"><div class="field"><label class="client-desk-label" for="deleteAccountPassword">Confirm with your current password</label><input id="deleteAccountPassword" name="password" type="password" autocomplete="current-password" required></div><label class="client-desk-checkline"><input type="checkbox" name="confirm" required><span>I understand my login will be removed and project records will be retained in anonymized form.</span></label><button class="btn ghost client-desk-danger" type="submit">Delete my account</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></details>';
   }
@@ -614,7 +614,7 @@
         await client.auth.signOut({ scope: 'local' });
         activeProfile = null;
         renderSignIn();
-        setStatus('Your Client Desk sign-in has been removed. Project records remain in anonymized form.', false);
+        setStatus('Your Client Portal sign-in has been removed. Project records remain in anonymized form.', false);
       }
       else if (action === 'manual-paid') {
         if (activeProfile.role !== 'owner' || !new FormData(form).get('verified')) throw new Error('Confirm the bank receipt before recording payment.');

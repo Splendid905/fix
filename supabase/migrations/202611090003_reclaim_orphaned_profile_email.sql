@@ -17,7 +17,7 @@ begin
 
     if found then
       if exists (select 1 from auth.users where id = orphaned_profile_id) then
-        raise exception 'An active Client Desk profile already uses this email address.';
+        raise exception 'An active Client Portal profile already uses this email address.';
       end if;
 
       replacement_email := 'deleted+' || replace(orphaned_profile_id::text, '-', '') || '@deleted.invalid';

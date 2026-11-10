@@ -1,14 +1,14 @@
-# Client Desk Deployment Setup
+# Client Portal Deployment Setup
 
-The Client Desk is prepared in the static site and Supabase project files. It does not process real customer data or payments until the setup below is complete. The public Supabase anon key is intended for browser use; the service role key, payment secrets, email API key, and invoice dispatch secret are server-only secrets.
+The Client Portal is prepared in the static site and Supabase project files. It does not process real customer data or payments until the setup below is complete. The public Supabase anon key is intended for browser use; the service role key, payment secrets, email API key, and invoice dispatch secret are server-only secrets.
 
 ## 1. Create Supabase Project
 
 1. Create a Supabase project in a region appropriate for the business and customer data.
 2. Apply `migrations/202611080001_client_desk.sql`, `migrations/202611090001_client_desk_team.sql`, `migrations/202611090002_customer_profile_deletion.sql`, then `migrations/202611090003_reclaim_orphaned_profile_email.sql`, using the Supabase CLI or SQL editor. Review the migrations in a non-production project first.
-3. Enable email-and-password sign-in and customer signups in Supabase Auth, configure email confirmation and Auth rate limits, and set the correct Site URL and allowed redirect URLs. Public registration through the Client Desk creates customer accounts only; it cannot assign admin or freelancer roles.
-4. Customers can create an account from **New customer? Create an account** on the Client Desk sign-in page. They confirm their email if email confirmation is enabled, then sign in with their password. Existing magic-link accounts need a password set before they can use password sign-in.
-5. Create/invite the owner account through Supabase Auth, or register it through the Client Desk, then promote that account's profile in the Supabase SQL editor:
+3. Enable email-and-password sign-in and customer signups in Supabase Auth, configure email confirmation and Auth rate limits, and set the correct Site URL and allowed redirect URLs. Public registration through the Client Portal creates customer accounts only; it cannot assign admin or freelancer roles.
+4. Customers can create an account from **New customer? Create an account** on the Client Portal sign-in page. They confirm their email if email confirmation is enabled, then sign in with their password. Existing magic-link accounts need a password set before they can use password sign-in.
+5. Create/invite the owner account through Supabase Auth, or register it through the Client Portal, then promote that account's profile in the Supabase SQL editor:
 
    ```sql
    update public.client_profiles
@@ -54,11 +54,11 @@ The Client Desk is prepared in the static site and Supabase project files. It do
 
    The follow-up migration automatically anonymizes such orphaned rows during future Auth invitations. If the Auth user still exists, recover that account through Supabase Auth instead of anonymizing its profile.
 
-6. To onboard a freelancer, first create/invite their Auth account in Supabase, then sign in to the Client Desk as Admin. Under **Freelancer accounts**, change their portal access from Customer to Freelancer. Assign them to individual projects under each project's **Project team** controls. Freelancers only see assigned projects and can post client-visible status/next-step updates, messages, and files; they cannot access invoices, quotes, payment settings, private notes, or unassigned projects. Changing a freelancer back to Customer removes their project assignments.
+6. To onboard a freelancer, first create/invite their Auth account in Supabase, then sign in to the Client Portal as Admin. Under **Freelancer accounts**, change their portal access from Customer to Freelancer. Assign them to individual projects under each project's **Project team** controls. Freelancers only see assigned projects and can post client-visible status/next-step updates, messages, and files; they cannot access invoices, quotes, payment settings, private notes, or unassigned projects. Changing a freelancer back to Customer removes their project assignments.
 
-Saving a project status or next step automatically adds a dated event to the project timeline. Clients see these updates in their dashboard when they open or refresh the Client Desk; progress changes do not send a separate email or require a message.
+Saving a project status or next step automatically adds a dated event to the project timeline. Clients see these updates in their dashboard when they open or refresh the Client Portal; progress changes do not send a separate email or require a message.
 
-Customers can request account deletion from the **Delete my Client Desk account** section in their dashboard by re-entering their current password. The server removes the Auth login and anonymizes the profile. Project history, messages, shared files, quotes, and invoices are retained without the customer's name or email. If Auth removal fails after anonymization, portal access stays disabled and the customer can sign in to retry or contact FixerCtrl. The account deletion Edge Function must be deployed for this action to work.
+Customers can request account deletion from the **Delete my Client Portal account** section in their dashboard by re-entering their current password. The server removes the Auth login and anonymizes the profile. Project history, messages, shared files, quotes, and invoices are retained without the customer's name or email. If Auth removal fails after anonymization, portal access stays disabled and the customer can sign in to retry or contact FixerCtrl. The account deletion Edge Function must be deployed for this action to work.
 
 ## 2. Configure Public Site Settings
 
@@ -95,7 +95,7 @@ Run it every 5 to 15 minutes. Send this header using the protected scheduler sec
 
 The function only claims invoices that have been accepted, are scheduled/sent/overdue, and have reached `email_send_at`. Jobs are claimed with database locks, retried with backoff, and capped at five attempts. Monitor failed jobs and email-provider delivery events; the dashboard must not describe a queued email as delivered.
 
-Invoice email contains the invoice number, amount, due date, and an authenticated Client Desk link. It does not attach a PDF in this first release. Customers see the full quote, invoice schedule, status, and payment options after signing in.
+Invoice email contains the invoice number, amount, due date, and an authenticated Client Portal link. It does not attach a PDF in this first release. Customers see the full quote, invoice schedule, status, and payment options after signing in.
 
 ## 5. Configure Payment Providers
 
@@ -136,6 +136,6 @@ Before using this with real customers:
 - Test the scheduler's wrong-token response, retries, duplicate invocations, and delayed invoice send time.
 - Verify the production build includes `client-desk.css`, `client-desk.js`, `client-desk-config.js`, and `assets/`.
 - Use sandbox/test merchant accounts until these checks pass. The local static preview cannot validate real provider webhooks, auth email delivery, cron scheduling, or RLS isolation.
-- The original Client Desk migration was syntax-applied and basic customer/owner role-isolation checks were run in a temporary PostgreSQL 16 instance with mocked Supabase schemas. The freelancer-team and account-deletion migrations and their new role boundaries still need equivalent checks in a disposable database and a real non-production Supabase project before launch; mocks do not verify Supabase Auth, Storage, Edge gateway, or provider behavior.
+- The original Client Portal migration was syntax-applied and basic customer/owner role-isolation checks were run in a temporary PostgreSQL 16 instance with mocked Supabase schemas. The freelancer-team and account-deletion migrations and their new role boundaries still need equivalent checks in a disposable database and a real non-production Supabase project before launch; mocks do not verify Supabase Auth, Storage, Edge gateway, or provider behavior.
 
 The implementation is a deployment foundation, not a claim that the system is secure by all means or legally ready. Security requires correct account configuration, ongoing monitoring, testing, backups, and timely updates.

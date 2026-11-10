@@ -45,7 +45,7 @@ Deno.serve(async (request: Request) => {
     if (!deleteResponse.ok && deleteResponse.status !== 404) {
       const detail = (await deleteResponse.text()).slice(0, 250);
       return respond(request, {
-        error: 'Your profile has been anonymized, but account removal did not finish. Retry deletion from the Client Desk or contact FixerCtrl. ' + detail
+        error: 'Your profile has been anonymized, but account removal did not finish. Retry deletion from the Client Portal or contact FixerCtrl. ' + detail
       }, 502);
     }
 

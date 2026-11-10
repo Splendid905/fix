@@ -6,7 +6,7 @@
 <title>FixerCtrl | IT Support, Web &amp; Security</title>
 <meta name="description" content="Practical IT support, web development and security-focused help for individuals and small businesses in South Africa.">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-EmtmP+TgxYnEadOcZKtImpbqt2DHXfWz5Zolnn6knSw=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; form-action 'self' https://www.payfast.co.za https://sandbox.payfast.co.za">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-HmGmYUDphb8ZLbuxMuagihiCIfHfBsxo84Ihs9aU3IY=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; form-action 'self' https://www.payfast.co.za https://sandbox.payfast.co.za">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Permanent+Marker&family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
@@ -662,13 +662,13 @@
     <a class="brand" href="#/" aria-label="FixerCtrl home"><img src="assets/fixerctrl-logo.png" alt="FixerCtrl logo"></a>
     <nav class="main-nav" id="mainNav" aria-label="Main">
       <ul>
-        <li><a href="#/" data-nav="home">Home</a></li>
-        <li><a href="#/podcast" data-nav="podcast">Podcast</a></li>
-        <li><a href="#/blog" data-nav="blog">Writeups</a></li>
-        <li><a href="#/about" data-nav="about">About</a></li>
         <li><a href="#/freelancer" data-nav="freelancer">Services</a></li>
-        <li><a href="#/client-desk" data-nav="client-desk">Client Desk</a></li>
+        <li><a href="#/projects" data-nav="projects">Projects</a></li>
+        <li><a href="#/blog" data-nav="blog">Blog</a></li>
+        <li><a href="#/podcast" data-nav="podcast">Podcast</a></li>
+        <li><a href="#/about" data-nav="about">About</a></li>
         <li><a href="#/contact" data-nav="contact">Contact</a></li>
+        <li><a href="#/client-desk" data-nav="client-desk">Client Portal</a></li>
       </ul>
     </nav>
     <div class="tools">
@@ -744,8 +744,8 @@
         <li><a href="#/about">About</a></li>
         <li><a href="#/projects">All projects</a></li>
         <li><a href="#/freelancer">Services</a></li>
-        <li><a href="#/client-desk">Client Desk</a></li>
-        <li><a href="#/blog">Writeups</a></li>
+        <li><a href="#/client-desk">Client Portal</a></li>
+        <li><a href="#/blog">Blog</a></li>
         <li><a href="#/podcast">Podcast</a></li>
         <li><a href="#/contact">Contact</a></li>
         <li><a href="#/terms">Terms &amp; privacy</a></li>
@@ -1341,7 +1341,7 @@
           '<nav class="quick-find-grid" aria-label="Popular destinations">' +
             '<a class="quick-find-link" href="#/freelancer"><span>IT &amp; Web support</span><strong>Get practical help</strong><small>Troubleshooting, security setup, and website work.</small></a>' +
             '<a class="quick-find-link" href="#/projects"><span>Projects</span><strong>Explore selected work</strong><small>See apps, collaborations, and technical projects.</small></a>' +
-            '<a class="quick-find-link" href="#/blog"><span>Technical notes</span><strong>Read the writeups</strong><small>Browse practical notes on networking, Linux, and security.</small></a>' +
+            '<a class="quick-find-link" href="#/blog"><span>Blog</span><strong>Explore practical guides</strong><small>Browse useful notes on networking, Linux, and security.</small></a>' +
             '<a class="quick-find-link" href="#/podcast"><span>Podcast</span><strong>Listen and explore</strong><small>Find conversations and recent episodes.</small></a>' +
           '</nav>' +
         '</section>' +
@@ -1356,19 +1356,19 @@
         '</section>' +
 
         '<section class="block" aria-labelledby="client-desk-intro">' +
-          '<div class="block-head"><h2 id="client-desk-intro">A clearer view of your project</h2><span class="section-label">FixerCtrl Client Desk</span></div>' +
-          '<div class="feature-card"><span class="tag">Client dashboard</span><h3>Track progress, scope, and next steps</h3><p>Clients can follow dated project updates, review the agreed quote and payment schedule, share files, and keep project details in one private workspace. Progress updates appear on the dashboard without requiring a message.</p><div class="actions"><a class="btn" href="#/client-desk">Open Client Desk</a><a class="btn ghost" href="#/contact">Discuss a project or request access</a></div></div>' +
+          '<div class="block-head"><h2 id="client-desk-intro">A clearer view of your project</h2><span class="section-label">Client Portal</span></div>' +
+          '<div class="feature-card"><span class="tag">Private project workspace</span><h3>Track progress, scope, and next steps</h3><p>Clients can follow dated project updates, review the agreed quote and payment schedule, share files, and keep project details in one private workspace. Progress updates appear on the dashboard without requiring a message.</p><div class="actions"><a class="btn" href="#/client-desk">Open Client Portal</a><a class="btn ghost" href="#/contact">Discuss a project or request access</a></div></div>' +
         '</section>' +
 
         '<section class="block" aria-labelledby="podcast-h">' +
-          '<div class="block-head"><h2 id="podcast-h">Podcast &amp; technical notes</h2><a class="btn ghost" href="#/podcast">Listen in</a></div>' +
+          '<div class="block-head"><h2 id="podcast-h">Podcast &amp; Blog</h2><a class="btn ghost" href="#/podcast">Listen in</a></div>' +
           '<div class="podcast-panel">' +
             '<div class="podcast-highlight">' + editorialArt('podcast') + '</div>' +
             '<div class="podcast-copy">' +
               '<span class="tag">Featured</span>' +
               '<h3>Thoughtful conversations on cybersecurity, systems, and the tech behind the work.</h3>' +
               '<p>Technical conversations on cybersecurity, systems, and the realities of building with technology, alongside notes and insights from practical projects.</p>' +
-              '<div class="actions"><a class="btn" href="#/blog">Browse notes</a><a class="btn ghost" href="#/podcast">Listen in</a></div>' +
+              '<div class="actions"><a class="btn" href="#/blog">Read the blog</a><a class="btn ghost" href="#/podcast">Listen in</a></div>' +
             '</div>' +
           '</div>' +
         '</section>' +
@@ -1482,7 +1482,7 @@
           '<h2>Beyond the code</h2>' +
           '<p>I also contribute to Mini Circles, a multimedia knowledge-sharing project spanning video, social media, and a website.</p>' +
           '<div class="actions"><a class="btn" href="#/projects">View my work</a><a class="btn ghost" href="#/contact">Get in touch</a></div>' +
-          '<p class="note">For active projects, the <a href="#/client-desk">Client Desk</a> keeps progress, shared files, and agreed project details together.</p>' +
+          '<p class="note">For active projects, the <a href="#/client-desk">Client Portal</a> keeps progress, shared files, and agreed project details together.</p>' +
         '</div>'
     };
   }
@@ -1582,7 +1582,7 @@
             '<article class="feature-card"><span class="tag">Clear scope</span><h3>Agreed work</h3><p>Scope, price, and timing are confirmed before work starts, so expectations are clear.</p></article>' +
             '<article class="feature-card"><span class="tag">Clear handover</span><h3>Useful next steps</h3><p>You receive a plain-language summary of the work and any agreed follow-up.</p></article>' +
           '</div>' +
-          '<div class="actions"><a class="btn" href="#/client-desk">See the Client Desk</a><a class="btn ghost" href="#/contact">Discuss a project</a></div>' +
+          '<div class="actions"><a class="btn" href="#/client-desk">Open the Client Portal</a><a class="btn ghost" href="#/contact">Discuss a project</a></div>' +
         '</section>'
     };
   }
@@ -1593,9 +1593,9 @@
     var tags = ['All'];
     posts.forEach(function (p) { p.tags.forEach(function (t) { if (tags.indexOf(t) < 0) tags.push(t); }); });
     return {
-      title: 'Writeups',
+      title: 'Blog',
       html:
-        pageBanner('', 'Writeups', 'Practical notes on networking, Linux, cybersecurity, and technology fixes.', 'assets/outside.jpg') +
+        pageBanner('', 'Blog', 'Practical guides and notes on networking, Linux, cybersecurity, and technology fixes.', 'assets/outside.jpg') +
         '<div class="controls">' +
           '<div class="field search" style="margin:0"><label for="q">Search posts</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="q" type="search" value="' + blogState.q.replace(/"/g, '&quot;') + '" placeholder="Search posts"></div></div>' +
           '<div class="filters" role="group" aria-label="Filter by topic">' +
@@ -1663,8 +1663,8 @@
 
   function clientDesk() {
     return {
-      title: 'Client Desk',
-      html: pageBanner('Private project dashboard', 'Client Desk', 'Track project progress, next steps, shared files, and agreed details in one private workspace.') +
+      title: 'Client Portal',
+      html: pageBanner('Private project workspace', 'Client Portal', 'Track project progress, next steps, shared files, and agreed details in one private workspace.') +
         '<section class="client-desk" aria-label="Client workspace"><div id="clientDeskApp" aria-live="polite"><p>Loading secure workspace...</p></div></section>',
       after: function () { window.initClientDesk(); }
     };
@@ -1675,7 +1675,7 @@
       title: 'Contact',
       html:
         pageBanner('', 'Get in touch', 'For IT support, security setup, website work, or a project quote, send me a message.') +
-        '<div class="client-desk-notice"><div><strong>Already working with FixerCtrl?</strong><p>Use the <a href="#/client-desk">Client Desk</a> to follow progress, review shared project details, and upload files. New customers can contact me here to discuss a project and request account access.</p></div></div>' +
+        '<div class="client-desk-notice"><div><strong>Already working with FixerCtrl?</strong><p>Use the <a href="#/client-desk">Client Portal</a> to follow progress, review shared project details, and upload files. New customers can contact me here to discuss a project and request account access.</p></div></div>' +
         '<div class="contact-grid">' +
           '<div><h2>Find me online</h2>' + socialIconLinks(true, 'Social media and contact links') + '</div>' +
           '<div><h2>Send a message</h2>' +

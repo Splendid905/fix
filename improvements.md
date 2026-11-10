@@ -6,6 +6,8 @@ Keep the homepage banner edge-to-edge so it remains a distinctive first impressi
 
 ## Changes implemented
 
+- **Clearer navigation:** Replaced “Writeups” with “Blog” and “Client Desk” with “Client Portal” across the visitor-facing interface. The primary menu now follows common visitor goals—Services, Projects, Blog, Podcast, About, Contact—with the portal as a distinct destination for existing clients. The logo remains the Home link, keeping the menu concise.
+- **Connected sections:** Added Projects to the primary navigation and aligned homepage shortcuts and calls to action with the same familiar Blog and Client Portal labels. Existing hash routes and destinations are unchanged.
 - **Desktop height:** The full-width hero now uses `clamp(30rem, 58vh, 42rem)` instead of `clamp(38rem, 72vh, 54rem)`. This should reduce how much of a typical desktop viewport the banner occupies while preserving room for the headline, supporting text, and actions.
 - **Mobile image:** At widths up to 760px, the hero image now uses a `3 / 2` aspect ratio instead of `1.9 / 1`. At a 390px image width, this is about 260px tall rather than about 205px.
 - **Mobile carousel controls:** The controls now sit in a compact rail below the image at mobile widths, rather than overlaying the artwork. Their existing labels and pause behavior are retained.

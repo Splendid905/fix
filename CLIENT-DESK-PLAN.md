@@ -1,14 +1,14 @@
-# FixerCtrl Client Desk: Feature Plan
+# FixerCtrl Client Portal: Feature Plan
 
 ## Goal
 
 Build a professional customer area where a client can request IT, security, or web work; approve a clear quote; pay securely; share required materials; follow progress; and communicate with FixerCtrl in one place.
 
-The Client Desk should reduce uncertainty and awkward payment conversations. It should make the scope, price, payment dates, current status, required customer actions, and next step visible before work begins and throughout the job.
+The Client Portal should reduce uncertainty and awkward payment conversations. It should make the scope, price, payment dates, current status, required customer actions, and next step visible before work begins and throughout the job.
 
 ## Implementation Status
 
-The first implementation is now present in the site at `#/client-desk`, with a responsive customer, admin, and assigned-freelancer workspace; email-and-password sign-in; project assignment; customer-visible status and next-step history; requests; messages; owner-only notes; checklists; private file uploads; quote approval; multi-milestone invoices; provider selection; and manual EFT reconciliation. Public home, services, contact, and footer areas link visitors to the Client Desk.
+The first implementation is now present in the site at `#/client-desk`, with a responsive customer, admin, and assigned-freelancer workspace; email-and-password sign-in; project assignment; customer-visible status and next-step history; requests; messages; owner-only notes; checklists; private file uploads; quote approval; multi-milestone invoices; provider selection; and manual EFT reconciliation. Public home, services, contact, and footer areas link visitors to the Client Portal.
 
 The Supabase migrations add row-level access rules, private storage, assigned-freelancer access, customer self-service account deletion with anonymized retained project history, immutable sent/accepted quotes and agreed invoice amounts/due dates, verified-payment recording, scheduled invoice/message notification queues, and owner reconciliation for manual EFT. Status and next-step changes automatically add customer-visible activity events. Edge Functions provide hosted PayFast and Stripe checkout, PayFast/Stripe webhook verification, Resend invoice/message emails, retryable invoice dispatch, and account deletion. Quotes support up to twelve agreed milestones. Stripe checkout sessions expire; provider state must be stored before a checkout link is returned. The browser SDK is version-pinned with SRI, and the inline app script is authorized by a CSP hash rather than `unsafe-inline`.
 
@@ -52,7 +52,7 @@ These are useful checks, not a production penetration test. The SQL test used mo
 
 - No absolute security guarantee is possible. Keep provider methods disabled until all real-service tests pass; start with one payment provider and manual EFT only if you can reconcile it reliably.
 - Customer uploads have size/type checks and private access, but no malware scanning, quota/retention automation, or incident review workflow. Consider scanning uploads before production use and decide how long files are retained.
-- Invoice email is currently a summary with a Client Desk link, not a downloadable PDF invoice. Confirm the required invoice fields and legal operator details, then decide whether a printable/PDF invoice is required.
+- Invoice email is currently a summary with a Client Portal link, not a downloadable PDF invoice. Confirm the required invoice fields and legal operator details, then decide whether a printable/PDF invoice is required.
 - Refunds are not automated. Define a manual refund and duplicate-payment process in your terms and operating checklist.
 - GitHub Pages supports the CSP meta policy but not all response security headers. If you later need HSTS, `frame-ancestors`, or other response-only headers, place the site behind a host/CDN that lets you configure them.
 - Keep the public price guide indicative; the customer-specific accepted quote and milestone schedule remain the binding project price.
@@ -185,7 +185,7 @@ Before launch, have the appropriate South African professional review the custom
 
 ## Deployment Milestones
 
-1. Apply both Client Desk migrations in order and configure Supabase Auth, accounts, and the public site settings.
+1. Apply both Client Portal migrations in order and configure Supabase Auth, accounts, and the public site settings.
 2. Sign in as Admin, provision customers, and assign freelancer accounts only to the projects they need.
 3. Configure and test email delivery, scheduled invoice processing, payment-provider sandboxes, and EFT procedures before enabling production payment methods.
 4. Verify customer/customer and freelancer/project isolation, internal-note/file access, account recovery, backups, and monitoring in a non-production environment.
