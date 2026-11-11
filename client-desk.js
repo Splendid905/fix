@@ -13,6 +13,10 @@
   var pendingProjectStep = '';
   var pendingTeamMessageOpen = '';
   var selectedTeamConversation = 'group';
+  var selectedTeamChatTab = 'all';
+  var teamChatMobileOpen = false;
+  var teamChatSearch = '';
+  var pendingTeamMessageDraft = '';
   var calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   var portalTheme = 'dark';
   var projectCache = [];
@@ -56,7 +60,7 @@
   function renderAttentionPanel() {
     var actions = [];
     function addAction(projectId, label, section) {
-      if (actions.length >= 5 || !projectId) return;
+      if (actions.length >= (activeProfile.role === 'customer' ? 1 : 5) || !projectId) return;
       actions.push({ target: 'clientDeskProject-' + projectId, label: label, section: section || '' });
     }
     if (activeProfile.role === 'owner') {
@@ -76,16 +80,16 @@
     } else {
       (relatedData.steps || []).filter(function (step) { return step.status === 'in_review'; }).forEach(function (step) {
         var project = projectCache.find(function (item) { return item.id === step.project_id; });
-        if (project) addAction(project.id, 'Review deliverable: ' + step.title, 'deliverables');
+        if (project) addAction(project.id, activeProfile.role === 'customer' ? 'A deliverable is ready for your approval' : 'Review deliverable: ' + step.title, 'deliverables');
       });
       (relatedData.checklist || []).filter(function (item) { return item.owner_kind === 'customer' && !item.completed_at; })
         .forEach(function (item) {
           var project = projectCache.find(function (project) { return project.id === item.project_id; });
-          if (project) addAction(project.id, 'Complete checklist: ' + item.title);
+          if (project) addAction(project.id, activeProfile.role === 'customer' ? 'A project item needs your attention' : 'Complete checklist: ' + item.title);
         });
       (relatedData.quotes || []).filter(function (quote) { return quote.status === 'sent'; }).forEach(function (quote) {
         var project = projectCache.find(function (item) { return item.id === quote.project_id; });
-        if (project) addAction(project.id, 'Review project quote', 'billing');
+        if (project) addAction(project.id, activeProfile.role === 'customer' ? 'A project quote is ready for your review' : 'Review project quote', 'billing');
       });
     }
     var actionList = actions.length
@@ -217,33 +221,68 @@
     var conversation = selectedTeamConversation;
     if (conversation !== 'group' && !directory.some(function (person) { return person.id === conversation; })) conversation = 'group';
     var person = directory.find(function (entry) { return entry.id === conversation; });
-    var messages = (relatedData.teamMessages || []).filter(function (message) {
+    var allMessages = relatedData.teamMessages || [];
+    var messages = allMessages.filter(function (message) {
       if (conversation === 'group') return !message.recipient_id;
       return (message.author_id === activeProfile.id && message.recipient_id === conversation)
         || (message.author_id === conversation && message.recipient_id === activeProfile.id);
     });
-    var chatItems = messages.length
-      ? messages.map(function (message) {
+    var chatItems = '';
+    if (messages.length) {
+      var previousDay = '';
+      chatItems = messages.map(function (message) {
+        var day = new Date(message.created_at).toLocaleDateString('en-ZA');
+        var separator = day === previousDay ? '' : '<li class="client-desk-chat-date"><span>' + escapeHtml(dateLabel(message.created_at)) + '</span></li>';
+        previousDay = day;
         var own = message.author_id === activeProfile.id;
         var initialsText = String(message.author_display_name || 'TM').trim().split(/\s+/).slice(0, 2).map(function (part) { return part.charAt(0).toUpperCase(); }).join('');
         var attachments = (relatedData.teamAttachments || []).filter(function (attachment) { return attachment.message_id === message.id; });
         var attachmentMarkup = attachments.map(function (attachment) {
-          return '<a class="client-desk-chat-attachment" href="' + escapeHtml(attachment.signed_url || '#') + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(attachment.file_name) + '</a><small class="client-desk-attachment-expiry">Available until ' + escapeHtml(dateLabel(attachment.expires_at)) + '</small>';
+          var preview = attachment.content_type && attachment.content_type.indexOf('image/') === 0 && attachment.signed_url
+            ? '<img src="' + escapeHtml(attachment.signed_url) + '" alt="' + escapeHtml(attachment.file_name) + '" loading="lazy">'
+            : '';
+          return '<a class="client-desk-chat-attachment" href="' + escapeHtml(attachment.signed_url || '#') + '" target="_blank" rel="noopener noreferrer">' + preview + '<span>' + escapeHtml(attachment.file_name) + '</span></a><small class="client-desk-attachment-expiry">Available until ' + escapeHtml(dateLabel(attachment.expires_at)) + '</small>';
         }).join('');
-        return '<li class="client-desk-chat-message' + (own ? ' is-own' : '') + '" id="teamMessage-' + escapeHtml(message.id) + '"><span class="client-desk-chat-avatar" aria-hidden="true">' + escapeHtml(initialsText || 'TM') + '</span><div class="client-desk-chat-bubble"><div class="client-desk-chat-meta"><strong>' + escapeHtml(own ? 'You' : message.author_display_name || 'Team member') + '</strong><time datetime="' + escapeHtml(message.created_at) + '">' + escapeHtml(new Intl.DateTimeFormat('en-ZA', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(message.created_at))) + '</time></div><p>' + escapeHtml(message.body) + '</p>' + (attachmentMarkup ? '<div class="client-desk-chat-attachments">' + attachmentMarkup + '</div>' : '') + '</div></li>';
-      }).join('')
-      : '<li class="client-desk-chat-empty">No messages here yet. Start the conversation with a clear update or question.</li>';
-    var conversations = '<button type="button" class="client-desk-conversation' + (conversation === 'group' ? ' is-selected' : '') + '" data-action="select-conversation" data-conversation="group"><span class="client-desk-chat-avatar" aria-hidden="true">Team</span><span><strong>Everyone</strong><small>Group conversation</small></span></button>' +
-      directory.map(function (entry) {
-        var selected = entry.id === conversation;
-        return '<button type="button" class="client-desk-conversation' + (selected ? ' is-selected' : '') + '" data-action="select-conversation" data-conversation="' + escapeHtml(entry.id) + '"><span class="client-desk-chat-avatar" aria-hidden="true">' + escapeHtml(initials({ display_name: entry.display_name })) + '</span><span><strong>' + escapeHtml(entry.display_name) + '</strong><small>Private conversation</small></span></button>';
+        return separator + '<li class="client-desk-chat-message' + (own ? ' is-own' : '') + '" id="teamMessage-' + escapeHtml(message.id) + '"><span class="client-desk-chat-avatar" aria-hidden="true">' + escapeHtml(initialsText || 'TM') + '</span><div class="client-desk-chat-bubble"><div class="client-desk-chat-meta"><strong>' + escapeHtml(own ? 'You' : message.author_display_name || 'Team member') + '</strong><time datetime="' + escapeHtml(message.created_at) + '">' + escapeHtml(new Intl.DateTimeFormat('en-ZA', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(message.created_at))) + '</time></div>' + (message.body ? '<p>' + escapeHtml(message.body) + '</p>' : '') + (attachmentMarkup ? '<div class="client-desk-chat-attachments">' + attachmentMarkup + '</div>' : '') + '</div></li>';
       }).join('');
+    } else {
+      chatItems = '<li class="client-desk-chat-empty">No messages here yet. Start the conversation with a clear update or question.</li>';
+    }
+    var conversationRows = [{
+      id: 'group',
+      name: 'General',
+      description: 'Staff group',
+      avatar: 'FC',
+      isGroup: true
+    }].concat(directory.map(function (entry) {
+      return { id: entry.id, name: entry.display_name || entry.email, description: 'Direct message', avatar: initials(entry), isGroup: false };
+    }));
+    var visibleConversations = conversationRows.filter(function (entry) {
+      var matchesTab = selectedTeamChatTab === 'all'
+        || (selectedTeamChatTab === 'groups' && entry.isGroup)
+        || (selectedTeamChatTab === 'direct' && !entry.isGroup);
+      var query = teamChatSearch.trim().toLowerCase();
+      return matchesTab && (!query || entry.name.toLowerCase().indexOf(query) !== -1);
+    });
+    var conversations = visibleConversations.map(function (entry) {
+      var thread = allMessages.filter(function (message) {
+        if (entry.isGroup) return !message.recipient_id;
+        return (message.author_id === activeProfile.id && message.recipient_id === entry.id)
+          || (message.author_id === entry.id && message.recipient_id === activeProfile.id);
+      });
+      var latest = thread[thread.length - 1];
+      var preview = latest ? (latest.body || 'Attachment') : entry.description;
+      return '<button type="button" class="client-desk-conversation' + (entry.id === conversation ? ' is-selected' : '') + '" data-action="select-conversation" data-conversation="' + escapeHtml(entry.id) + '" aria-current="' + (entry.id === conversation ? 'true' : 'false') + '"><span class="client-desk-chat-avatar" aria-hidden="true">' + escapeHtml(entry.avatar) + '</span><span><strong>' + escapeHtml(entry.name) + '</strong><small>' + escapeHtml(preview) + '</small></span><time>' + (latest ? escapeHtml(new Intl.DateTimeFormat('en-ZA', { timeStyle: 'short' }).format(new Date(latest.created_at))) : '') + '</time></button>';
+    }).join('') + '<p class="client-desk-chat-empty" data-team-chat-empty' + (visibleConversations.length ? ' hidden' : '') + '>No conversations match your search.</p>';
     var mentionPicker = conversation === 'group' && directory.length
       ? '<div class="client-desk-mention-picker"><label class="client-desk-label" for="teamMentionSelect">Tag a teammate</label><div><select id="teamMentionSelect" data-mention-select><option value="">Select a teammate</option>' + directory.map(function (entry) {
         return '<option value="' + escapeHtml(entry.id) + '">' + escapeHtml(entry.display_name) + '</option>';
       }).join('') + '</select><button class="btn ghost" type="button" data-action="insert-mention">Insert @ mention</button></div><div class="client-desk-mention-tags" data-mention-tags></div></div>'
       : '';
-    return '<section class="client-desk-team-communication" id="clientDeskTeamCommunication" data-portal-section="teamCommunication"><div class="client-desk-chat-layout"><aside class="client-desk-chat-sidebar"><h2>Conversations</h2>' + conversations + '</aside><div class="client-desk-chat-main"><header><div class="client-desk-chat-avatar" aria-hidden="true">' + (person ? escapeHtml(initials({ display_name: person.display_name })) : 'Team') + '</div><div><h2>' + escapeHtml(person ? person.display_name : 'Everyone') + '</h2><p>' + (person ? 'Private staff conversation' : 'Group conversation for the whole staff team') + '</p></div></header><ol class="client-desk-team-message-list" aria-live="polite">' + chatItems + '</ol><form class="client-desk-message-form client-desk-chat-compose" data-action="team-message" data-recipient="' + (person ? escapeHtml(person.id) : '') + '"><label class="client-desk-label" for="teamMessage">Message ' + escapeHtml(person ? person.display_name : 'the team') + '</label><textarea id="teamMessage" name="body" maxlength="4000" required placeholder="Write a message..." rows="2"></textarea>' + mentionPicker + '<label class="client-desk-label" for="teamAttachment">Attachment (optional; removed after 30 days)</label><input id="teamAttachment" name="attachment" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"><button class="btn" type="submit">Send Message</button><p class="client-desk-footnote">Only teammates you tag in a group message receive a notification. Attachments are available for 30 days.</p><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></div></div></section>';
+    var title = person ? person.display_name || person.email : 'General';
+    var draft = pendingTeamMessageDraft;
+    pendingTeamMessageDraft = '';
+    return '<section class="client-desk-team-communication" id="clientDeskTeamCommunication" data-portal-section="teamCommunication"><div class="client-desk-chat-layout' + (teamChatMobileOpen ? ' is-mobile-open' : '') + '"><aside class="client-desk-chat-sidebar"><div class="client-desk-chat-list-heading"><h2>Messages</h2><button class="btn ghost" type="button" data-action="new-chat">New Chat</button></div><label class="client-desk-chat-search"><span class="sr-only">Search conversations</span><input type="search" data-team-chat-search value="' + escapeHtml(teamChatSearch) + '" placeholder="Search conversations"></label><div class="client-desk-chat-filters" role="group" aria-label="Filter conversations">' + ['all', 'groups', 'direct'].map(function (tab) { return '<button type="button" data-action="chat-filter" data-filter="' + tab + '" aria-pressed="' + (selectedTeamChatTab === tab) + '">' + (tab === 'all' ? 'All' : tab === 'groups' ? 'Groups' : 'Direct') + '</button>'; }).join('') + '</div><div class="client-desk-chat-conversations">' + conversations + '</div></aside><div class="client-desk-chat-main"><header><button class="client-desk-chat-back" type="button" data-action="chat-back" aria-label="Back to conversations">←</button><div class="client-desk-chat-avatar" aria-hidden="true">' + (person ? escapeHtml(initials(person)) : 'FC') + '</div><div><h2>' + escapeHtml(title) + '</h2><p>' + (person ? 'Direct message' : 'Staff group conversation') + '</p></div></header><ol class="client-desk-team-message-list" aria-live="polite">' + chatItems + '</ol><form class="client-desk-message-form client-desk-chat-compose" data-action="team-message" data-recipient="' + (person ? escapeHtml(person.id) : '') + '"><div class="client-desk-chat-compose-row"><textarea id="teamMessage" name="body" maxlength="4000" placeholder="Write a message..." rows="1">' + escapeHtml(draft) + '</textarea><button class="btn" type="submit">Send</button></div><details class="client-desk-chat-more"><summary>Attach file or mention</summary>' + mentionPicker + '<label class="client-desk-label" for="teamAttachment">Attachment (removed after 30 days)</label><input id="teamAttachment" name="attachment" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"><p class="client-desk-footnote">Only tagged teammates receive a group-message notification.</p></details><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></div></div></section>';
   }
 
   function portalPageTitle(page) {
@@ -330,6 +369,25 @@
     return events.sort(function (left, right) {
       return new Date(right.created_at) - new Date(left.created_at);
     });
+  }
+
+  function clientEventTitle(event) {
+    var labels = {
+      'Deliverable approved': 'Your deliverable was approved',
+      'Changes requested': 'A revision was requested',
+      'Ready for review': 'A deliverable is ready for your review',
+      'Step completed': 'Project work completed',
+      'Project step updated': 'Project progress updated',
+      'Project step reassigned': 'Your project team was updated',
+      'Project step schedule updated': 'Your project schedule was updated',
+      'Review feedback added': 'Feedback was updated',
+      'Status updated': 'Project status updated',
+      'Next step updated': 'Project progress updated',
+      'Customer item completed': 'Your requested information was received',
+      'Quote sent': 'A quote is ready for your review',
+      'Quote accepted': 'Your quote was approved'
+    };
+    return labels[event.title] || 'Project update';
   }
 
   function notificationId(event) {
@@ -481,7 +539,7 @@
         var eventId = notificationId(event);
         var link = event.event_kind === 'team_mention'
           ? '<a href="#portal-communication" data-portal-page="communication" data-open-team-message="' + escapeHtml(event.message_id) + '" data-mention-id="' + escapeHtml(event.id) + '"><strong>' + escapeHtml(event.title) + '</strong><span>' + escapeHtml(event.description || 'Open the group conversation') + '</span><small>' + escapeHtml(dateLabel(event.created_at)) + '</small></a>'
-          : '<a href="#portal-' + (activeProfile.role === 'freelancer' ? 'tasks' : 'projects') + '" data-portal-page="' + (activeProfile.role === 'freelancer' ? 'tasks' : 'projects') + '" data-open-project="' + escapeHtml(event.project_id) + '" data-open-section="deliverables"><strong>' + escapeHtml(event.title) + '</strong><span>' + escapeHtml(project ? project.title : 'Project update') + (event.description ? ' / ' + escapeHtml(event.description) : '') + '</span><small>' + escapeHtml(dateLabel(event.created_at)) + '</small></a>';
+          : '<a href="#portal-' + (activeProfile.role === 'freelancer' ? 'tasks' : 'projects') + '" data-portal-page="' + (activeProfile.role === 'freelancer' ? 'tasks' : 'projects') + '" data-open-project="' + escapeHtml(event.project_id) + '" data-open-section="deliverables"><strong>' + escapeHtml(activeProfile.role === 'customer' ? clientEventTitle(event) : event.title) + '</strong><span>' + escapeHtml(project ? project.title : 'Project update') + (activeProfile.role === 'customer' || !event.description ? '' : ' / ' + escapeHtml(event.description)) + '</span><small>' + escapeHtml(dateLabel(event.created_at)) + '</small></a>';
         return '<li class="client-desk-notification-item' + (notificationIsRead(event) ? '' : ' is-unread') + '">' + link + (!notificationState.showEarlier ? '<button type="button" data-action="dismiss-notification" data-notification="' + escapeHtml(eventId) + '" aria-label="Dismiss update">×</button>' : '') + '</li>';
       }).join('');
     }
@@ -696,7 +754,164 @@
     };
   }
 
+  function currentProjectStage(projectId) {
+    var stages = projectStages(projectId);
+    for (var index = 0; index < stages.length; index++) {
+      var steps = stageSteps(stages[index].id);
+      if (!steps.length || steps.some(function (step) { return step.status !== 'done'; })) return stages[index];
+    }
+    return null;
+  }
+
+  function stageDescription(stageKey, title) {
+    var descriptions = {
+      discovery: 'We confirm your goals, requirements and agreed scope.',
+      design: 'We shape the visual direction and prepare the design for your feedback.',
+      development: 'We build the agreed pages and features.',
+      content: 'We add and refine your approved content and brand assets.',
+      testing: 'We check the website across devices and test its key features.',
+      launch: 'We prepare and publish your approved website.',
+      support: 'We complete post-launch checks and share the handover.'
+    };
+    return descriptions[stageKey] || 'We are working through the agreed ' + String(title || 'project') + ' stage.';
+  }
+
+  function stageDisplayName(stage) {
+    if (stage.stage_key === 'testing') return 'Testing';
+    if (stage.stage_key === 'support') return 'Support';
+    return stage.title;
+  }
+
+  function relativeTime(value) {
+    if (!value) return 'No updates yet';
+    var minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000));
+    if (minutes < 1) return 'just now';
+    if (minutes < 60) return minutes + ' minute' + (minutes === 1 ? '' : 's') + ' ago';
+    var hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + ' hour' + (hours === 1 ? '' : 's') + ' ago';
+    var days = Math.floor(hours / 24);
+    if (days < 30) return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+    return dateLabel(value);
+  }
+
+  function renderStageTracker(project, interactive) {
+    var stages = projectStages(project.id);
+    var current = currentProjectStage(project.id);
+    if (!stages.length) return '<p class="client-desk-footnote">Project stages will appear here when available.</p>';
+    return '<ol class="client-desk-stage-tracker" aria-label="Project stages">' + stages.map(function (stage) {
+      var steps = stageSteps(stage.id);
+      var complete = steps.length > 0 && steps.every(function (step) { return step.status === 'done'; });
+      var state = complete ? 'completed' : current && current.id === stage.id ? 'current' : 'upcoming';
+      var stateLabel = state === 'completed' ? 'Completed' : state === 'current' ? 'We are here' : 'Upcoming';
+      var icon = state === 'completed' ? '✓' : state === 'current' ? '●' : '○';
+      var stageName = activeProfile.role === 'customer' ? stageDisplayName(stage) : stage.title;
+      var summary = '<span class="client-desk-stage-icon" aria-hidden="true">' + icon + '</span><span class="client-desk-stage-name">' + escapeHtml(stageName) + '</span><span class="client-desk-stage-state">' + stateLabel + '</span>';
+      return interactive
+        ? '<li class="client-desk-stage-point is-' + state + '"><details><summary aria-label="' + escapeHtml(stage.title + ': ' + stateLabel) + '">' + summary + '</summary><p>' + escapeHtml(stageDescription(stage.stage_key, stage.title)) + '</p></details></li>'
+        : '<li class="client-desk-stage-point is-' + state + '">' + summary + '</li>';
+    }).join('') + '</ol>';
+  }
+
+  function renderClientProjectProgress(project) {
+    var stages = projectStages(project.id);
+    var current = currentProjectStage(project.id);
+    var events = projectEvents(project.id).filter(function (event) { return event.visible_to_customer !== false; });
+    var lastEvent = events[events.length - 1];
+    var transitionMessage = '';
+    if (lastEvent && ['Step completed', 'Deliverable approved'].indexOf(lastEvent.title) !== -1) {
+      var completedIndex = stages.findIndex(function (stage) {
+        var steps = stageSteps(stage.id);
+        if (!steps.length || steps.some(function (step) { return step.status !== 'done' || !step.completed_at; })) return false;
+        var latestCompletion = Math.max.apply(null, steps.map(function (step) { return new Date(step.completed_at).getTime(); }));
+        return Math.abs(latestCompletion - new Date(lastEvent.created_at).getTime()) < 10000;
+      });
+      if (completedIndex !== -1) {
+        var completedName = stageDisplayName(stages[completedIndex]);
+        var followingName = stages[completedIndex + 1] ? stageDisplayName(stages[completedIndex + 1]) : '';
+        transitionMessage = '<p class="client-desk-stage-transition" role="status">' + escapeHtml(completedName + ' complete. ' + (followingName ? followingName + ' has started.' : 'Your project stages are complete.')) + '</p>';
+      }
+    }
+    var reviewStep = (relatedData.steps || []).find(function (step) { return step.project_id === project.id && step.status === 'in_review'; });
+    var checklistItem = projectChecklist(project.id).find(function (item) { return item.owner_kind === 'customer' && !item.is_internal && !item.completed_at; });
+    var pendingQuote = projectQuotes(project.id).find(function (quote) { return quote.status === 'sent'; });
+    var pendingInvoice = projectInvoices(project.id).find(function (invoice) { return invoice.status === 'sent' || invoice.status === 'overdue'; });
+    var action = reviewStep
+      ? '<div class="client-desk-client-action"><p>One deliverable is ready for your approval.</p><button class="btn" type="button" data-action="step-review" data-step="' + escapeHtml(reviewStep.id) + '" data-status="done">Approve ' + escapeHtml(current ? stageDisplayName(current) : 'Deliverable') + '</button><details class="client-desk-more-options"><summary>More options</summary><label class="client-desk-label" for="feedback-' + escapeHtml(reviewStep.id) + '">Request a revision</label><textarea id="feedback-' + escapeHtml(reviewStep.id) + '" data-review-feedback="' + escapeHtml(reviewStep.id) + '" maxlength="1000" placeholder="Describe the change you would like."></textarea><button class="btn ghost" type="button" data-action="step-review" data-step="' + escapeHtml(reviewStep.id) + '" data-status="in_progress">Request revision</button></details></div>'
+      : checklistItem
+        ? '<div class="client-desk-client-action"><p>' + escapeHtml(checklistItem.title) + '</p><a class="btn" href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(project.id) + '" data-open-section="checklist">View requested item</a></div>'
+        : pendingQuote
+          ? '<div class="client-desk-client-action"><p>A quote is ready for your review.</p><button class="btn" type="button" data-action="accept-quote" data-quote="' + escapeHtml(pendingQuote.id) + '">Approve Quote</button></div>'
+          : pendingInvoice
+            ? '<div class="client-desk-client-action"><p>An invoice is ready for payment.</p><a class="btn" href="#portal-billing" data-portal-page="billing">View Invoice</a></div>'
+            : '<p class="client-desk-client-action">Nothing needed from you right now.</p>';
+    var history = events.length
+      ? '<details class="client-desk-project-history"><summary>View history</summary><ol>' + events.slice().reverse().map(function (event) {
+        return '<li><time datetime="' + escapeHtml(event.created_at) + '">' + escapeHtml(dateLabel(event.created_at)) + '</time><span>' + escapeHtml(clientEventTitle(event)) + '</span></li>';
+      }).join('') + '</ol></details>'
+      : '<details class="client-desk-project-history"><summary>View history</summary><p class="client-desk-footnote">Project milestones will appear here as work progresses.</p></details>';
+    var stageSentence = !stages.length
+      ? 'Your project is being prepared.'
+      : current
+        ? 'Your project is in ' + stageDisplayName(current) + '.'
+        : 'Your project stages are complete.';
+    var dateMessage = project.preferred_date
+      ? 'Requested target date: ' + dateLabel(project.preferred_date)
+      : 'Estimated completion: To be confirmed.';
+    return '<details class="client-desk-project-section client-desk-client-tracker" data-project-section="deliverables" data-ui-state="project-' + escapeHtml(project.id) + '-deliverables" open><summary>Project Tracker</summary><section class="client-desk-progress-panel" data-portal-section="deliverables" aria-label="Project tracker"><div class="client-desk-client-tracker-summary"><p class="client-desk-tracker-status">' + escapeHtml(stageSentence) + '</p><p><span>Last update:</span> ' + escapeHtml(relativeTime(lastEvent && lastEvent.created_at)) + '</p><p>' + escapeHtml(dateMessage) + '</p>' + transitionMessage + '</div>' + renderStageTracker(project, true) + action + history + '</section></details>';
+  }
+
+  function renderStaffTaskTracker(step, project) {
+    var statuses = [
+      ['not_started', 'Assigned'],
+      ['in_progress', 'In Progress'],
+      ['in_review', 'Under Review'],
+      ['done', 'Approved']
+    ];
+    var activeIndex = statuses.findIndex(function (entry) { return entry[0] === step.status; });
+    var tracker = '<ol class="client-desk-task-tracker" aria-label="Task status">' + statuses.map(function (entry, index) {
+      var state = index < activeIndex ? 'completed' : index === activeIndex ? 'current' : 'upcoming';
+      return '<li class="is-' + state + '"><span aria-hidden="true">' + (state === 'completed' ? '✓' : state === 'current' ? '●' : '○') + '</span><span>' + entry[1] + '</span></li>';
+    }).join('') + '</ol>';
+    var nextStatus = step.status === 'not_started' ? 'in_progress' : step.status === 'in_progress' ? 'in_review' : '';
+    var nextAction = nextStatus
+      ? '<button class="btn" type="button" data-action="step-advance" data-step="' + escapeHtml(step.id) + '" data-status="' + nextStatus + '">Move to Next Step</button>'
+      : '<p class="client-desk-footnote">' + (step.status === 'in_review' ? 'This task is awaiting review.' : 'This task has been approved.') + '</p>';
+    return '<article class="client-desk-staff-task"><div class="client-desk-staff-task-head"><div><h3>' + escapeHtml(step.title) + '</h3><p>' + escapeHtml(project ? project.title : 'Project') + (step.due_at ? ' · Due ' + escapeHtml(dateLabel(step.due_at)) : '') + '</p></div></div>' + tracker + nextAction + '<details class="client-desk-more-options"><summary>Details</summary><p class="client-desk-footnote">Current status: ' + escapeHtml(stepStatusLabel(step.status)) + (step.owner_display_name ? ' · Assigned to ' + escapeHtml(step.owner_display_name) : '') + '</p>' + (step.review_feedback ? '<p>' + escapeHtml(step.review_feedback) + '</p>' : '') + '</details></article>';
+  }
+
+  function renderFreelancerTaskList() {
+    var steps = (relatedData.steps || []).filter(function (step) { return step.owner_id === activeProfile.id; }).slice();
+    var now = new Date();
+    var start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var endOfWeek = new Date(start);
+    endOfWeek.setDate(start.getDate() + 7);
+    steps.sort(function (left, right) {
+      return (left.due_at ? new Date(left.due_at).getTime() : Number.MAX_SAFE_INTEGER)
+        - (right.due_at ? new Date(right.due_at).getTime() : Number.MAX_SAFE_INTEGER);
+    });
+    var today = steps.filter(function (step) { return step.due_at && new Date(step.due_at) >= start && new Date(step.due_at) < new Date(start.getTime() + 86400000) && step.status !== 'done'; });
+    var thisWeek = steps.filter(function (step) { return step.due_at && new Date(step.due_at) >= new Date(start.getTime() + 86400000) && new Date(step.due_at) < endOfWeek && step.status !== 'done'; });
+    var later = steps.filter(function (step) { return step.status !== 'done' && (!step.due_at || new Date(step.due_at) >= endOfWeek); });
+    var completed = steps.filter(function (step) { return step.status === 'done'; });
+    var overdue = steps.filter(function (step) { return step.status !== 'done' && step.due_at && new Date(step.due_at) < start; });
+    function renderGroup(title, items) {
+      if (!items.length) return '';
+      return '<section class="client-desk-task-group"><h3>' + title + '<span>' + items.length + '</span></h3><div>' + items.map(function (step) {
+        return renderStaffTaskTracker(step, projectCache.find(function (project) { return project.id === step.project_id; }));
+      }).join('') + '</div></section>';
+    }
+    var underReview = steps.filter(function (step) { return step.status === 'in_review'; }).length;
+    var taskCount = today.length;
+    var assignedProjectIds = steps.map(function (step) { return step.project_id; });
+    var assignedProjects = projectCache.filter(function (project) { return assignedProjectIds.indexOf(project.id) !== -1; });
+    return '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Assigned work</p><h2>My Tasks</h2><p class="client-desk-footnote">' + taskCount + ' task' + (taskCount === 1 ? '' : 's') + ' today, ' + underReview + ' under review.</p></div></div><p class="client-desk-form-status" data-portal-status aria-live="polite"></p>' +
+      renderGroup('Overdue', overdue) + renderGroup('Today', today) + renderGroup('This Week', thisWeek) + renderGroup('Later', later) + renderGroup('Completed', completed) +
+      (!steps.length ? '<div class="client-desk-empty"><h3>No tasks assigned</h3><p>Tasks assigned to you will appear here.</p></div>' : '<p class="client-desk-search-empty" data-task-search-empty hidden>No matching tasks. Try another search.</p>') +
+      (assignedProjects.length ? '<details class="client-desk-assigned-projects"><summary>Project Details</summary>' + assignedProjects.map(renderProject).join('') + '</details>' : '');
+  }
+
   function renderProjectProgress(project) {
+    if (activeProfile.role === 'customer') return renderClientProjectProgress(project);
     var stages = projectStages(project.id);
     var overview = projectOverview(project);
     var projectFreelancers = (relatedData.teamAssignments || []).filter(function (assignment) {
@@ -756,7 +971,8 @@
 
   function renderMessages(project) {
     var messages = projectMessages(project.id);
-    return '<ul class="client-desk-message-list">' + (messages.length ? messages.map(function (message) {
+    var previousDay = '';
+    var messageItems = messages.length ? messages.map(function (message) {
       var author = 'FixerCtrl';
       if (message.author_id === activeProfile.id) author = activeProfile.role === 'owner' ? 'FixerCtrl' : 'You';
       else if (activeProfile.role === 'freelancer') author = 'Project update';
@@ -764,8 +980,13 @@
         var authorProfile = (relatedData.profiles || []).find(function (profile) { return profile.id === message.author_id; });
         author = authorProfile ? (authorProfile.display_name || authorProfile.email) : 'Customer';
       }
-      return '<li class="client-desk-message"><small>' + escapeHtml(author) + (message.is_internal ? ' / PRIVATE NOTE' : '') + ' / ' + escapeHtml(dateLabel(message.created_at)) + '</small><p>' + escapeHtml(message.body) + '</p></li>';
-    }).join('') : '<li class="client-desk-footnote">No messages have been exchanged yet.</li>') + '</ul>' +
+      var own = message.author_id === activeProfile.id;
+      var day = new Date(message.created_at).toLocaleDateString('en-ZA');
+      var separator = day === previousDay ? '' : '<li class="client-desk-chat-date"><span>' + escapeHtml(dateLabel(message.created_at)) + '</span></li>';
+      previousDay = day;
+      return separator + '<li class="client-desk-chat-message client-desk-project-chat-message' + (own ? ' is-own' : '') + '"><span class="client-desk-chat-avatar" aria-hidden="true">' + (own ? escapeHtml(initials(activeProfile)) : 'FC') + '</span><div class="client-desk-chat-bubble"><div class="client-desk-chat-meta"><strong>' + escapeHtml(author) + (message.is_internal ? ' · Private note' : '') + '</strong><time datetime="' + escapeHtml(message.created_at) + '">' + escapeHtml(new Intl.DateTimeFormat('en-ZA', { timeStyle: 'short' }).format(new Date(message.created_at))) + '</time></div><p>' + escapeHtml(message.body) + '</p></div></li>';
+    }).join('') : '<li class="client-desk-footnote">No messages have been exchanged yet.</li>';
+    return '<ul class="client-desk-message-list client-desk-project-chat">' + messageItems + '</ul>' +
       '<form class="client-desk-message-form" data-action="message" data-project="' + escapeHtml(project.id) + '"><label class="client-desk-label" for="message-' + escapeHtml(project.id) + '">' + (activeProfile.role === 'owner' ? 'Reply to client' : 'Message FixerCtrl') + '</label><textarea id="message-' + escapeHtml(project.id) + '" name="body" required maxlength="5000" placeholder="Write a project update or ask a question."></textarea>' + (activeProfile.role === 'owner' ? '<label class="client-desk-checkline"><input name="internal" type="checkbox"><span>Private note (visible to management only)</span></label>' : '') + '<button class="btn" type="submit">Send message</button><p class="client-desk-footnote">Email notifications will be sent when delivery is configured.</p></form>';
   }
 
@@ -829,13 +1050,47 @@
     return '<div class="client-desk-card"><h3>Client Progress Update</h3><p class="client-desk-footnote">Saving a status or next step adds a dated update to the client’s project timeline.</p><div class="client-desk-field-grid"><div class="field"><label class="client-desk-label" for="status-' + escapeHtml(project.id) + '">Project Status</label><select id="status-' + escapeHtml(project.id) + '" data-action="set-status" data-project="' + escapeHtml(project.id) + '">' + statuses.map(function (entry) { return '<option value="' + entry[0] + '" ' + (project.status === entry[0] ? 'selected' : '') + '>' + entry[1] + '</option>'; }).join('') + '</select></div><div class="field"><label class="client-desk-label" for="next-' + escapeHtml(project.id) + '">Next Action</label><input id="next-' + escapeHtml(project.id) + '" data-action="set-next" data-project="' + escapeHtml(project.id) + '" type="text" maxlength="240" value="' + escapeHtml(project.next_action || '') + '" placeholder="For example: Test the updated checkout"></div></div><button class="btn ghost" type="button" data-action="save-project" data-project="' + escapeHtml(project.id) + '">Save progress update</button></div>';
   }
 
+  function projectLastMovement(project) {
+    var events = projectEvents(project.id);
+    return events.length ? events[events.length - 1].created_at : project.updated_at;
+  }
+
+  function projectIsStalled(project) {
+    var movedAt = new Date(projectLastMovement(project));
+    return !Number.isNaN(movedAt.getTime()) && Date.now() - movedAt.getTime() >= 5 * 86400000;
+  }
+
+  function projectStageTitle(project) {
+    var current = currentProjectStage(project.id);
+    return current ? current.title : projectStages(project.id).length ? 'All stages completed' : 'Stages not available';
+  }
+
   function renderProject(project) {
     var status = statuses.find(function (entry) { return entry[0] === project.status; });
     var freelancer = activeProfile.role === 'freelancer';
-    var overview = projectOverview(project);
-    return '<details class="client-desk-project" id="clientDeskProject-' + escapeHtml(project.id) + '" data-project-details data-project-id="' + escapeHtml(project.id) + '"><summary><span class="client-desk-project-heading"><span class="client-desk-label">' + escapeHtml(project.reference || project.id.slice(0, 8)) + ' / ' + escapeHtml(project.service_category.replace('_', ' ')) + '</span><strong>' + escapeHtml(project.title) + '</strong><small>Next step: ' + escapeHtml(overview.nextMilestone) + '</small></span><div class="client-desk-project-summary-status"><span class="client-desk-status" data-status="' + escapeHtml(project.status) + '">' + escapeHtml(status ? status[1] : displayStatus(project.status)) + '</span><span class="client-desk-project-percent">' + projectProgress(project.id) + '% Complete</span>' + renderProgressBar(projectProgress(project.id), project.title + ' progress') + '</div></summary>' +
-      '<div class="client-desk-project-body">' + renderProjectProgress(project) +
-      '<details class="client-desk-project-section" data-ui-state="project-' + escapeHtml(project.id) + '-timeline"><summary>Timeline &amp; Activity</summary><div><p class="client-desk-footnote">Updated ' + escapeHtml(dateLabel(project.updated_at)) + '</p>' + (project.next_action ? '<div class="client-desk-notice"><div><strong>Next Step</strong><p>' + escapeHtml(project.next_action) + '</p></div></div>' : '') + renderTimeline(project) + '</div></details>' +
+    var customer = activeProfile.role === 'customer';
+    var stageSummary = customer
+      ? 'Current stage: ' + (currentProjectStage(project.id) ? stageDisplayName(currentProjectStage(project.id)) : 'All stages completed')
+      : freelancer
+        ? 'Assigned project'
+        : 'Current stage: ' + projectStageTitle(project);
+    var ownerAttention = activeProfile.role === 'owner' && projectIsStalled(project)
+      ? '<span class="client-desk-stalled-flag">Stalled · no update in 5 days</span>'
+      : '';
+    var statusSummary = customer
+      ? ''
+      : '<span class="client-desk-status" data-status="' + escapeHtml(project.status) + '">' + escapeHtml(status ? status[1] : displayStatus(project.status)) + '</span>';
+    var completionSummary = customer
+      ? ''
+      : '<span class="client-desk-project-percent">' + escapeHtml(stageSummary) + '</span>' + (activeProfile.role === 'owner' ? renderStageTracker(project, false) : '');
+    var history = customer
+      ? ''
+      : '<details class="client-desk-project-section" data-ui-state="project-' + escapeHtml(project.id) + '-timeline"><summary>Timeline &amp; Activity</summary><div><p class="client-desk-footnote">Updated ' + escapeHtml(dateLabel(project.updated_at)) + '</p>' + (project.next_action ? '<div class="client-desk-notice"><div><strong>Next Step</strong><p>' + escapeHtml(project.next_action) + '</p></div></div>' : '') + renderTimeline(project) + '</div></details>';
+    var progressContent = customer
+      ? renderProjectProgress(project)
+      : '<details class="client-desk-project-section" data-ui-state="project-' + escapeHtml(project.id) + '-steps"><summary>Details</summary>' + renderProjectProgress(project) + '</details>';
+    return '<details class="client-desk-project" id="clientDeskProject-' + escapeHtml(project.id) + '" data-project-details data-project-id="' + escapeHtml(project.id) + '"><summary><span class="client-desk-project-heading"><span class="client-desk-label">' + escapeHtml(project.reference || project.id.slice(0, 8)) + ' / ' + escapeHtml(project.service_category.replace('_', ' ')) + '</span><strong>' + escapeHtml(project.title) + '</strong><small>' + escapeHtml(stageSummary) + '</small></span><div class="client-desk-project-summary-status">' + statusSummary + ownerAttention + completionSummary + '</div></summary>' +
+      '<div class="client-desk-project-body">' + progressContent + history +
       '<details class="client-desk-project-section" data-ui-state="project-' + escapeHtml(project.id) + '-messages"><summary>Messages</summary><section data-portal-section="messages">' + renderMessages(project) + '</section></details>' +
       '<details class="client-desk-project-section" data-ui-state="project-' + escapeHtml(project.id) + '-checklist"><summary>Outstanding Items</summary>' + renderChecklist(project) + '</details><details class="client-desk-project-section" data-ui-state="project-' + escapeHtml(project.id) + '-files"><summary>Documents</summary>' + renderFiles(project) + '</details>' +
       (freelancer ? '' : '<details class="client-desk-project-section" data-ui-state="project-' + escapeHtml(project.id) + '-billing"><summary>Quotes, Invoices &amp; Payments</summary><section data-portal-section="billing"><div class="client-desk-section-head"><h2>Quotes</h2></div>' + renderQuotes(project) + '<div class="client-desk-section-head"><h2>Invoices &amp; Payments</h2></div>' + renderInvoices(project) + '</section></details>') +
@@ -1122,6 +1377,32 @@
     return '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Business performance</p><h2>Analytics &amp; Reports</h2><p class="client-desk-footnote">Figures are calculated from current project, invoice, quote, and account records. Revenue is not attributed to individual employees.</p></div></div><div class="client-desk-summary-strip"><div><span>Client Accounts</span><strong>' + customers.length + '</strong></div><div><span>New Clients (30 Days)</span><strong>' + newCustomers + '</strong></div><div><span>Tasks Completed This Week</span><strong>' + weeklyCompletions + '</strong></div><div><span>Active Projects</span><strong>' + projectCache.filter(function (project) { return ['complete', 'paused'].indexOf(project.status) === -1; }).length + '</strong></div></div><div class="client-desk-summary-strip"><div><span>Payments Received</span><strong>' + escapeHtml(formatCurrencyTotals(paidTotal)) + '</strong></div><div><span>Outstanding Invoices</span><strong>' + escapeHtml(formatCurrencyTotals(outstandingTotal)) + '</strong></div><div><span>Overdue Invoices</span><strong>' + overdueInvoices + '</strong></div><div><span>Quote Acceptance</span><strong>' + (quoteAcceptance == null ? 'Not available' : quoteAcceptance + '%') + '</strong></div></div><section class="client-desk-card"><h3>Suggested Actions</h3><ul>' + suggestions.map(function (suggestion) { return '<li>' + escapeHtml(suggestion) + '</li>'; }).join('') + '</ul></section>' + staffRows + '<section class="client-desk-card"><h3>Employee Payment Queries</h3><p class="client-desk-footnote">' + unresolvedDisputes + ' unresolved ' + (unresolvedDisputes === 1 ? 'query' : 'queries') + '. Review each claim and record a written decision.</p>' + renderPaymentDisputes(true) + '</section>';
   }
 
+  function renderOwnerProgressSnapshot() {
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var moved = (relatedData.events || []).filter(function (event) {
+    return new Date(event.created_at) >= today && projectCache.some(function (project) { return project.id === event.project_id; });
+    }).slice(-3).reverse();
+    var movedMarkup = moved.length
+    ? '<ul>' + moved.map(function (event) {
+      var project = projectCache.find(function (item) { return item.id === event.project_id; });
+      return project ? '<li><strong>' + escapeHtml(project.title) + '</strong> ' + escapeHtml(event.title) + '</li>' : '';
+    }).join('') + '</ul>'
+    : '<p class="client-desk-footnote">No project updates recorded today.</p>';
+    var stalled = projectCache.filter(function (project) { return projectIsStalled(project); }).slice(0, 5);
+    var stalledMarkup = stalled.length
+    ? '<ul>' + stalled.map(function (project) {
+      var nextStep = (relatedData.steps || []).find(function (step) { return step.project_id === project.id && step.status !== 'done' && step.owner_id; });
+      var assignee = nextStep && (relatedData.teamDirectory || []).find(function (person) { return person.id === nextStep.owner_id; });
+      var nudge = assignee
+        ? '<a href="#portal-communication" data-portal-page="communication" data-open-conversation="' + escapeHtml(assignee.id) + '" data-team-draft="' + escapeHtml('Hi ' + (assignee.display_name || 'there') + ', could you share a brief update on ' + project.title + ' when convenient?') + '">Nudge assignee</a>'
+        : '<a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(project.id) + '">Review project</a>';
+      return '<li><span><strong>' + escapeHtml(project.title) + '</strong> · No update in 5 days</span>' + nudge + '</li>';
+    }).join('') + '</ul>'
+    : '<p class="client-desk-footnote">No projects are currently stalled.</p>';
+    return '<section class="client-desk-owner-progress"><div><h2>Moved Today</h2>' + movedMarkup + '</div><div><h2>Stalled</h2>' + stalledMarkup + '</div></section>';
+  }
+
   function renderDashboard() {
     var openProjectIds = Array.prototype.map.call(portalRoot.querySelectorAll('details[data-project-details][open]'), function (element) {
       return element.dataset.projectId;
@@ -1137,22 +1418,15 @@
     var attention = renderAttentionPanel();
     var clientWidget = !owner && !freelancer
       ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="project-progress"><div class="client-desk-section-head"><h2>Project Progress</h2><a href="#portal-projects" data-portal-page="projects">View Projects</a></div>' + (projectCache.length ? projectCache.slice(0, 1).map(function (project) {
-        var overview = projectOverview(project);
-        return '<p><strong>' + escapeHtml(project.title) + '</strong> / ' + projectProgress(project.id) + '% complete</p><p class="client-desk-footnote">Next milestone: ' + escapeHtml(overview.nextMilestone) + '</p><a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(project.id) + '" data-open-section="deliverables">View project tracker</a>';
+        return '<p><strong>' + escapeHtml(project.title) + '</strong></p><p class="client-desk-footnote">' + escapeHtml(currentProjectStage(project.id) ? 'Your project is in ' + stageDisplayName(currentProjectStage(project.id)) + '.' : 'Your project stages are complete.') + '</p><a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(project.id) + '" data-open-section="deliverables">View project tracker</a>';
       }).join('') : '<p class="client-desk-footnote">Your project updates will appear here.</p>') + '</section>'
       : '';
-    var clientApprovals = !owner && !freelancer
-      ? (relatedData.steps || []).filter(function (step) { return step.status === 'in_review'; }).slice(0, 2).map(function (step) {
-        return '<p>' + escapeHtml(step.title) + ' <a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(step.project_id) + '" data-open-section="deliverables" data-open-step="' + escapeHtml(step.id) + '">Review deliverable</a></p>';
-      }).join('')
-      : '';
-    var latestEvent = notificationEvents()[0];
+    var latestEvent = notificationEvents().find(function (event) {
+      return activeProfile.role !== 'customer' || event.visible_to_customer !== false;
+    });
     var latestProject = latestEvent && projectCache.find(function (project) { return project.id === latestEvent.project_id; });
     var clientUpdates = !owner && !freelancer
-      ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="latest-update"><h2>Latest Update</h2>' + (latestEvent && latestProject ? '<p><strong>' + escapeHtml(latestEvent.title) + '</strong></p><p class="client-desk-footnote">' + escapeHtml(latestProject.title) + ' / ' + escapeHtml(dateLabel(latestEvent.created_at)) + '</p><a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(latestProject.id) + '" data-open-section="deliverables">View project tracker</a>' : '<p class="client-desk-footnote">Project updates will appear here.</p>') + '</section>'
-      : '';
-    var clientApprovalWidget = !owner && !freelancer
-      ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="upcoming-approvals"><div class="client-desk-section-head"><h2>Upcoming Approvals</h2><a href="#portal-projects" data-portal-page="projects">View</a></div>' + (clientApprovals || '<p class="client-desk-footnote">No approvals are waiting for you.</p>') + '</section>'
+      ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="latest-update"><h2>Latest Update</h2>' + (latestEvent && latestProject ? '<p><strong>' + escapeHtml(clientEventTitle(latestEvent)) + '</strong></p><p class="client-desk-footnote">' + escapeHtml(latestProject.title) + ' / ' + escapeHtml(dateLabel(latestEvent.created_at)) + '</p><a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(latestProject.id) + '" data-open-section="deliverables">View project tracker</a>' : '<p class="client-desk-footnote">Project updates will appear here.</p>') + '</section>'
       : '';
     var staffWidget = freelancer
       ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="today-tasks"><div class="client-desk-section-head"><h2>Today’s Tasks</h2><a href="#portal-tasks" data-portal-page="tasks">View Tasks</a></div><p>' + (relatedData.steps || []).filter(function (step) { return step.owner_id === activeProfile.id && step.status !== 'done' && step.due_at && new Date(step.due_at).toDateString() === new Date().toDateString(); }).length + ' tasks due today</p><p class="client-desk-footnote">Assigned tasks are listed in My Tasks.</p></section>' +
@@ -1164,7 +1438,7 @@
         '<section class="client-desk-dashboard-widget" data-dashboard-widget="earnings-period"><h2>Earnings This Period</h2><p class="client-desk-footnote">Earnings are not available in the portal yet.</p></section>'
       : '';
     var ownerWidget = owner
-      ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="invoice-overview"><h2>Invoice Overview</h2><p>' + (relatedData.invoices || []).filter(function (invoice) { return ['sent', 'overdue'].indexOf(invoice.status) !== -1; }).length + ' invoices awaiting payment</p><p class="client-desk-footnote">Expense and cash-flow data are not available in the portal yet.</p></section>' +
+      ? renderOwnerProgressSnapshot() + '<section class="client-desk-dashboard-widget" data-dashboard-widget="invoice-overview"><h2>Invoice Overview</h2><p>' + (relatedData.invoices || []).filter(function (invoice) { return ['sent', 'overdue'].indexOf(invoice.status) !== -1; }).length + ' invoices awaiting payment</p><p class="client-desk-footnote">Expense and cash-flow data are not available in the portal yet.</p></section>' +
         '<section class="client-desk-dashboard-widget" data-dashboard-widget="team-workload"><div class="client-desk-section-head"><h2>Team Workload</h2><a href="#portal-team" data-portal-page="team">View Team</a></div><p>' + (relatedData.teamAssignments || []).length + ' project assignments</p></section>'
       : '';
     var clientTools = !owner && !freelancer
@@ -1176,10 +1450,18 @@
         ? '<details class="client-desk-dashboard-tools"><summary>Service Price Guide</summary><ul><li>Landing page: R1,500–R3,000</li><li>Up to five website pages: R3,500–R7,500</li><li>Website updates: R250 per hour</li><li>Setup: from R500</li><li>Features: from R800</li></ul><p class="client-desk-footnote">IT and security work is quoted after review. These prices are estimates, not a quote. <a href="#/freelancer">View service details</a></p></details>'
         : '';
     var dashboardContent = '<div class="client-desk-dashboard-heading"><div><h2>Welcome back, ' + escapeHtml(displayName) + '</h2><p class="client-desk-footnote">' + escapeHtml(activeProfile.email) + '</p></div><button class="btn ghost" type="button" data-action="refresh" aria-label="Refresh workspace" title="Refresh workspace">Refresh</button></div>' +
-      attention + renderSummaryStrip() + '<div class="client-desk-dashboard-widgets">' + clientWidget + clientApprovalWidget + clientUpdates + staffWidget + ownerWidget + '</div>' +
+      attention + renderSummaryStrip() + '<div class="client-desk-dashboard-widgets">' + clientWidget + clientUpdates + staffWidget + ownerWidget + '</div>' +
       (freelancer ? '<a class="btn" href="#portal-tasks" data-portal-page="tasks">Open My Tasks</a>' : owner ? '<a class="btn" href="#portal-projects" data-portal-page="projects">Review Projects</a>' : '<button class="btn" type="button" data-action="new-request">Submit Project Request</button><div class="client-desk-dashboard-tools">' + buildRequestForm() + '</div>') +
       '<p class="client-desk-form-status" data-portal-status aria-live="polite"></p>';
-    var projectPageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">' + (freelancer ? 'Assigned work' : 'Project workspace') + '</p><h2>' + (freelancer ? 'My Tasks' : 'Projects') + '</h2><p class="client-desk-footnote">' + (freelancer ? 'Open an assigned project to update work, due dates, and client progress.' : owner ? 'Review incoming requests, coordinate delivery, and keep each client informed.' : 'Track progress, open deliverables, and find your project updates.') + '</p></div>' + (!owner && !freelancer ? '<button class="btn" type="button" data-action="new-request">Submit Project Request</button>' : '') + '</div><p class="client-desk-form-status" data-portal-status aria-live="polite"></p><div id="clientDeskProjects">' + (projectCache.length ? projectCache.map(renderProject).join('') : '<div class="client-desk-empty"><h3>' + emptyHeading + '</h3><p>' + emptyMessage + '</p></div>') + '</div><p class="client-desk-search-empty" data-portal-search-empty hidden>No matching projects. Try another search.</p>';
+    var projectList = owner
+      ? projectCache.slice().sort(function (left, right) {
+        var attention = function (project) { return projectIsStalled(project) || ['received', 'awaiting_approval', 'awaiting_customer'].indexOf(project.status) !== -1; };
+        return Number(attention(right)) - Number(attention(left)) || new Date(right.updated_at) - new Date(left.updated_at);
+      })
+      : projectCache;
+    var projectPageContent = freelancer
+      ? renderFreelancerTaskList()
+      : '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">' + (owner ? 'Project workspace' : 'Your work') + '</p><h2>Projects</h2><p class="client-desk-footnote">' + (owner ? 'Review incoming requests and keep each client informed.' : 'See where your project stands and whether anything needs your attention.') + '</p></div>' + (!owner ? '<button class="btn" type="button" data-action="new-request">Submit Project Request</button>' : '') + '</div><p class="client-desk-form-status" data-portal-status aria-live="polite"></p><div id="clientDeskProjects">' + (projectList.length ? projectList.map(renderProject).join('') : '<div class="client-desk-empty"><h3>' + emptyHeading + '</h3><p>' + emptyMessage + '</p></div>') + '</div><p class="client-desk-search-empty" data-portal-search-empty hidden>No matching projects. Try another search.</p>';
     var pageContent = dashboardContent;
     if (currentPortalPage === 'projects' || currentPortalPage === 'tasks') pageContent = projectPageContent;
     else if (currentPortalPage === 'communication') pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Staff workspace</p><h2>Team Communication</h2><p class="client-desk-footnote">Coordinate work in the group channel or continue a private conversation with a colleague.</p></div></div>' + renderTeamCommunication();
@@ -1216,9 +1498,21 @@
       var selectedProject = portalRoot.querySelector('[data-project-id="' + pendingProjectOpen + '"]');
       if (selectedProject) {
         selectedProject.open = true;
+        var projectContainer = selectedProject.parentElement.closest('details');
+        while (projectContainer) {
+          projectContainer.open = true;
+          projectContainer = projectContainer.parentElement.closest('details');
+        }
         if (pendingProjectSection) {
           var selectedSection = selectedProject.querySelector('[data-ui-state="project-' + pendingProjectOpen + '-' + pendingProjectSection + '"]');
-          if (selectedSection) selectedSection.open = true;
+          if (selectedSection) {
+            selectedSection.open = true;
+            var parentDetails = selectedSection.parentElement.closest('details');
+            while (parentDetails) {
+              parentDetails.open = true;
+              parentDetails = parentDetails.parentElement.closest('details');
+            }
+          }
         }
         if (pendingProjectStep) {
           var selectedStep = selectedProject.querySelector('[data-step-id="' + pendingProjectStep + '"]');
@@ -1523,7 +1817,32 @@
         mentionSelect.value = '';
       } else if (action === 'select-conversation') {
         selectedTeamConversation = target.dataset.conversation || 'group';
+        teamChatMobileOpen = true;
         renderDashboard();
+      } else if (action === 'chat-filter') {
+        selectedTeamChatTab = target.dataset.filter || 'all';
+        renderDashboard();
+      } else if (action === 'new-chat') {
+        selectedTeamChatTab = 'direct';
+        renderDashboard();
+        var chatSearch = portalRoot.querySelector('[data-team-chat-search]');
+        if (chatSearch) chatSearch.focus();
+      } else if (action === 'chat-back') {
+        teamChatMobileOpen = false;
+        renderDashboard();
+      } else if (action === 'step-advance') {
+        if (activeProfile.role !== 'freelancer') throw new Error('Only assigned staff can update this task.');
+        var nextStatus = target.dataset.status;
+        if (['in_progress', 'in_review'].indexOf(nextStatus) === -1) throw new Error('This task cannot be moved to that status.');
+        target.disabled = true;
+        var advance = await client.rpc('update_project_step', {
+          p_step_id: target.dataset.step,
+          p_status: nextStatus,
+          p_feedback: null
+        });
+        if (advance.error) throw advance.error;
+        await loadWorkspace();
+        setStatus(nextStatus === 'in_review' ? 'Nice work. Sent for review.' : 'Task started. Your client tracker is up to date.', false);
       } else if (action === 'remove-mention') {
         var removeMentionForm = target.closest('form[data-action="team-message"]');
         var mentionId = target.dataset.mentionId;
@@ -1764,7 +2083,16 @@
     pendingProjectSection = link.dataset.openSection || '';
     pendingProjectStep = link.dataset.openStep || '';
     pendingTeamMessageOpen = link.dataset.openTeamMessage || '';
-    if (pendingTeamMessageOpen) selectedTeamConversation = 'group';
+    teamChatMobileOpen = false;
+    if (pendingTeamMessageOpen) {
+      selectedTeamConversation = 'group';
+      teamChatMobileOpen = true;
+    }
+    if (link.dataset.openConversation) {
+      selectedTeamConversation = link.dataset.openConversation;
+      teamChatMobileOpen = true;
+      pendingTeamMessageDraft = link.dataset.teamDraft || '';
+    }
     var nextState = Object.assign({}, window.history.state || {}, { clientDeskPage: currentPortalPage });
     var pageUrl = new URL(window.location.href);
     pageUrl.searchParams.set('portalPage', currentPortalPage);
@@ -1829,9 +2157,37 @@
   }
 
   function handlePortalSearch(event) {
+    var chatSearchInput = event.target.closest('[data-team-chat-search]');
+    if (chatSearchInput) {
+      teamChatSearch = chatSearchInput.value;
+      var query = teamChatSearch.trim().toLowerCase();
+      var conversations = portalRoot.querySelectorAll('.client-desk-conversation');
+      var visible = 0;
+      conversations.forEach(function (item) {
+        item.hidden = Boolean(query) && !item.textContent.toLowerCase().includes(query);
+        if (!item.hidden) visible++;
+      });
+      var empty = portalRoot.querySelector('[data-team-chat-empty]');
+      if (empty) empty.hidden = visible > 0;
+      return;
+    }
     var input = event.target.closest('[data-portal-search]');
     if (!input) return;
     var query = input.value.trim().toLowerCase();
+    if (currentPortalPage === 'tasks') {
+      var tasks = portalRoot.querySelectorAll('.client-desk-staff-task');
+      var visibleTasks = 0;
+      tasks.forEach(function (task) {
+        task.hidden = Boolean(query) && !task.textContent.toLowerCase().includes(query);
+        if (!task.hidden) visibleTasks++;
+      });
+      portalRoot.querySelectorAll('.client-desk-task-group').forEach(function (group) {
+        group.hidden = !group.querySelector('.client-desk-staff-task:not([hidden])');
+      });
+      var taskEmpty = portalRoot.querySelector('[data-task-search-empty]');
+      if (taskEmpty) taskEmpty.hidden = !query || visibleTasks > 0;
+      return;
+    }
     var projects = portalRoot.querySelectorAll('[data-project-details]');
     var visibleCount = 0;
     projects.forEach(function (project) {
