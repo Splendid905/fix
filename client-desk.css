@@ -255,6 +255,9 @@
 .client-desk-payment-list { display: grid; gap: .65rem; margin: .7rem 0; }
 .client-desk-payment { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem; padding: .8rem; border: 1px solid var(--desk-line); }
 .client-desk-payment p { margin: .2rem 0; }
+.client-desk-payment-guidance { margin-top: .75rem; color: var(--desk-muted); font-size: .78rem; }
+.client-desk-payment-guidance summary { width: fit-content; color: var(--desk-accent-text); cursor: pointer; }
+.client-desk-payment-guidance p { max-width: 48rem; margin: .5rem 0 0; }
 .client-desk-checkout-options { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .55rem; }
 .client-desk-empty { padding: 2rem 1rem; border: 1px dashed var(--desk-line); color: var(--muted); text-align: center; }
 .client-desk-empty h3 { color: var(--fg); }
