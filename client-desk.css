@@ -176,6 +176,7 @@
 .client-desk-head p { max-width: 42rem; margin: .6rem 0 0; color: var(--muted); }
 .client-desk-account { display: flex; align-items: center; gap: .75rem; }
 .client-desk-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 18rem; gap: 2rem; padding-top: 1.5rem; }
+.client-desk-workspace--wide { grid-template-columns: minmax(0, 1fr); }
 .client-desk-main { min-width: 0; }
 .client-desk-sidebar { border-left: 1px solid var(--desk-line); padding-left: 1.25rem; }
 .client-desk-sidebar h2 { font-size: 1.15rem; }
