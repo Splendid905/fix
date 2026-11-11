@@ -33,10 +33,40 @@
 .client-desk-status::before { content: ""; width: .4rem; height: .4rem; background: currentColor; }
 .client-desk-money { color: var(--fg) !important; font: 600 1.15rem var(--mono) !important; }
 .client-desk-project { margin: 1rem 0; border-top: 1px solid var(--desk-line); }
-.client-desk-project summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 0; cursor: pointer; list-style: none; }
+.client-desk-project summary { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1rem; padding: 1rem 1.75rem 1rem 0; cursor: pointer; list-style: none; }
 .client-desk-project summary::-webkit-details-marker { display: none; }
-.client-desk-project summary::after { content: "+"; color: var(--accent); font: 1.4rem var(--mono); }
+.client-desk-project summary::after { position: absolute; top: 1rem; right: 0; content: "+"; color: var(--accent); font: 1.4rem var(--mono); }
 .client-desk-project[open] summary::after { content: "-"; }
+.client-desk-project-heading { flex: 1; min-width: 10rem; }
+.client-desk-project-summary-status { display: grid; justify-items: end; gap: .3rem; min-width: 7rem; }
+.client-desk-project-percent { color: var(--fg); font: 600 .72rem var(--mono); }
+.client-desk-project-summary-brief { display: grid; flex-basis: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; padding-top: .65rem; border-top: 1px solid var(--desk-line); }
+.client-desk-project-summary-brief > span { display: grid; gap: .2rem; color: var(--muted); font-size: .82rem; overflow-wrap: anywhere; }
+.client-desk-project-summary-brief strong { color: var(--muted); font: 500 .65rem var(--mono); text-transform: uppercase; }
+.client-desk-progress { width: 100%; height: .45rem; overflow: hidden; border: 1px solid var(--desk-line); background: rgba(242,242,242,.06); }
+.client-desk-progress span { display: block; height: 100%; background: var(--accent); transition: width .2s ease; }
+.client-desk-progress-panel { margin: .25rem 0 1.5rem; padding: 1rem; border: 1px solid var(--desk-line); background: var(--desk-panel); }
+.client-desk-project-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; margin-bottom: 1.25rem; }
+.client-desk-project-summary > div { min-width: 0; }
+.client-desk-project-summary strong, .client-desk-project-summary small { display: block; overflow-wrap: anywhere; }
+.client-desk-project-summary strong { font-size: .9rem; }
+.client-desk-project-summary small { margin-top: .2rem; color: var(--muted); font-size: .75rem; }
+.client-desk-progress-panel > h3 { margin: 0 0 .75rem; font-size: 1.05rem; }
+.client-desk-stage { padding: .8rem 0; border-top: 1px solid var(--desk-line); }
+.client-desk-stage-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(5rem, 8rem); align-items: center; gap: .75rem; }
+.client-desk-stage-head > div { display: flex; justify-content: space-between; gap: .5rem; }
+.client-desk-stage-head h3 { margin: 0; font-size: .92rem; }
+.client-desk-stage-head > div > span { color: var(--muted); font: .7rem var(--mono); }
+.client-desk-steps { display: grid; gap: .55rem; margin: .75rem 0 0; padding: 0; list-style: none; }
+.client-desk-step { display: grid; grid-template-columns: minmax(0, 1fr) minmax(9rem, .5fr); align-items: center; gap: .6rem 1rem; padding: .65rem; border: 1px solid rgba(242,242,242,.1); }
+.client-desk-step-copy { display: grid; gap: .18rem; }
+.client-desk-step-copy strong { font-size: .85rem; }
+.client-desk-step-copy small { color: var(--muted); font-size: .72rem; }
+.client-desk-step-state { color: var(--accent); font: 600 .65rem var(--mono); text-transform: uppercase; }
+.client-desk-step-control select, .client-desk-step-control input, .client-desk-step-review textarea { width: 100%; min-height: 2.5rem; padding: .5rem .6rem; border: 1px solid var(--desk-line); border-radius: 2px; background: var(--bg); color: var(--fg); font: inherit; }
+.client-desk-step-assignment { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) auto; align-items: end; gap: .6rem; }
+.client-desk-step-review { grid-column: 1 / -1; display: grid; gap: .5rem; }
+.client-desk-step-review textarea { min-height: 4rem; }
 .client-desk-project-body { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(13rem, .8fr); gap: 1.25rem; padding: .25rem 0 1.4rem; }
 .client-desk-timeline { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
 .client-desk-timeline li { position: relative; min-height: 2.6rem; margin-left: .35rem; padding: 0 0 .8rem 1.5rem; border-left: 1px solid var(--desk-line); color: var(--muted); font-size: .85rem; }
@@ -93,6 +123,12 @@
   .client-desk-account { width: 100%; justify-content: space-between; }
   .client-desk-section-head { align-items: flex-start; flex-direction: column; }
   .client-desk-account-role { grid-template-columns: minmax(0, 1fr); }
+  .client-desk-project-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .client-desk-step { grid-template-columns: minmax(0, 1fr); }
+  .client-desk-step-assignment { grid-template-columns: minmax(0, 1fr); }
+  .client-desk-step-review { grid-column: 1; }
+  .client-desk-project summary { align-items: flex-start; }
+  .client-desk-project-summary-brief { grid-template-columns: minmax(0, 1fr); gap: .55rem; }
   .client-desk-table { min-width: 38rem; }
   .client-desk-controls { display: grid; grid-template-columns: 1fr 1fr; }
 }

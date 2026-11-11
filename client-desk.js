@@ -4,6 +4,8 @@
   var client = null;
   var portalRoot = null;
   var activeProfile = null;
+  var progressChannel = null;
+  var progressRefreshTimer = null;
   var projectCache = [];
   var relatedData = {};
   var categories = [
@@ -22,6 +24,12 @@
     ['handover', 'Handover'],
     ['complete', 'Complete'],
     ['paused', 'Paused']
+  ];
+  var stepStatuses = [
+    ['not_started', 'Not started'],
+    ['in_progress', 'In progress'],
+    ['in_review', 'In review'],
+    ['done', 'Done']
   ];
 
   function escapeHtml(value) {
@@ -127,6 +135,94 @@
     return (relatedData.quotes || []).filter(function (row) { return row.project_id === projectId; });
   }
 
+  function projectStages(projectId) {
+    return (relatedData.stages || []).filter(function (row) { return row.project_id === projectId; });
+  }
+
+  function stageSteps(stageId) {
+    return (relatedData.steps || []).filter(function (row) { return row.stage_id === stageId; });
+  }
+
+  function stepStatusLabel(status) {
+    var match = stepStatuses.find(function (entry) { return entry[0] === status; });
+    return match ? match[1] : 'Not started';
+  }
+
+  function stageProgress(stage) {
+    var steps = stageSteps(stage.id);
+    if (!steps.length) return 0;
+    return Math.round(steps.filter(function (step) { return step.status === 'done'; }).length / steps.length * 100);
+  }
+
+  function projectProgress(projectId) {
+    var stages = projectStages(projectId);
+    if (!stages.length) return 0;
+    return Math.round(stages.reduce(function (total, stage) { return total + stageProgress(stage); }, 0) / stages.length);
+  }
+
+  function renderProgressBar(value, label) {
+    return '<div class="client-desk-progress" role="progressbar" aria-label="' + escapeHtml(label) + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + value + '"><span style="width:' + value + '%"></span></div>';
+  }
+
+  function projectOverview(project) {
+    var allSteps = (relatedData.steps || []).filter(function (step) { return step.project_id === project.id; });
+    var stages = projectStages(project.id);
+    allSteps.sort(function (left, right) {
+      var leftStage = stages.findIndex(function (stage) { return stage.id === left.stage_id; });
+      var rightStage = stages.findIndex(function (stage) { return stage.id === right.stage_id; });
+      return leftStage - rightStage || left.position - right.position;
+    });
+    var reviewStep = allSteps.find(function (step) { return step.status === 'in_review'; });
+    var nextStep = allSteps.find(function (step) { return step.status !== 'done'; });
+    var customerItem = projectChecklist(project.id).find(function (item) { return item.owner_kind === 'customer' && !item.completed_at; });
+    var lastEvent = projectEvents(project.id).slice(-1)[0];
+    return {
+      clientAction: customerItem ? customerItem.title : reviewStep ? 'Review ' + reviewStep.title : 'No action needed from you',
+      nextMilestone: nextStep ? nextStep.title : 'All project steps complete',
+      lastEvent: lastEvent
+    };
+  }
+
+  function renderProjectProgress(project) {
+    var stages = projectStages(project.id);
+    var overview = projectOverview(project);
+    var projectFreelancers = (relatedData.teamAssignments || []).filter(function (assignment) {
+      return assignment.project_id === project.id;
+    }).map(function (assignment) { return assignment.user_id; });
+    var stagesMarkup = stages.map(function (stage) {
+      var steps = stageSteps(stage.id);
+      var percent = stageProgress(stage);
+      var stepMarkup = steps.map(function (step) {
+        var ownerProfile = step.owner_id && (relatedData.profiles || []).find(function (profile) { return profile.id === step.owner_id; });
+        var owner = step.owner_id === activeProfile.id ? 'You' : step.owner_display_name || (ownerProfile && ownerProfile.display_name) || (step.owner_id ? 'Assigned team member' : 'FixerCtrl team');
+        var details = owner + (step.due_at ? ' / Due ' + dateLabel(step.due_at) : '') + (step.completed_at ? ' / Completed ' + dateLabel(step.completed_at) : '');
+        var staffControls = activeProfile.role === 'owner' || (activeProfile.role === 'freelancer' && step.status !== 'done')
+          ? '<label class="client-desk-step-control"><span class="client-desk-label">Update status</span><select data-action="step-status" data-step="' + escapeHtml(step.id) + '" data-current-status="' + escapeHtml(step.status) + '">' + stepStatuses.filter(function (entry) { return activeProfile.role === 'owner' || entry[0] !== 'done'; }).map(function (entry) {
+            return '<option value="' + entry[0] + '" ' + (entry[0] === step.status ? 'selected' : '') + '>' + entry[1] + '</option>';
+          }).join('') + '</select></label>'
+          : '';
+        var assignedFreelancers = projectFreelancers.map(function (userId) {
+          return (relatedData.freelancers || []).find(function (profile) { return profile.id === userId; });
+        }).filter(Boolean);
+        var ownerOptions = assignedFreelancers.map(function (profile) {
+          return '<option value="' + escapeHtml(profile.id) + '" ' + (profile.id === step.owner_id ? 'selected' : '') + '>' + escapeHtml(profile.display_name || profile.email) + '</option>';
+        }).join('');
+        if (step.owner_id && !assignedFreelancers.some(function (profile) { return profile.id === step.owner_id; })) {
+          ownerOptions = '<option value="' + escapeHtml(step.owner_id) + '" selected>Reassignment needed</option>' + ownerOptions;
+        }
+        var ownerControls = activeProfile.role === 'owner'
+          ? '<div class="client-desk-step-assignment"><label class="client-desk-step-control"><span class="client-desk-label">Step owner</span><select data-step-owner="' + escapeHtml(step.id) + '"><option value="">Unassigned</option>' + ownerOptions + '</select></label><label class="client-desk-step-control"><span class="client-desk-label">Due date</span><input type="date" data-step-due="' + escapeHtml(step.id) + '" value="' + escapeHtml(step.due_at ? new Date(step.due_at).toISOString().slice(0, 10) : '') + '"></label><button class="btn ghost" type="button" data-action="assign-step" data-step="' + escapeHtml(step.id) + '">Save owner and date</button></div>'
+          : '';
+        var clientReview = activeProfile.role === 'customer' && step.status === 'in_review'
+          ? '<div class="client-desk-step-review"><label class="client-desk-label" for="feedback-' + escapeHtml(step.id) + '">Changes needed? (optional for approval)</label><textarea id="feedback-' + escapeHtml(step.id) + '" data-review-feedback="' + escapeHtml(step.id) + '" maxlength="1000" placeholder="Tell us what to adjust before requesting changes"></textarea><div class="client-desk-owner-tools"><button class="btn" type="button" data-action="step-review" data-step="' + escapeHtml(step.id) + '" data-status="done">Approve step</button><button class="btn ghost" type="button" data-action="step-review" data-step="' + escapeHtml(step.id) + '" data-status="in_progress">Request changes</button></div></div>'
+          : '';
+        return '<li class="client-desk-step"><div class="client-desk-step-copy"><span class="client-desk-step-state">' + escapeHtml(stepStatusLabel(step.status)) + '</span><strong>' + escapeHtml(step.title) + '</strong><small>' + escapeHtml(details) + '</small></div>' + staffControls + ownerControls + clientReview + '</li>';
+      }).join('');
+      return '<section class="client-desk-stage"><div class="client-desk-stage-head"><div><h3>' + escapeHtml(stage.title) + '</h3><span>' + percent + '% complete</span></div>' + renderProgressBar(percent, stage.title + ' progress') + '</div><ol class="client-desk-steps">' + stepMarkup + '</ol></section>';
+    }).join('');
+    return '<section class="client-desk-progress-panel" aria-label="Project progress"><div class="client-desk-project-summary"><div><span class="client-desk-label">Overall progress</span><strong>' + projectProgress(project.id) + '%</strong>' + renderProgressBar(projectProgress(project.id), 'Overall project progress') + '</div><div><span class="client-desk-label">Next milestone</span><strong>' + escapeHtml(overview.nextMilestone) + '</strong></div><div><span class="client-desk-label">Next action from you</span><strong>' + escapeHtml(overview.clientAction) + '</strong></div><div><span class="client-desk-label">Last update</span><strong>' + escapeHtml(overview.lastEvent ? overview.lastEvent.title : 'No updates yet') + '</strong><small>' + escapeHtml(overview.lastEvent ? dateLabel(overview.lastEvent.created_at) : 'Updates will appear here') + '</small></div></div><h3>Project stages</h3>' + (stagesMarkup || '<p class="client-desk-footnote">The project workflow will appear here when available.</p>') + '</section>';
+  }
+
   function renderTimeline(project) {
     var events = projectEvents(project.id);
     if (!events.length) return '<p class="client-desk-footnote">Progress updates will appear here as work moves forward.</p>';
@@ -222,8 +318,9 @@
   function renderProject(project) {
     var status = statuses.find(function (entry) { return entry[0] === project.status; });
     var freelancer = activeProfile.role === 'freelancer';
-    return '<details class="client-desk-project" data-project-details><summary><span><span class="client-desk-label">' + escapeHtml(project.reference || project.id.slice(0, 8)) + ' / ' + escapeHtml(project.service_category.replace('_', ' ')) + '</span><strong>' + escapeHtml(project.title) + '</strong></span><span class="client-desk-status">' + escapeHtml(status ? status[1] : project.status) + '</span></summary>' +
-      '<div class="client-desk-project-body"><div><div class="client-desk-section-head"><h2>Progress</h2><span class="client-desk-footnote">Updated ' + escapeHtml(dateLabel(project.updated_at)) + '</span></div>' + (project.next_action ? '<div class="client-desk-notice"><div><strong>Next step</strong><p>' + escapeHtml(project.next_action) + '</p></div></div>' : '') + renderTimeline(project) +
+    var overview = projectOverview(project);
+    return '<details class="client-desk-project" data-project-details data-project-id="' + escapeHtml(project.id) + '"><summary><span class="client-desk-project-heading"><span class="client-desk-label">' + escapeHtml(project.reference || project.id.slice(0, 8)) + ' / ' + escapeHtml(project.service_category.replace('_', ' ')) + '</span><strong>' + escapeHtml(project.title) + '</strong></span><div class="client-desk-project-summary-status"><span class="client-desk-status">' + escapeHtml(status ? status[1] : project.status) + '</span><span class="client-desk-project-percent">' + projectProgress(project.id) + '% complete</span>' + renderProgressBar(projectProgress(project.id), project.title + ' progress') + '</div><span class="client-desk-project-summary-brief"><span><strong>Next milestone</strong>' + escapeHtml(overview.nextMilestone) + '</span><span><strong>Action from you</strong>' + escapeHtml(overview.clientAction) + '</span><span><strong>Last update</strong>' + escapeHtml(overview.lastEvent ? overview.lastEvent.title + ' / ' + dateLabel(overview.lastEvent.created_at) : 'No updates yet') + '</span></span></summary>' +
+      renderProjectProgress(project) + '<div class="client-desk-project-body"><div><div class="client-desk-section-head"><h2>Activity</h2><span class="client-desk-footnote">Updated ' + escapeHtml(dateLabel(project.updated_at)) + '</span></div>' + (project.next_action ? '<div class="client-desk-notice"><div><strong>Next step</strong><p>' + escapeHtml(project.next_action) + '</p></div></div>' : '') + renderTimeline(project) +
       '<div class="client-desk-section-head"><h2>Conversation</h2></div>' + renderMessages(project) + '</div><div><h3>What is needed</h3>' + renderChecklist(project) + renderFiles(project) + (freelancer ? '' : '<div class="client-desk-section-head"><h2>Quote</h2></div>' + renderQuotes(project) + '<div class="client-desk-section-head"><h2>Payments</h2></div>' + renderInvoices(project)) + '</div></div>' + renderOwnerTools(project) + renderFreelancerTools(project) + '</details>';
   }
 
@@ -273,6 +370,38 @@
     return '<details><summary>Prepare quote and payment schedule</summary><form class="client-desk-message-form" data-action="quote" data-project="' + escapeHtml(project.id) + '"><div class="field"><label class="client-desk-label">Scope</label><textarea name="scope" required maxlength="5000"></textarea></div><div class="field"><label class="client-desk-label">Deliverables</label><textarea name="deliverables" required maxlength="3000"></textarea></div><div class="field"><label class="client-desk-label">Exclusions and third-party costs</label><textarea name="exclusions" maxlength="3000"></textarea></div><div class="client-desk-field-grid"><div class="field"><label class="client-desk-label">Quote total (ZAR)</label><input name="total" type="number" min="0.01" step="0.01" required></div><div class="field"><label class="client-desk-label">Quote valid until</label><input name="valid_until" type="date" required></div></div><h4>Payment milestones</h4><div data-milestone-list><div class="client-desk-field-grid" data-milestone-row><div class="field"><label class="client-desk-label">Milestone name</label><input name="milestone_description" required maxlength="240" placeholder="e.g. Project deposit"></div><div class="field"><label class="client-desk-label">Amount (ZAR)</label><input name="milestone_amount" type="number" min="0.01" step="0.01" required></div><div class="field"><label class="client-desk-label">Payment due</label><input name="milestone_due" type="date" required></div><div class="field"><label class="client-desk-label">Email invoice on</label><input name="milestone_send" type="datetime-local" required></div><button class="btn ghost" type="button" data-action="remove-milestone" aria-label="Remove payment milestone">Remove</button></div></div><button class="btn ghost" type="button" data-action="add-milestone">Add milestone</button><label class="client-desk-checkline"><input name="confirm" type="checkbox" required><span>I checked that the scope, total, dates, and milestone amounts are clear and add up to the quoted total.</span></label><button class="btn" type="submit">Send quote for customer approval</button></form></details>';
   }
 
+  function queueProgressRefresh() {
+    if (!activeProfile) return;
+    window.clearTimeout(progressRefreshTimer);
+    progressRefreshTimer = window.setTimeout(async function () {
+      progressRefreshTimer = null;
+      try {
+        await loadWorkspace();
+      } catch (error) {
+        setStatus(error.message || 'Live project updates could not be loaded. Refresh to try again.', true);
+      }
+    }, 250);
+  }
+
+  function subscribeProgressUpdates() {
+    if (!client || progressChannel) return;
+    progressChannel = client.channel('client-desk-progress')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'project_steps' }, queueProgressRefresh)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'project_events' }, queueProgressRefresh)
+      .subscribe(function (status) {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          setStatus('Live updates are temporarily unavailable. Use Refresh to check for project changes.', true);
+        }
+      });
+  }
+
+  function unsubscribeProgressUpdates() {
+    window.clearTimeout(progressRefreshTimer);
+    progressRefreshTimer = null;
+    if (client && progressChannel) client.removeChannel(progressChannel);
+    progressChannel = null;
+  }
+
   async function loadWorkspace() {
     var profileResult = await client.from('client_profiles').select('id,display_name,role').eq('id', activeProfile.id).single();
     if (profileResult.error) throw profileResult.error;
@@ -285,7 +414,7 @@
     if (projectResult.error) throw projectResult.error;
     projectCache = projectResult.data || [];
     var ids = projectCache.map(function (project) { return project.id; });
-    relatedData = { checklist: [], messages: [], invoices: [], quotes: [], events: [], files: [], profiles: [], providers: [], freelancers: [], teamAssignments: [] };
+    relatedData = { checklist: [], messages: [], invoices: [], quotes: [], events: [], files: [], profiles: [], providers: [], freelancers: [], teamAssignments: [], stages: [], steps: [] };
     if (ids.length) {
       var queries = await Promise.all([
         client.from('project_checklist').select('*').in('project_id', ids).order('position'),
@@ -294,9 +423,11 @@
         client.from('quotes').select('*').in('project_id', ids).order('version', { ascending: false }),
         client.from('project_events').select('*').in('project_id', ids).order('created_at'),
         client.from('project_files').select('*').in('project_id', ids).order('created_at'),
-        client.from('project_team_members').select('project_id,user_id').in('project_id', ids)
+        client.from('project_team_members').select('project_id,user_id').in('project_id', ids),
+        client.from('project_stages').select('*').in('project_id', ids).order('position'),
+        client.from('project_steps').select('*').in('project_id', ids).order('position')
       ]);
-      var names = ['checklist', 'messages', 'invoices', 'quotes', 'events', 'files', 'teamAssignments'];
+      var names = ['checklist', 'messages', 'invoices', 'quotes', 'events', 'files', 'teamAssignments', 'stages', 'steps'];
       queries.forEach(function (result, index) {
         if (result.error) throw result.error;
         relatedData[names[index]] = result.data || [];
@@ -320,6 +451,9 @@
   }
 
   function renderDashboard() {
+    var openProjectIds = Array.prototype.map.call(portalRoot.querySelectorAll('details[data-project-details][open]'), function (element) {
+      return element.dataset.projectId;
+    });
     var owner = activeProfile.role === 'owner';
     var freelancer = activeProfile.role === 'freelancer';
     var heading = owner ? 'Admin work queue' : freelancer ? 'Assigned work' : 'Your projects';
@@ -330,6 +464,12 @@
       (projectCache.length ? projectCache.map(renderProject).join('') : '<div class="client-desk-empty"><h3>' + emptyHeading + '</h3><p>' + emptyMessage + '</p></div>') +
       '</div><aside class="client-desk-sidebar">' + (freelancer ? '<h2>Assigned access</h2><p>You can view the projects assigned to your account, post client-visible progress and conversation updates, and share project files.</p><p>You cannot access client invoices, payment settings, private owner notes, or unassigned projects.</p>' : '<h2>Payment clarity</h2><p>Every quote states the agreed scope, total, due conditions, and any third-party costs before work begins.</p><p>Invoices are sent on the date shown in your agreed schedule. A project status change never charges you by itself.</p><p class="client-desk-footnote">Payments are processed by the selected provider. FixerCtrl does not store card details.</p>') + (!owner && !freelancer ? '<h2>Indicative service guide</h2><ul><li>Landing page: R1,500–R3,000</li><li>Up to 5 website pages: R3,500–R7,500</li><li>Website updates: R250/hour</li><li>Setup: from R500</li><li>Features: from R800</li></ul><p class="client-desk-footnote">IT and security work is quoted after review. These are guides, not your quote. <a href="#/freelancer">Full pricing details</a></p>' : '') + '</aside></div>';
     renderShell(content, activeProfile);
+    openProjectIds.forEach(function (projectId) {
+      var details = Array.prototype.find.call(portalRoot.querySelectorAll('details[data-project-details]'), function (element) {
+        return element.dataset.projectId === projectId;
+      });
+      if (details) details.open = true;
+    });
   }
 
   async function submitRequest(form) {
@@ -483,6 +623,32 @@
         await client.auth.signOut();
         activeProfile = null;
         renderSignIn();
+      } else if (action === 'step-review') {
+        target.disabled = true;
+        var feedbackField = portalRoot.querySelector('[data-review-feedback="' + target.dataset.step + '"]');
+        var feedback = feedbackField ? feedbackField.value.trim() : '';
+        var review = await client.rpc('update_project_step', {
+          p_step_id: target.dataset.step,
+          p_status: target.dataset.status,
+          p_feedback: feedback || null
+        });
+        if (review.error) throw review.error;
+        await loadWorkspace();
+        setStatus(target.dataset.status === 'done' ? 'Step approved. The project progress has been updated.' : 'Changes requested. Your feedback is in the project activity feed.', false);
+      } else if (action === 'assign-step') {
+        target.disabled = true;
+        var stepRow = target.closest('.client-desk-step');
+        var ownerField = stepRow && stepRow.querySelector('[data-step-owner]');
+        var dueField = stepRow && stepRow.querySelector('[data-step-due]');
+        if (!ownerField || !dueField) throw new Error('The step assignment controls could not be found.');
+        var assignment = await client.rpc('owner_assign_project_step', {
+          p_step_id: target.dataset.step,
+          p_owner_id: ownerField.value || null,
+          p_due_at: dueField.value ? new Date(dueField.value + 'T23:59:00').toISOString() : null
+        });
+        if (assignment.error) throw assignment.error;
+        await loadWorkspace();
+        setStatus('Step owner and due date saved.', false);
       } else if (action === 'new-request') {
         var panel = portalRoot.querySelector('[data-request-panel]');
         if (panel) { panel.open = true; panel.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
@@ -631,8 +797,33 @@
     }
   }
 
-  function handleChange(event) {
+  async function handleChange(event) {
     var target = event.target.closest('[data-action="set-status"], [data-action="set-next"]');
+    var stepTarget = event.target.closest('[data-action="step-status"]');
+    if (stepTarget) {
+      var oldStatus = stepTarget.dataset.currentStatus;
+      stepTarget.disabled = true;
+      try {
+        var stepUpdate = await client.rpc('update_project_step', {
+          p_step_id: stepTarget.dataset.step,
+          p_status: stepTarget.value,
+          p_feedback: null
+        });
+        if (stepUpdate.error) {
+          stepTarget.value = oldStatus;
+          setStatus(stepUpdate.error.message || 'The project step could not be updated.', true);
+          return;
+        }
+        await loadWorkspace();
+        setStatus('Step updated. Project progress and activity are current.', false);
+      } catch (error) {
+        stepTarget.value = oldStatus;
+        setStatus(error.message || 'The project step could not be updated.', true);
+      } finally {
+        if (document.body.contains(stepTarget)) stepTarget.disabled = false;
+      }
+      return;
+    }
     if (!target || (activeProfile.role !== 'owner' && activeProfile.role !== 'freelancer')) return;
     var project = projectCache.find(function (item) { return item.id === target.dataset.project; });
     if (project) project[target.dataset.action === 'set-status' ? 'status' : 'next_action'] = target.value;
@@ -640,6 +831,7 @@
 
   async function onSession(session) {
     if (!session) {
+      unsubscribeProgressUpdates();
       activeProfile = null;
       renderSignIn();
       return;
@@ -647,6 +839,7 @@
     activeProfile = { id: session.user.id, email: session.user.email };
     try {
       await loadWorkspace();
+      subscribeProgressUpdates();
     } catch (error) {
       renderShell('<div class="client-desk-notice"><div><strong>Workspace could not load</strong><p>' + escapeHtml(error.message || 'Please refresh and try again.') + '</p></div></div>', activeProfile);
     }
