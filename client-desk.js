@@ -9,6 +9,9 @@
   var currentPortalSection = 'Dashboard';
   var currentPortalPage = 'dashboard';
   var pendingProjectOpen = '';
+  var pendingProjectSection = '';
+  var pendingProjectStep = '';
+  var pendingTeamMessageOpen = '';
   var selectedTeamConversation = 'group';
   var calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   var portalTheme = 'dark';
@@ -88,7 +91,8 @@
     var actionList = actions.length
       ? '<ul>' + actions.map(function (action) {
         var projectId = action.target.replace('clientDeskProject-', '');
-        return '<li><span>' + escapeHtml(action.label) + '</span><a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(projectId) + '">Review</a></li>';
+        var targetPage = activeProfile.role === 'freelancer' ? 'tasks' : 'projects';
+        return '<li><span>' + escapeHtml(action.label) + '</span><a href="#portal-' + targetPage + '" data-portal-page="' + targetPage + '" data-open-project="' + escapeHtml(projectId) + '" data-open-section="deliverables">View tracker</a></li>';
       }).join('') + '</ul>'
       : '<p class="client-desk-footnote">You’re all caught up. There are no actions requiring attention.</p>';
     return '<section class="client-desk-attention" aria-labelledby="attention-heading"><div class="client-desk-attention-heading"><span class="client-desk-attention-icon" aria-hidden="true">!</span><h2 id="attention-heading">Requires Your Attention</h2></div>' + actionList + '</section>';
@@ -157,12 +161,14 @@
       { group: 'Team', label: 'Team Management', icon: 'team', page: 'team' },
       { group: 'Team', label: 'Team Communication', icon: 'messages', page: 'communication', mobilePrimary: true },
       { group: 'Team', label: 'Calendar', icon: 'calendar', page: 'calendar' },
+      { group: 'Insights', label: 'Analytics & Reports', icon: 'finance', page: 'analytics' },
       { group: 'Finance', label: 'Finance', icon: 'finance', page: 'finance' },
       { group: 'Admin', label: 'Settings', icon: 'settings', page: 'settings' }
     ];
     if (profile.role === 'freelancer') return [
       { group: 'Overview', label: 'Dashboard', icon: 'home', page: 'dashboard', mobilePrimary: true },
       { group: 'Work', label: 'My Tasks', icon: 'tasks', page: 'tasks', mobilePrimary: true },
+      { group: 'Work', label: 'Performance', icon: 'finance', page: 'performance' },
       { group: 'Work', label: 'Documents', icon: 'files', page: 'documents' },
       { group: 'Team', label: 'Team Communication', icon: 'messages', page: 'communication', mobilePrimary: true },
       { group: 'Team', label: 'Calendar', icon: 'calendar', page: 'calendar', mobilePrimary: true },
@@ -220,7 +226,11 @@
       ? messages.map(function (message) {
         var own = message.author_id === activeProfile.id;
         var initialsText = String(message.author_display_name || 'TM').trim().split(/\s+/).slice(0, 2).map(function (part) { return part.charAt(0).toUpperCase(); }).join('');
-        return '<li class="client-desk-chat-message' + (own ? ' is-own' : '') + '"><span class="client-desk-chat-avatar" aria-hidden="true">' + escapeHtml(initialsText || 'TM') + '</span><div class="client-desk-chat-bubble"><div class="client-desk-chat-meta"><strong>' + escapeHtml(own ? 'You' : message.author_display_name || 'Team member') + '</strong><time datetime="' + escapeHtml(message.created_at) + '">' + escapeHtml(new Intl.DateTimeFormat('en-ZA', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(message.created_at))) + '</time></div><p>' + escapeHtml(message.body) + '</p></div></li>';
+        var attachments = (relatedData.teamAttachments || []).filter(function (attachment) { return attachment.message_id === message.id; });
+        var attachmentMarkup = attachments.map(function (attachment) {
+          return '<a class="client-desk-chat-attachment" href="' + escapeHtml(attachment.signed_url || '#') + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(attachment.file_name) + '</a><small class="client-desk-attachment-expiry">Available until ' + escapeHtml(dateLabel(attachment.expires_at)) + '</small>';
+        }).join('');
+        return '<li class="client-desk-chat-message' + (own ? ' is-own' : '') + '" id="teamMessage-' + escapeHtml(message.id) + '"><span class="client-desk-chat-avatar" aria-hidden="true">' + escapeHtml(initialsText || 'TM') + '</span><div class="client-desk-chat-bubble"><div class="client-desk-chat-meta"><strong>' + escapeHtml(own ? 'You' : message.author_display_name || 'Team member') + '</strong><time datetime="' + escapeHtml(message.created_at) + '">' + escapeHtml(new Intl.DateTimeFormat('en-ZA', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(message.created_at))) + '</time></div><p>' + escapeHtml(message.body) + '</p>' + (attachmentMarkup ? '<div class="client-desk-chat-attachments">' + attachmentMarkup + '</div>' : '') + '</div></li>';
       }).join('')
       : '<li class="client-desk-chat-empty">No messages here yet. Start the conversation with a clear update or question.</li>';
     var conversations = '<button type="button" class="client-desk-conversation' + (conversation === 'group' ? ' is-selected' : '') + '" data-action="select-conversation" data-conversation="group"><span class="client-desk-chat-avatar" aria-hidden="true">Team</span><span><strong>Everyone</strong><small>Group conversation</small></span></button>' +
@@ -228,7 +238,12 @@
         var selected = entry.id === conversation;
         return '<button type="button" class="client-desk-conversation' + (selected ? ' is-selected' : '') + '" data-action="select-conversation" data-conversation="' + escapeHtml(entry.id) + '"><span class="client-desk-chat-avatar" aria-hidden="true">' + escapeHtml(initials({ display_name: entry.display_name })) + '</span><span><strong>' + escapeHtml(entry.display_name) + '</strong><small>Private conversation</small></span></button>';
       }).join('');
-    return '<section class="client-desk-team-communication" id="clientDeskTeamCommunication" data-portal-section="teamCommunication"><div class="client-desk-chat-layout"><aside class="client-desk-chat-sidebar"><h2>Conversations</h2>' + conversations + '</aside><div class="client-desk-chat-main"><header><div class="client-desk-chat-avatar" aria-hidden="true">' + (person ? escapeHtml(initials({ display_name: person.display_name })) : 'Team') + '</div><div><h2>' + escapeHtml(person ? person.display_name : 'Everyone') + '</h2><p>' + (person ? 'Private staff conversation' : 'Group conversation for the whole staff team') + '</p></div></header><ol class="client-desk-team-message-list" aria-live="polite">' + chatItems + '</ol><form class="client-desk-message-form client-desk-chat-compose" data-action="team-message" data-recipient="' + (person ? escapeHtml(person.id) : '') + '"><label class="client-desk-label" for="teamMessage">Message ' + escapeHtml(person ? person.display_name : 'the team') + '</label><textarea id="teamMessage" name="body" maxlength="4000" required placeholder="Write a message..." rows="2"></textarea><button class="btn" type="submit">Send Message</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></div></div></section>';
+    var mentionPicker = conversation === 'group' && directory.length
+      ? '<div class="client-desk-mention-picker"><label class="client-desk-label" for="teamMentionSelect">Tag a teammate</label><div><select id="teamMentionSelect" data-mention-select><option value="">Select a teammate</option>' + directory.map(function (entry) {
+        return '<option value="' + escapeHtml(entry.id) + '">' + escapeHtml(entry.display_name) + '</option>';
+      }).join('') + '</select><button class="btn ghost" type="button" data-action="insert-mention">Insert @ mention</button></div><div class="client-desk-mention-tags" data-mention-tags></div></div>'
+      : '';
+    return '<section class="client-desk-team-communication" id="clientDeskTeamCommunication" data-portal-section="teamCommunication"><div class="client-desk-chat-layout"><aside class="client-desk-chat-sidebar"><h2>Conversations</h2>' + conversations + '</aside><div class="client-desk-chat-main"><header><div class="client-desk-chat-avatar" aria-hidden="true">' + (person ? escapeHtml(initials({ display_name: person.display_name })) : 'Team') + '</div><div><h2>' + escapeHtml(person ? person.display_name : 'Everyone') + '</h2><p>' + (person ? 'Private staff conversation' : 'Group conversation for the whole staff team') + '</p></div></header><ol class="client-desk-team-message-list" aria-live="polite">' + chatItems + '</ol><form class="client-desk-message-form client-desk-chat-compose" data-action="team-message" data-recipient="' + (person ? escapeHtml(person.id) : '') + '"><label class="client-desk-label" for="teamMessage">Message ' + escapeHtml(person ? person.display_name : 'the team') + '</label><textarea id="teamMessage" name="body" maxlength="4000" required placeholder="Write a message..." rows="2"></textarea>' + mentionPicker + '<label class="client-desk-label" for="teamAttachment">Attachment (optional; removed after 30 days)</label><input id="teamAttachment" name="attachment" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"><button class="btn" type="submit">Send Message</button><p class="client-desk-footnote">Only teammates you tag in a group message receive a notification. Attachments are available for 30 days.</p><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></div></div></section>';
   }
 
   function portalPageTitle(page) {
@@ -241,6 +256,8 @@
       communication: 'Team Communication',
       calendar: 'Calendar',
       finance: 'Finance',
+      analytics: 'Analytics & Reports',
+      performance: 'Performance',
       settings: 'Settings',
       documents: 'Documents',
       messages: 'Messages',
@@ -252,8 +269,8 @@
 
   function portalPageAllowed(page, role) {
     var allowed = {
-      owner: ['dashboard', 'projects', 'clients', 'team', 'communication', 'calendar', 'finance', 'settings'],
-      freelancer: ['dashboard', 'tasks', 'documents', 'communication', 'calendar', 'profile'],
+      owner: ['dashboard', 'projects', 'clients', 'team', 'communication', 'calendar', 'analytics', 'finance', 'settings'],
+      freelancer: ['dashboard', 'tasks', 'performance', 'documents', 'communication', 'calendar', 'profile'],
       customer: ['dashboard', 'projects', 'documents', 'messages', 'billing', 'profile']
     };
     return Boolean(allowed[role] && allowed[role].indexOf(page) !== -1);
@@ -277,7 +294,7 @@
       var due = taskSteps.filter(function (step) { return String(step.due_at).slice(0, 10) === key; });
       var cells = due.slice(0, 3).map(function (step) {
         var projectPage = activeProfile.role === 'freelancer' ? 'tasks' : 'projects';
-        return '<a href="#portal-' + projectPage + '" data-portal-page="' + projectPage + '" data-open-project="' + escapeHtml(step.project_id) + '" title="' + escapeHtml(step.title) + '">' + escapeHtml(step.title) + '</a>';
+        return '<a href="#portal-' + projectPage + '" data-portal-page="' + projectPage + '" data-open-project="' + escapeHtml(step.project_id) + '" data-open-section="deliverables" data-open-step="' + escapeHtml(step.id) + '" title="' + escapeHtml(step.title) + '">' + escapeHtml(step.title) + '</a>';
       }).join('');
       if (due.length > 3) cells += '<small>+' + (due.length - 3) + ' more</small>';
       days.push('<div class="client-desk-calendar-day' + (date.getMonth() === calendarMonth.getMonth() ? '' : ' is-outside') + (key === new Date().toISOString().slice(0, 10) ? ' is-today' : '') + '"><strong>' + date.getDate() + '</strong>' + cells + '</div>');
@@ -298,13 +315,42 @@
   }
 
   function notificationEvents() {
-    return (relatedData.events || []).slice().sort(function (left, right) {
+    var events = (relatedData.events || []).slice();
+    (relatedData.teamMentions || []).forEach(function (mention) {
+      events.push({
+        id: mention.id,
+        event_kind: 'team_mention',
+        message_id: mention.message_id,
+        title: 'Mentioned by ' + mention.author_display_name,
+        description: mention.message_preview,
+        created_at: mention.created_at,
+        read_at: mention.read_at
+      });
+    });
+    return events.sort(function (left, right) {
       return new Date(right.created_at) - new Date(left.created_at);
     });
   }
 
   function notificationId(event) {
     return event.id || [event.project_id, event.created_at, event.title].join('|');
+  }
+
+  function notificationIsRead(event) {
+    return Boolean(event.read_at) || notificationState.read.indexOf(notificationId(event)) !== -1;
+  }
+
+  async function markTeamMentionsRead(events) {
+    var ids = events.filter(function (event) {
+      return event.event_kind === 'team_mention' && !event.read_at;
+    }).map(function (event) { return event.id; });
+    if (!ids.length) return;
+    var readAt = new Date().toISOString();
+    var result = await client.from('team_message_mentions').update({ read_at: readAt }).in('id', ids);
+    if (result.error) throw result.error;
+    (relatedData.teamMentions || []).forEach(function (mention) {
+      if (ids.indexOf(mention.id) !== -1) mention.read_at = readAt;
+    });
   }
 
   function saveNotificationState() {
@@ -432,9 +478,11 @@
       if (!items.length) return '';
       return '<li class="client-desk-notification-group">' + title + '</li>' + items.map(function (event) {
         var project = projectCache.find(function (item) { return item.id === event.project_id; });
-        var target = 'clientDeskProject-' + event.project_id;
         var eventId = notificationId(event);
-        return '<li class="client-desk-notification-item"><a href="#' + escapeHtml(target) + '" data-portal-nav data-target="' + escapeHtml(target) + '"><strong>' + escapeHtml(event.title) + '</strong><span>' + escapeHtml(project ? project.title : 'Project update') + '</span><small>' + escapeHtml(dateLabel(event.created_at)) + '</small></a>' + (!notificationState.showEarlier ? '<button type="button" data-action="dismiss-notification" data-notification="' + escapeHtml(eventId) + '" aria-label="Dismiss update">×</button>' : '') + '</li>';
+        var link = event.event_kind === 'team_mention'
+          ? '<a href="#portal-communication" data-portal-page="communication" data-open-team-message="' + escapeHtml(event.message_id) + '" data-mention-id="' + escapeHtml(event.id) + '"><strong>' + escapeHtml(event.title) + '</strong><span>' + escapeHtml(event.description || 'Open the group conversation') + '</span><small>' + escapeHtml(dateLabel(event.created_at)) + '</small></a>'
+          : '<a href="#portal-' + (activeProfile.role === 'freelancer' ? 'tasks' : 'projects') + '" data-portal-page="' + (activeProfile.role === 'freelancer' ? 'tasks' : 'projects') + '" data-open-project="' + escapeHtml(event.project_id) + '" data-open-section="deliverables"><strong>' + escapeHtml(event.title) + '</strong><span>' + escapeHtml(project ? project.title : 'Project update') + (event.description ? ' / ' + escapeHtml(event.description) : '') + '</span><small>' + escapeHtml(dateLabel(event.created_at)) + '</small></a>';
+        return '<li class="client-desk-notification-item' + (notificationIsRead(event) ? '' : ' is-unread') + '">' + link + (!notificationState.showEarlier ? '<button type="button" data-action="dismiss-notification" data-notification="' + escapeHtml(eventId) + '" aria-label="Dismiss update">×</button>' : '') + '</li>';
       }).join('');
     }
     var items = renderGroup('Today', grouped.today) + renderGroup('Earlier', grouped.earlier);
@@ -455,8 +503,7 @@
 
   function recentActivityCount() {
     return notificationEvents().slice(0, 10).filter(function (event) {
-      var id = notificationId(event);
-      return notificationState.read.indexOf(id) === -1 && notificationState.archived.indexOf(id) === -1;
+      return !notificationIsRead(event) && notificationState.archived.indexOf(notificationId(event)) === -1;
     }).length;
   }
 
@@ -682,11 +729,11 @@
         var clientReview = activeProfile.role === 'customer' && step.status === 'in_review'
           ? '<div class="client-desk-step-review"><label class="client-desk-label" for="feedback-' + escapeHtml(step.id) + '">Revision notes (optional)</label><textarea id="feedback-' + escapeHtml(step.id) + '" data-review-feedback="' + escapeHtml(step.id) + '" maxlength="1000" placeholder="Describe any changes required before requesting a revision."></textarea><div class="client-desk-owner-tools"><button class="btn" type="button" data-action="step-review" data-step="' + escapeHtml(step.id) + '" data-status="done">Approve deliverable</button><button class="btn ghost" type="button" data-action="step-review" data-step="' + escapeHtml(step.id) + '" data-status="in_progress">Request revision</button></div></div>'
           : '';
-        return '<li class="client-desk-step"><div class="client-desk-step-copy"><span class="client-desk-step-state" data-status="' + escapeHtml(step.status) + '">' + escapeHtml(stepStatusLabel(step.status)) + '</span><strong>' + escapeHtml(step.title) + '</strong><small>' + escapeHtml(details) + '</small></div>' + staffControls + ownerControls + clientReview + '</li>';
+        return '<li class="client-desk-step" id="projectStep-' + escapeHtml(step.id) + '" data-step-id="' + escapeHtml(step.id) + '"><div class="client-desk-step-copy"><span class="client-desk-step-state" data-status="' + escapeHtml(step.status) + '">' + escapeHtml(stepStatusLabel(step.status)) + '</span><strong>' + escapeHtml(step.title) + '</strong><small>' + escapeHtml(details) + '</small></div>' + staffControls + ownerControls + clientReview + '</li>';
       }).join('');
       return '<section class="client-desk-stage"><div class="client-desk-stage-head"><div><h3>' + escapeHtml(stage.title) + '</h3><span>' + percent + '% complete</span></div>' + renderProgressBar(percent, stage.title + ' progress') + '</div><ol class="client-desk-steps">' + stepMarkup + '</ol></section>';
     }).join('');
-    return '<details class="client-desk-project-section" data-project-section="deliverables" data-ui-state="project-' + escapeHtml(project.id) + '-deliverables"><summary>Project Timeline &amp; Deliverables</summary><section class="client-desk-progress-panel" data-portal-section="deliverables" aria-label="Deliverables and approvals"><div class="client-desk-project-summary"><div><span class="client-desk-label">Overall Progress</span><strong>' + projectProgress(project.id) + '%</strong>' + renderProgressBar(projectProgress(project.id), 'Overall project progress') + '</div><div><span class="client-desk-label">Next Milestone</span><strong>' + escapeHtml(overview.nextMilestone) + '</strong></div><div><span class="client-desk-label">Next Action for You</span><strong>' + escapeHtml(overview.clientAction) + '</strong></div><div><span class="client-desk-label">Last Update</span><strong>' + escapeHtml(overview.lastEvent ? overview.lastEvent.title : 'No updates yet') + '</strong><small>' + escapeHtml(overview.lastEvent ? dateLabel(overview.lastEvent.created_at) : 'Updates will appear here') + '</small></div></div><h3>Project Stages</h3>' + (stagesMarkup || '<p class="client-desk-footnote">Project stages will appear here when available.</p>') + '</section></details>';
+    return '<details class="client-desk-project-section" data-project-section="deliverables" data-ui-state="project-' + escapeHtml(project.id) + '-deliverables" open><summary>Project Timeline &amp; Deliverables</summary><section class="client-desk-progress-panel" data-portal-section="deliverables" aria-label="Deliverables and approvals"><div class="client-desk-project-summary"><div><span class="client-desk-label">Overall Progress</span><strong>' + projectProgress(project.id) + '%</strong>' + renderProgressBar(projectProgress(project.id), 'Overall project progress') + '</div><div><span class="client-desk-label">Next Milestone</span><strong>' + escapeHtml(overview.nextMilestone) + '</strong></div><div><span class="client-desk-label">Next Action for You</span><strong>' + escapeHtml(overview.clientAction) + '</strong></div><div><span class="client-desk-label">Last Update</span><strong>' + escapeHtml(overview.lastEvent ? overview.lastEvent.title : 'No updates yet') + '</strong><small>' + escapeHtml(overview.lastEvent ? dateLabel(overview.lastEvent.created_at) : 'Updates will appear here') + '</small>' + (overview.lastEvent && overview.lastEvent.description ? '<p class="client-desk-footnote">' + escapeHtml(overview.lastEvent.description) + '</p>' : '') + '</div></div><h3>Project Stages</h3>' + (stagesMarkup || '<p class="client-desk-footnote">Project stages will appear here when available.</p>') + '</section></details>';
   }
 
   function renderTimeline(project) {
@@ -855,6 +902,7 @@
       .on('postgres_changes', { event: '*', schema: 'public', table: 'project_steps' }, queueProgressRefresh)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'project_events' }, queueProgressRefresh)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'team_messages' }, queueProgressRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'staff_payment_disputes' }, queueProgressRefresh)
       .subscribe(function (status) {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           setStatus('Live updates are temporarily unavailable. Use Refresh to check for project changes.', true);
@@ -883,7 +931,7 @@
     if (projectResult.error) throw projectResult.error;
     projectCache = projectResult.data || [];
     var ids = projectCache.map(function (project) { return project.id; });
-    relatedData = { checklist: [], messages: [], teamMessages: [], invoices: [], quotes: [], events: [], files: [], profiles: [], providers: [], freelancers: [], teamAssignments: [], stages: [], steps: [], automaticAssignmentEnabled: false };
+    relatedData = { checklist: [], messages: [], teamMessages: [], teamAttachments: [], teamMentions: [], paymentDisputes: [], invoices: [], quotes: [], events: [], files: [], profiles: [], providers: [], freelancers: [], teamAssignments: [], stages: [], steps: [], automaticAssignmentEnabled: false };
     if (ids.length) {
       var queries = await Promise.all([
         client.from('project_checklist').select('*').in('project_id', ids).order('position'),
@@ -907,7 +955,7 @@
       }));
     }
     if (activeProfile.role === 'owner') {
-      var profiles = await client.from('client_profiles').select('id,email,display_name,role');
+      var profiles = await client.from('client_profiles').select('id,email,display_name,role,created_at');
       if (profiles.error) throw profiles.error;
       relatedData.profiles = profiles.data || [];
       relatedData.freelancers = relatedData.profiles.filter(function (profile) { return profile.role === 'freelancer'; });
@@ -922,12 +970,156 @@
       var teamMessages = await client.from('team_messages').select('id,author_id,recipient_id,author_display_name,body,created_at').order('created_at', { ascending: false }).limit(200);
       if (teamMessages.error) throw teamMessages.error;
       relatedData.teamMessages = (teamMessages.data || []).reverse();
+      var mentions = await client.from('team_message_mentions').select('id,message_id,author_display_name,message_preview,created_at,read_at').order('created_at', { ascending: false }).limit(100);
+      if (mentions.error) throw mentions.error;
+      relatedData.teamMentions = mentions.data || [];
+      var disputes = await client.from('staff_payment_disputes').select('*').order('created_at', { ascending: false }).limit(100);
+      if (disputes.error) throw disputes.error;
+      relatedData.paymentDisputes = disputes.data || [];
+      var messageIds = relatedData.teamMessages.map(function (message) { return message.id; });
+      if (messageIds.length) {
+        var attachments = await client.from('team_message_attachments').select('id,message_id,storage_path,file_name,content_type,size_bytes,expires_at').in('message_id', messageIds).gt('expires_at', new Date().toISOString()).order('created_at');
+        if (attachments.error) throw attachments.error;
+        relatedData.teamAttachments = attachments.data || [];
+        await Promise.all(relatedData.teamAttachments.map(async function (attachment) {
+          var remainingSeconds = Math.floor((new Date(attachment.expires_at).getTime() - Date.now()) / 1000);
+          if (remainingSeconds < 1) return;
+          var signed = await client.storage.from('team-message-attachments').createSignedUrl(attachment.storage_path, Math.min(300, remainingSeconds));
+          if (signed.error) throw signed.error;
+          attachment.signed_url = signed.data.signedUrl;
+        }));
+      }
     }
     var providersQuery = client.from('payment_providers').select('provider,label,is_enabled,public_instructions');
     if (activeProfile.role !== 'owner') providersQuery = providersQuery.eq('is_enabled', true);
     var providers = await providersQuery;
     if (!providers.error) relatedData.providers = providers.data || [];
     renderDashboard();
+  }
+
+  function currentWeekStart() {
+    var start = new Date();
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - (start.getDay() + 6) % 7);
+    return start;
+  }
+
+  function staffActivityMetrics(userId) {
+    var steps = (relatedData.steps || []).filter(function (step) { return step.owner_id === userId; });
+    var completed = steps.filter(function (step) { return step.status === 'done' && step.completed_at; });
+    var weekStart = currentWeekStart();
+    var completedThisWeek = completed.filter(function (step) { return new Date(step.completed_at) >= weekStart; });
+    var tasksWithDueDate = completed.filter(function (step) { return step.due_at; });
+    var onTime = tasksWithDueDate.filter(function (step) { return new Date(step.completed_at) <= new Date(step.due_at); });
+    return {
+      assigned: steps.length,
+      open: steps.filter(function (step) { return step.status !== 'done'; }),
+      inReview: steps.filter(function (step) { return step.status === 'in_review'; }).length,
+      overdue: steps.filter(function (step) { return step.status !== 'done' && step.due_at && new Date(step.due_at) < new Date(); }).length,
+      completedThisWeek: completedThisWeek.length,
+      onTimeRate: tasksWithDueDate.length ? Math.round(onTime.length / tasksWithDueDate.length * 100) : null,
+      revisionFeedback: steps.filter(function (step) { return step.status !== 'done' && Boolean(step.review_feedback); }).length
+    };
+  }
+
+  function renderPaymentDisputeForm() {
+    return '<section class="client-desk-card"><h3>Raise a Payment Query</h3><p class="client-desk-footnote">Record the payment period, reference, amount in question, and details. This logs a query for management; it does not calculate or change pay.</p><form class="client-desk-message-form" data-action="payment-dispute"><div class="client-desk-field-grid"><div class="field"><label class="client-desk-label" for="dispute-period-start">Period start</label><input id="dispute-period-start" name="period_start" type="date" required></div><div class="field"><label class="client-desk-label" for="dispute-period-end">Period end</label><input id="dispute-period-end" name="period_end" type="date" required></div><div class="field"><label class="client-desk-label" for="dispute-reference">Payment reference (optional)</label><input id="dispute-reference" name="payment_reference" maxlength="120"></div><div class="field"><label class="client-desk-label" for="dispute-amount">Amount in question (ZAR, optional)</label><input id="dispute-amount" name="amount" type="number" min="0.01" step="0.01"></div></div><label class="client-desk-label" for="dispute-details">What should management review?</label><textarea id="dispute-details" name="issue_details" maxlength="3000" required></textarea><button class="btn" type="submit">Submit Payment Query</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></section>';
+  }
+
+  function renderPaymentDisputes(owner) {
+    var disputes = relatedData.paymentDisputes || [];
+    if (!disputes.length) return '<p class="client-desk-empty">There are no payment queries on record.</p>';
+    return disputes.map(function (dispute) {
+      var staff = (relatedData.profiles || []).find(function (profile) { return profile.id === dispute.employee_id; });
+      var displayName = owner ? (staff ? staff.display_name || staff.email : 'Staff member') : 'Your payment query';
+      var amount = dispute.amount_claimed_minor == null ? 'Not specified' : escapeHtml(money(dispute.amount_claimed_minor, dispute.currency));
+      var resolution = dispute.resolution_note ? '<p><strong>Management note:</strong> ' + escapeHtml(dispute.resolution_note) + '</p>' : '';
+      var ownerTools = owner && dispute.status !== 'resolved'
+        ? '<form class="client-desk-message-form" data-action="payment-dispute-review" data-dispute="' + escapeHtml(dispute.id) + '"><label class="client-desk-label" for="dispute-note-' + escapeHtml(dispute.id) + '">Management note</label><textarea id="dispute-note-' + escapeHtml(dispute.id) + '" name="resolution_note" maxlength="2000" required></textarea><label class="client-desk-label" for="dispute-status-' + escapeHtml(dispute.id) + '">Update status</label><select id="dispute-status-' + escapeHtml(dispute.id) + '" name="status"><option value="under_review">Under Review</option><option value="resolved">Resolved</option></select><button class="btn ghost" type="submit">Save Review</button></form>'
+        : '';
+      return '<article class="client-desk-card client-desk-dispute"><div class="client-desk-section-head"><h4>' + escapeHtml(displayName) + '</h4><span class="client-desk-status" data-status="' + escapeHtml(dispute.status) + '">' + escapeHtml(dispute.status === 'under_review' ? 'Under Review' : dispute.status === 'resolved' ? 'Resolved' : 'Open') + '</span></div><p><strong>Payment period:</strong> ' + escapeHtml(dateLabel(dispute.period_start)) + ' – ' + escapeHtml(dateLabel(dispute.period_end)) + '</p><p><strong>Reference:</strong> ' + escapeHtml(dispute.payment_reference || 'Not provided') + ' / <strong>Amount in question:</strong> ' + amount + '</p><p>' + escapeHtml(dispute.issue_details) + '</p>' + resolution + '<p class="client-desk-footnote">Submitted ' + escapeHtml(dateLabel(dispute.created_at)) + (dispute.updated_at !== dispute.created_at ? ' / Updated ' + escapeHtml(dateLabel(dispute.updated_at)) : '') + '</p>' + ownerTools + '</article>';
+    }).join('');
+  }
+
+  function renderStaffAnalytics() {
+    var metrics = staffActivityMetrics(activeProfile.id);
+    var activity = (relatedData.events || []).filter(function (item) {
+      return item.actor_id === activeProfile.id;
+    }).sort(function (left, right) { return new Date(right.created_at) - new Date(left.created_at); }).slice(0, 10);
+    var activityMarkup = activity.length
+      ? '<ol class="client-desk-timeline">' + activity.map(function (item) {
+        return '<li><strong>' + escapeHtml(item.title) + '</strong><br>' + escapeHtml(item.description || '') + '<br><small>' + escapeHtml(dateLabel(item.created_at)) + '</small></li>';
+      }).join('') + '</ol>'
+      : '<p class="client-desk-footnote">Your project activity will appear here as you update assigned work.</p>';
+    var disputeCount = (relatedData.paymentDisputes || []).filter(function (dispute) { return dispute.status !== 'resolved'; }).length;
+    return '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Your work and records</p><h2>Performance</h2><p class="client-desk-footnote">A factual summary of assigned steps and recorded project activity. Pay is not calculated in this portal yet.</p></div></div><div class="client-desk-summary-strip"><div><span>Open Tasks</span><strong>' + metrics.open.length + '</strong></div><div><span>Completed This Week</span><strong>' + metrics.completedThisWeek + '</strong></div><div><span>On-Time Rate</span><strong>' + (metrics.onTimeRate == null ? 'Not available' : metrics.onTimeRate + '%') + '</strong></div><div><span>Overdue Tasks</span><strong>' + metrics.overdue + '</strong></div></div><section class="client-desk-card"><h3>Your Recorded Activity</h3>' + activityMarkup + '<p class="client-desk-footnote">' + metrics.inReview + ' steps under review / ' + metrics.revisionFeedback + ' active steps with revision feedback.</p></section><section class="client-desk-card"><h3>Payment Queries</h3><p class="client-desk-footnote">' + disputeCount + ' unresolved ' + (disputeCount === 1 ? 'query' : 'queries') + '.</p>' + renderPaymentDisputeForm() + renderPaymentDisputes(false) + '</section>';
+  }
+
+  function renderManagementAnalytics() {
+    var profiles = relatedData.profiles || [];
+    var staff = (relatedData.freelancers || []).map(function (profile) {
+      return { profile: profile, metrics: staffActivityMetrics(profile.id) };
+    }).sort(function (left, right) {
+      return right.metrics.completedThisWeek - left.metrics.completedThisWeek
+        || (right.metrics.onTimeRate || 0) - (left.metrics.onTimeRate || 0);
+    });
+    var now = new Date();
+    var thirtyDaysAgo = new Date(now.getTime() - 30 * 86400000);
+    var customers = profiles.filter(function (profile) { return profile.role === 'customer'; });
+    var newCustomers = customers.filter(function (profile) { return new Date(profile.created_at) >= thirtyDaysAgo; }).length;
+    var invoices = relatedData.invoices || [];
+    var paid = invoices.filter(function (invoice) { return invoice.status === 'paid'; });
+    var outstanding = invoices.filter(function (invoice) { return invoice.status === 'sent' || invoice.status === 'overdue'; });
+    function currencyTotals(rows) {
+      return rows.reduce(function (totals, invoice) {
+        var currency = String(invoice.currency || 'ZAR').toUpperCase();
+        totals[currency] = (totals[currency] || 0) + Number(invoice.amount_minor || 0);
+        return totals;
+      }, {});
+    }
+    function formatCurrencyTotals(totals) {
+      var currencies = Object.keys(totals).sort();
+      return currencies.length ? currencies.map(function (currency) { return money(totals[currency], currency); }).join(' / ') : money(0, 'ZAR');
+    }
+    var paidTotal = currencyTotals(paid);
+    var outstandingTotal = currencyTotals(outstanding);
+    var quotes = relatedData.quotes || [];
+    var pendingQuotes = quotes.filter(function (quote) { return quote.status === 'sent'; }).length;
+    var decidedQuotes = quotes.filter(function (quote) { return quote.status === 'accepted' || quote.status === 'declined'; });
+    var quoteAcceptance = decidedQuotes.length
+      ? Math.round(decidedQuotes.filter(function (quote) { return quote.status === 'accepted'; }).length / decidedQuotes.length * 100)
+      : null;
+    var weeklyCompletions = (relatedData.steps || []).filter(function (step) {
+      return step.status === 'done' && step.completed_at && new Date(step.completed_at) >= currentWeekStart();
+    }).length;
+    var openSteps = (relatedData.steps || []).filter(function (step) { return step.status !== 'done'; });
+    var unassigned = openSteps.filter(function (step) { return !step.owner_id; }).length;
+    var overdueInvoices = outstanding.filter(function (invoice) { return invoice.status === 'overdue'; }).length;
+    var unresolvedDisputes = (relatedData.paymentDisputes || []).filter(function (dispute) { return dispute.status !== 'resolved'; }).length;
+    var leaders = staff.length
+      ? '<div class="client-desk-table-wrap"><table class="client-desk-table"><thead><tr><th>Staff Member</th><th>Completed This Week</th><th>On-Time Rate</th><th>Open Tasks</th><th>Overdue</th><th>Payment Queries</th></tr></thead><tbody>' + staff.map(function (entry, index) {
+        var unresolved = (relatedData.paymentDisputes || []).filter(function (dispute) { return dispute.employee_id === entry.profile.id && dispute.status !== 'resolved'; }).length;
+        return '<tr><td>' + escapeHtml(entry.profile.display_name || entry.profile.email) + (index === 0 && entry.metrics.completedThisWeek > 0 ? '<br><small>Highest completed task count this week</small>' : '') + '</td><td>' + entry.metrics.completedThisWeek + '</td><td>' + (entry.metrics.onTimeRate == null ? 'Not available' : entry.metrics.onTimeRate + '%') + '</td><td>' + entry.metrics.open.length + '</td><td>' + entry.metrics.overdue + '</td><td>' + unresolved + '</td></tr>';
+      }).join('') + '</tbody></table></div>'
+      : '<p class="client-desk-empty">No staff members are available for this report.</p>';
+    var suggestions = [];
+    if (overdueInvoices) suggestions.push(overdueInvoices + ' invoice' + (overdueInvoices === 1 ? ' is' : 's are') + ' overdue. Follow up with the client to protect cash flow.');
+    if (pendingQuotes >= 3) suggestions.push(pendingQuotes + ' quotes are awaiting a decision. Schedule follow-ups before increasing advertising spend.');
+    if (unassigned >= 3) suggestions.push(unassigned + ' active steps are unassigned. Assign available staff; if this remains the pattern, consider adding freelancer capacity.');
+    if (newCustomers < 3) suggestions.push('Only ' + newCustomers + ' new client account' + (newCustomers === 1 ? ' was' : 's were') + ' recorded in the last 30 days. Consider a small, measurable advertising test. Lead sources are not tracked, so compare enquiries and paid invoices manually.');
+    if (!suggestions.length) suggestions.push('Current workload and invoice signals are within the configured thresholds. Review these figures weekly.');
+    var staffDetails = staff.map(function (entry) {
+      var tasks = (relatedData.steps || []).filter(function (step) { return step.owner_id === entry.profile.id; });
+      var taskList = tasks.length
+        ? '<ul class="client-desk-checklist">' + tasks.map(function (step) {
+          var project = projectCache.find(function (item) { return item.id === step.project_id; });
+          return '<li><span><strong>' + escapeHtml(step.title) + '</strong><br>' + escapeHtml(project ? project.title : 'Project') + ' / ' + escapeHtml(stepStatusLabel(step.status)) + (step.due_at ? ' / Due ' + escapeHtml(dateLabel(step.due_at)) : '') + '</span></li>';
+        }).join('') + '</ul>'
+        : '<p class="client-desk-footnote">No project steps are currently assigned.</p>';
+      return '<details class="client-desk-card"><summary><strong>' + escapeHtml(entry.profile.display_name || entry.profile.email) + '</strong> / ' + entry.metrics.completedThisWeek + ' completed this week</summary><div class="client-desk-summary-strip"><div><span>Assigned</span><strong>' + entry.metrics.assigned + '</strong></div><div><span>Active</span><strong>' + entry.metrics.open.length + '</strong></div><div><span>Under Review</span><strong>' + entry.metrics.inReview + '</strong></div><div><span>Revision Feedback</span><strong>' + entry.metrics.revisionFeedback + '</strong></div></div>' + taskList + '</details>';
+    }).join('');
+    var staffRows = '<section class="client-desk-card"><h3>Staff Delivery Activity</h3><p class="client-desk-footnote">Ranked by completed task count this week, then on-time rate across completed assigned tasks. This is a delivery signal, not a complete employee rating or pay calculation.</p>' + leaders + '</section><section class="client-desk-card"><h3>Individual Staff Activity</h3>' + (staffDetails || '<p class="client-desk-footnote">Individual activity will appear when staff are assigned project steps.</p>') + '</section>';
+    return '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Business performance</p><h2>Analytics &amp; Reports</h2><p class="client-desk-footnote">Figures are calculated from current project, invoice, quote, and account records. Revenue is not attributed to individual employees.</p></div></div><div class="client-desk-summary-strip"><div><span>Client Accounts</span><strong>' + customers.length + '</strong></div><div><span>New Clients (30 Days)</span><strong>' + newCustomers + '</strong></div><div><span>Tasks Completed This Week</span><strong>' + weeklyCompletions + '</strong></div><div><span>Active Projects</span><strong>' + projectCache.filter(function (project) { return ['complete', 'paused'].indexOf(project.status) === -1; }).length + '</strong></div></div><div class="client-desk-summary-strip"><div><span>Payments Received</span><strong>' + escapeHtml(formatCurrencyTotals(paidTotal)) + '</strong></div><div><span>Outstanding Invoices</span><strong>' + escapeHtml(formatCurrencyTotals(outstandingTotal)) + '</strong></div><div><span>Overdue Invoices</span><strong>' + overdueInvoices + '</strong></div><div><span>Quote Acceptance</span><strong>' + (quoteAcceptance == null ? 'Not available' : quoteAcceptance + '%') + '</strong></div></div><section class="client-desk-card"><h3>Suggested Actions</h3><ul>' + suggestions.map(function (suggestion) { return '<li>' + escapeHtml(suggestion) + '</li>'; }).join('') + '</ul></section>' + staffRows + '<section class="client-desk-card"><h3>Employee Payment Queries</h3><p class="client-desk-footnote">' + unresolvedDisputes + ' unresolved ' + (unresolvedDisputes === 1 ? 'query' : 'queries') + '. Review each claim and record a written decision.</p>' + renderPaymentDisputes(true) + '</section>';
   }
 
   function renderDashboard() {
@@ -946,18 +1138,18 @@
     var clientWidget = !owner && !freelancer
       ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="project-progress"><div class="client-desk-section-head"><h2>Project Progress</h2><a href="#portal-projects" data-portal-page="projects">View Projects</a></div>' + (projectCache.length ? projectCache.slice(0, 1).map(function (project) {
         var overview = projectOverview(project);
-        return '<p><strong>' + escapeHtml(project.title) + '</strong> / ' + projectProgress(project.id) + '% complete</p><p class="client-desk-footnote">Next milestone: ' + escapeHtml(overview.nextMilestone) + '</p>';
+        return '<p><strong>' + escapeHtml(project.title) + '</strong> / ' + projectProgress(project.id) + '% complete</p><p class="client-desk-footnote">Next milestone: ' + escapeHtml(overview.nextMilestone) + '</p><a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(project.id) + '" data-open-section="deliverables">View project tracker</a>';
       }).join('') : '<p class="client-desk-footnote">Your project updates will appear here.</p>') + '</section>'
       : '';
     var clientApprovals = !owner && !freelancer
       ? (relatedData.steps || []).filter(function (step) { return step.status === 'in_review'; }).slice(0, 2).map(function (step) {
-        return '<p>' + escapeHtml(step.title) + ' <a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(step.project_id) + '">Review</a></p>';
+        return '<p>' + escapeHtml(step.title) + ' <a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(step.project_id) + '" data-open-section="deliverables" data-open-step="' + escapeHtml(step.id) + '">Review deliverable</a></p>';
       }).join('')
       : '';
     var latestEvent = notificationEvents()[0];
     var latestProject = latestEvent && projectCache.find(function (project) { return project.id === latestEvent.project_id; });
     var clientUpdates = !owner && !freelancer
-      ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="latest-update"><h2>Latest Update</h2>' + (latestEvent ? '<p>' + escapeHtml(latestEvent.title) + '</p><p class="client-desk-footnote">' + escapeHtml(latestProject ? latestProject.title : 'Project update') + ' / ' + escapeHtml(dateLabel(latestEvent.created_at)) + '</p>' : '<p class="client-desk-footnote">Project updates will appear here.</p>') + '</section>'
+      ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="latest-update"><h2>Latest Update</h2>' + (latestEvent && latestProject ? '<p><strong>' + escapeHtml(latestEvent.title) + '</strong></p><p class="client-desk-footnote">' + escapeHtml(latestProject.title) + ' / ' + escapeHtml(dateLabel(latestEvent.created_at)) + '</p><a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(latestProject.id) + '" data-open-section="deliverables">View project tracker</a>' : '<p class="client-desk-footnote">Project updates will appear here.</p>') + '</section>'
       : '';
     var clientApprovalWidget = !owner && !freelancer
       ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="upcoming-approvals"><div class="client-desk-section-head"><h2>Upcoming Approvals</h2><a href="#portal-projects" data-portal-page="projects">View</a></div>' + (clientApprovals || '<p class="client-desk-footnote">No approvals are waiting for you.</p>') + '</section>'
@@ -998,6 +1190,8 @@
       return '<article class="client-desk-card"><h3>' + escapeHtml(profile.display_name || profile.email) + '</h3><p class="client-desk-footnote">' + escapeHtml(profile.email) + ' / ' + projects.length + ' projects</p>' + projects.map(function (project) { return '<a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(project.id) + '">' + escapeHtml(project.title) + '</a>'; }).join('<br>') + '</article>';
     }).join('') || '<p class="client-desk-empty">Client accounts and projects will appear here.</p>');
     else if (currentPortalPage === 'finance' && owner) pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Payments and invoices</p><h2>Finance</h2><p class="client-desk-footnote">Review outstanding invoices and payment-provider settings.</p></div></div>' + renderPaymentSettings() + '<section class="client-desk-finance-list"><h3>Project Invoices</h3>' + projectCache.map(function (project) { return '<article class="client-desk-card"><h4>' + escapeHtml(project.title) + '</h4>' + renderInvoices(project) + '</article>'; }).join('') + '</section>';
+    else if (currentPortalPage === 'analytics' && owner) pageContent = renderManagementAnalytics();
+    else if (currentPortalPage === 'performance' && freelancer) pageContent = renderStaffAnalytics();
     else if (currentPortalPage === 'settings' && owner) pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Workspace preferences</p><h2>Settings</h2><p class="client-desk-footnote">Control when the system may assign unclaimed requests automatically.</p></div></div>' + renderAutomaticAssignmentSettings() + renderDashboardCustomization();
     else if (currentPortalPage === 'documents') pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Shared files</p><h2>Documents</h2><p class="client-desk-footnote">Files shared on your projects.</p></div></div>' + projectCache.map(function (project) { return '<article class="client-desk-card"><h3>' + escapeHtml(project.title) + '</h3>' + renderFiles(project) + '</article>'; }).join('') || '<p class="client-desk-empty">No project documents are available yet.</p>';
     else if (currentPortalPage === 'messages' && !owner && !freelancer) pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Project conversations</p><h2>Messages</h2><p class="client-desk-footnote">Messages are kept with the project they relate to.</p></div></div>' + projectCache.map(function (project) { return '<article class="client-desk-card"><h3>' + escapeHtml(project.title) + '</h3>' + renderMessages(project) + '</article>'; }).join('') || '<p class="client-desk-empty">Project messages will appear here when available.</p>';
@@ -1022,9 +1216,23 @@
       var selectedProject = portalRoot.querySelector('[data-project-id="' + pendingProjectOpen + '"]');
       if (selectedProject) {
         selectedProject.open = true;
-        selectedProject.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (pendingProjectSection) {
+          var selectedSection = selectedProject.querySelector('[data-ui-state="project-' + pendingProjectOpen + '-' + pendingProjectSection + '"]');
+          if (selectedSection) selectedSection.open = true;
+        }
+        if (pendingProjectStep) {
+          var selectedStep = selectedProject.querySelector('[data-step-id="' + pendingProjectStep + '"]');
+          if (selectedStep) selectedStep.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else selectedProject.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       pendingProjectOpen = '';
+      pendingProjectSection = '';
+      pendingProjectStep = '';
+    }
+    if (pendingTeamMessageOpen) {
+      var selectedMessage = portalRoot.querySelector('#teamMessage-' + CSS.escape(pendingTeamMessageOpen));
+      if (selectedMessage) selectedMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      pendingTeamMessageOpen = '';
     }
     if (currentPortalPage === 'communication') {
       var messageList = portalRoot.querySelector('.client-desk-team-message-list');
@@ -1112,18 +1320,90 @@
     setStatus('Project team saved.', false);
   }
 
+  async function submitPaymentDispute(form) {
+    if (activeProfile.role !== 'freelancer') throw new Error('Staff access is required to submit a payment query.');
+    var data = new FormData(form);
+    var periodStart = String(data.get('period_start') || '');
+    var periodEnd = String(data.get('period_end') || '');
+    if (!periodStart || !periodEnd || periodEnd < periodStart) throw new Error('Enter a valid payment period.');
+    var amount = String(data.get('amount') || '').trim();
+    var amountMinor = amount ? Math.round(Number(amount) * 100) : null;
+    if (amount && (!Number.isSafeInteger(amountMinor) || amountMinor < 1)) throw new Error('Enter a valid amount or leave it blank.');
+    var result = await client.from('staff_payment_disputes').insert({
+      employee_id: activeProfile.id,
+      payment_reference: String(data.get('payment_reference') || '').trim() || null,
+      period_start: periodStart,
+      period_end: periodEnd,
+      amount_claimed_minor: amountMinor,
+      currency: 'ZAR',
+      issue_details: String(data.get('issue_details') || '').trim()
+    });
+    if (result.error) throw result.error;
+    await loadWorkspace();
+    setStatus('Your payment query has been recorded for management review.', false);
+  }
+
+  async function reviewPaymentDispute(form) {
+    if (activeProfile.role !== 'owner') throw new Error('Management access is required.');
+    var data = new FormData(form);
+    var result = await client.rpc('owner_review_staff_payment_dispute', {
+      p_dispute_id: form.dataset.dispute,
+      p_status: String(data.get('status')),
+      p_resolution_note: String(data.get('resolution_note') || '').trim()
+    });
+    if (result.error) throw result.error;
+    await loadWorkspace();
+    setStatus('The payment query review has been saved and logged.', false);
+  }
+
   async function submitTeamMessage(form) {
     if (activeProfile.role !== 'owner' && activeProfile.role !== 'freelancer') {
       throw new Error('Staff access is required to send a team message.');
     }
-    var body = String(new FormData(form).get('body') || '').trim();
-    if (!body) throw new Error('Write a message before sending it.');
+    var data = new FormData(form);
+    var body = String(data.get('body') || '').trim();
+    var file = data.get('attachment');
+    var extensions = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'application/pdf': 'pdf' };
+    if (!body && (!file || !file.size)) throw new Error('Write a message or attach a file before sending.');
+    if (file && file.size) {
+      if (!extensions[file.type]) throw new Error('Choose a JPG, PNG, WebP, or PDF attachment.');
+      if (file.size > 10485760) throw new Error('Choose an attachment no larger than 10 MB.');
+    }
+    var messageId = crypto.randomUUID();
+    var path = '';
     var result = await client.from('team_messages').insert({
+      id: messageId,
       author_id: activeProfile.id,
       recipient_id: form.dataset.recipient || null,
-      body: body
+      mentioned_user_ids: form.dataset.recipient ? [] : data.getAll('mentioned_user_ids'),
+      body: body || '(Attachment)'
     });
     if (result.error) throw result.error;
+    if (file && file.size) {
+      path = activeProfile.id + '/' + messageId + '/' + crypto.randomUUID() + '.' + extensions[file.type];
+      var uploaded = await client.storage.from('team-message-attachments').upload(path, file, { contentType: file.type, upsert: false });
+      if (uploaded.error) {
+        await loadWorkspace();
+        setStatus('Your message was sent, but the attachment could not be uploaded: ' + uploaded.error.message, true);
+        return;
+      }
+    }
+    if (path) {
+      var attachment = await client.from('team_message_attachments').insert({
+        message_id: messageId,
+        uploaded_by: activeProfile.id,
+        storage_path: path,
+        file_name: file.name.slice(0, 255),
+        content_type: file.type,
+        size_bytes: file.size
+      });
+      if (attachment.error) {
+        var cleanup = await client.storage.from('team-message-attachments').remove([path]);
+        await loadWorkspace();
+        setStatus('Your message was sent, but the attachment could not be shared.' + (cleanup.error ? ' The temporary upload also could not be removed; contact support.' : ''), true);
+        return;
+      }
+    }
     await loadWorkspace();
     setStatus(form.dataset.recipient ? 'Your private message has been sent.' : 'Your update has been shared with the team.', false);
   }
@@ -1204,9 +1484,53 @@
     if (!target || !client) return;
     var action = target.dataset.action;
     try {
-      if (action === 'select-conversation') {
+      if (action === 'insert-mention') {
+        var mentionForm = target.closest('form[data-action="team-message"]');
+        var mentionSelect = mentionForm && mentionForm.querySelector('[data-mention-select]');
+        var mention = mentionSelect && (relatedData.teamDirectory || []).find(function (entry) { return entry.id === mentionSelect.value; });
+        if (!mentionForm || !mention) throw new Error('Select a teammate to mention.');
+        var mentionTags = mentionForm.querySelector('[data-mention-tags]');
+        if (mentionForm.querySelector('[data-mentioned-user-id="' + mention.id + '"]')) {
+          setStatus('This teammate is already tagged in the message.', false, mentionForm);
+        } else if (mentionForm.querySelectorAll('[data-mentioned-user-id]').length >= 20) {
+          throw new Error('A message can tag up to 20 teammates.');
+        } else {
+          var messageInput = mentionForm.querySelector('[name="body"]');
+          var taggedText = '@' + mention.display_name;
+          messageInput.setRangeText(taggedText + ' ', messageInput.selectionStart, messageInput.selectionEnd, 'end');
+          var hiddenMention = document.createElement('input');
+          hiddenMention.type = 'hidden';
+          hiddenMention.name = 'mentioned_user_ids';
+          hiddenMention.value = mention.id;
+          hiddenMention.dataset.mentionedUserId = mention.id;
+          mentionForm.appendChild(hiddenMention);
+          var tag = document.createElement('span');
+          tag.className = 'client-desk-mention-tag';
+          tag.dataset.mentionTag = mention.id;
+          var tagLabel = document.createElement('span');
+          tagLabel.textContent = '@' + mention.display_name;
+          var removeTag = document.createElement('button');
+          removeTag.type = 'button';
+          removeTag.dataset.action = 'remove-mention';
+          removeTag.dataset.mentionId = mention.id;
+          removeTag.setAttribute('aria-label', 'Remove mention of ' + mention.display_name);
+          removeTag.textContent = '×';
+          tag.appendChild(tagLabel);
+          tag.appendChild(removeTag);
+          mentionTags.appendChild(tag);
+          messageInput.focus();
+        }
+        mentionSelect.value = '';
+      } else if (action === 'select-conversation') {
         selectedTeamConversation = target.dataset.conversation || 'group';
         renderDashboard();
+      } else if (action === 'remove-mention') {
+        var removeMentionForm = target.closest('form[data-action="team-message"]');
+        var mentionId = target.dataset.mentionId;
+        var hiddenMentionInput = removeMentionForm && removeMentionForm.querySelector('[data-mentioned-user-id="' + mentionId + '"]');
+        var mentionTag = removeMentionForm && removeMentionForm.querySelector('[data-mention-tag="' + mentionId + '"]');
+        if (hiddenMentionInput) hiddenMentionInput.remove();
+        if (mentionTag) mentionTag.remove();
       } else if (action === 'calendar-prev' || action === 'calendar-next') {
         calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + (action === 'calendar-prev' ? -1 : 1), 1);
         renderDashboard();
@@ -1219,12 +1543,14 @@
         var panel = portalRoot.querySelector('[data-notification-panel]');
         var open = panel && panel.hidden;
         if (open) {
-          notificationEvents().filter(function (event) {
+          var visibleNotifications = notificationEvents().filter(function (event) {
             return notificationState.archived.indexOf(notificationId(event)) === -1;
-          }).slice(0, notificationState.showAll ? notificationEvents().length : 10).forEach(function (event) {
+          }).slice(0, notificationState.showAll ? notificationEvents().length : 10);
+          visibleNotifications.forEach(function (event) {
             var id = notificationId(event);
             if (notificationState.read.indexOf(id) === -1) notificationState.read.push(id);
           });
+          await markTeamMentionsRead(visibleNotifications);
           saveNotificationState();
         }
         refreshNotificationPanel();
@@ -1246,7 +1572,9 @@
         saveNotificationState();
         refreshNotificationPanel();
       } else if (action === 'archive-notifications') {
-        notificationEvents().forEach(function (event) {
+        var allNotifications = notificationEvents();
+        await markTeamMentionsRead(allNotifications);
+        allNotifications.forEach(function (event) {
           var id = notificationId(event);
           if (notificationState.archived.indexOf(id) === -1) notificationState.archived.push(id);
           if (notificationState.read.indexOf(id) === -1) notificationState.read.push(id);
@@ -1267,9 +1595,11 @@
         if (recentPanel) recentPanel.hidden = false;
       } else if (action === 'view-all-notifications') {
         notificationState.showAll = true;
-        notificationEvents().filter(function (event) {
+        var allVisibleNotifications = notificationEvents().filter(function (event) {
           return notificationState.archived.indexOf(notificationId(event)) === -1;
-        }).forEach(function (event) {
+        });
+        await markTeamMentionsRead(allVisibleNotifications);
+        allVisibleNotifications.forEach(function (event) {
           var id = notificationId(event);
           if (notificationState.read.indexOf(id) === -1) notificationState.read.push(id);
         });
@@ -1415,13 +1745,26 @@
     }
   }
 
-  function handlePortalPageNavigation(event) {
+  async function handlePortalPageNavigation(event) {
     var link = event.target.closest('[data-portal-page]');
     if (!link || link.getAttribute('aria-disabled') === 'true') return;
     event.preventDefault();
+    if (link.dataset.mentionId) {
+      var markRead = await client.from('team_message_mentions').update({ read_at: new Date().toISOString() }).eq('id', link.dataset.mentionId);
+      if (markRead.error) {
+        setStatus('The mention could not be marked as read. Please retry.', true);
+        return;
+      }
+      var selectedMention = (relatedData.teamMentions || []).find(function (mention) { return mention.id === link.dataset.mentionId; });
+      if (selectedMention) selectedMention.read_at = new Date().toISOString();
+    }
     currentPortalPage = link.dataset.portalPage;
     currentPortalSection = portalPageTitle(currentPortalPage);
     pendingProjectOpen = link.dataset.openProject || '';
+    pendingProjectSection = link.dataset.openSection || '';
+    pendingProjectStep = link.dataset.openStep || '';
+    pendingTeamMessageOpen = link.dataset.openTeamMessage || '';
+    if (pendingTeamMessageOpen) selectedTeamConversation = 'group';
     var nextState = Object.assign({}, window.history.state || {}, { clientDeskPage: currentPortalPage });
     var pageUrl = new URL(window.location.href);
     pageUrl.searchParams.set('portalPage', currentPortalPage);
@@ -1565,6 +1908,8 @@
       else if (action === 'freelancer-role') await submitFreelancerRole(form);
       else if (action === 'team') await submitProjectTeam(form);
       else if (action === 'team-message') await submitTeamMessage(form);
+      else if (action === 'payment-dispute') await submitPaymentDispute(form);
+      else if (action === 'payment-dispute-review') await reviewPaymentDispute(form);
       else if (action === 'automatic-assignment') await submitAutomaticAssignment(form);
       else if (action === 'delete-profile') {
         var deletionCredentials = new FormData(form);

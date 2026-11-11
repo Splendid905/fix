@@ -217,10 +217,25 @@
 .client-desk-chat-meta strong { font-size: .75rem; }
 .client-desk-chat-meta time { color: var(--desk-muted); font-size: .66rem; }
 .client-desk-chat-bubble p { margin: .25rem 0 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.client-desk-chat-attachments { display: grid; gap: .25rem; margin-top: .5rem; }
+.client-desk-chat-attachment { overflow-wrap: anywhere; font-weight: 600; }
+.client-desk-attachment-expiry { color: var(--desk-muted); font-size: .68rem; }
 .client-desk-chat-empty { align-self: center; margin: auto; padding: 2rem; color: var(--desk-muted); text-align: center; }
 .client-desk-chat-compose { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: .6rem; padding: .8rem; border-top: 1px solid var(--desk-border); }
 .client-desk-chat-compose .client-desk-label, .client-desk-chat-compose .client-desk-form-status { grid-column: 1 / -1; margin: 0; }
 .client-desk-chat-compose textarea { width: 100%; min-height: 3.2rem; max-height: 10rem; padding: .65rem; border: 1px solid var(--desk-border); border-radius: 2px; background: var(--field); color: var(--desk-text); font: inherit; resize: vertical; }
+.client-desk-chat-compose input[type="file"], .client-desk-mention-picker { grid-column: 1 / -1; }
+.client-desk-mention-picker > div:first-of-type { display: flex; flex-wrap: wrap; gap: .5rem; }
+.client-desk-mention-picker select { min-width: min(100%, 14rem); min-height: 2.75rem; }
+.client-desk-mention-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .4rem; }
+.client-desk-mention-tag { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .45rem; border: 1px solid var(--desk-border); border-radius: 999px; background: color-mix(in srgb, var(--desk-accent) 12%, var(--desk-surface)); font-size: .8rem; }
+.client-desk-mention-tag button { border: 0; background: transparent; color: var(--desk-text); cursor: pointer; font-size: 1rem; line-height: 1; }
+.client-desk-notification-item.is-unread > a { border-left: 3px solid var(--desk-accent); }
+.client-desk-summary-strip:not([aria-label]) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.client-desk-summary-strip > div { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-width: 0; padding: .65rem .8rem; border: 1px solid var(--desk-border); background: var(--desk-surface); color: var(--desk-muted); }
+.client-desk-summary-strip > div strong { color: var(--desk-accent-text); font: 600 1rem var(--mono); text-align: right; overflow-wrap: anywhere; }
+.client-desk-card > details > summary { min-height: 2.75rem; cursor: pointer; }
+.client-desk-dispute textarea { width: 100%; min-height: 5rem; }
 .client-desk-page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
 .client-desk-page-heading h2 { margin: 0 0 .35rem; font-size: clamp(1.5rem, 3vw, 2.2rem); }
 .client-desk-page-heading p { margin-block: .2rem; }
@@ -372,6 +387,7 @@
 .client-desk [hidden] { display: none !important; }
 @media (max-width: 900px) {
   .client-desk-project-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .client-desk-summary-strip:not([aria-label]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
   .client-desk-portal-header { align-items: flex-start; flex-wrap: wrap; gap: .8rem 1rem; }

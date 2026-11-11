@@ -5,7 +5,7 @@ The Client Portal is prepared in the static site and Supabase project files. It 
 ## 1. Create Supabase Project
 
 1. Create a Supabase project in a region appropriate for the business and customer data.
-2. Apply `migrations/202611080001_client_desk.sql`, `migrations/202611090001_client_desk_team.sql`, `migrations/202611090002_customer_profile_deletion.sql`, `migrations/202611090003_reclaim_orphaned_profile_email.sql`, `migrations/202611100001_project_progress.sql`, `migrations/202611110001_team_communication_and_fair_assignment.sql`, then `migrations/202611110002_staff_direct_messages.sql`, using the Supabase CLI or SQL editor. Review the migrations in a non-production project first.
+2. Apply `migrations/202611080001_client_desk.sql`, `migrations/202611090001_client_desk_team.sql`, `migrations/202611090002_customer_profile_deletion.sql`, `migrations/202611090003_reclaim_orphaned_profile_email.sql`, `migrations/202611100001_project_progress.sql`, `migrations/202611110001_team_communication_and_fair_assignment.sql`, `migrations/202611110002_staff_direct_messages.sql`, `migrations/202611110003_team_mentions_and_attachments.sql`, then `migrations/202611110004_staff_analytics_and_payment_disputes.sql`, using the Supabase CLI or SQL editor. Review the migrations in a non-production project first.
 3. Enable email-and-password sign-in and customer signups in Supabase Auth, configure email confirmation and Auth rate limits, and set the correct Site URL and allowed redirect URLs. Public registration through the Client Portal creates customer accounts only; it cannot assign admin or freelancer roles.
 4. Customers can create an account from **New customer? Create an account** on the Client Portal sign-in page. They confirm their email if email confirmation is enabled, then sign in with their password. Existing magic-link accounts need a password set before they can use password sign-in.
 5. Create/invite the owner account through Supabase Auth, or register it through the Client Portal, then promote that account's profile in the Supabase SQL editor:
@@ -60,7 +60,38 @@ The Client Portal is prepared in the static site and Supabase project files. It 
 
 8. The staff communication workspace has a shared group conversation and private one-to-one conversations. Row-level security lets staff read group messages and only the direct messages they sent or received; customers cannot access either staff channel. Apply `202611110002_staff_direct_messages.sql` to enable direct messages and the staff directory.
 
-9. Admins can enable the **24-hour fair assignment fallback** from **Settings**. It is disabled by default. When enabled, an hourly Supabase Cron job assigns a client request that remains in **Request Received** for at least 24 hours and has no project team. It selects a freelancer with the fewest open project steps, then the freelancer assigned least recently, adds them to the project, and assigns the first unfinished step. Each automated assignment and setting change is recorded in the management audit log, and the assignment is visible in the project activity feed.
+9. Apply `202611110003_team_mentions_and_attachments.sql` to enable tagged group messages and private attachments. Only tagged teammates receive an in-portal notification; untagged group messages do not create notifications. Attachments are limited to JPG, PNG, WebP, or PDF files up to 10 MB and are removed after 30 days. Deploy `cleanup-team-message-attachments` and set a unique server-side secret in Supabase Functions:
+
+   ```sh
+   supabase functions deploy cleanup-team-message-attachments
+   supabase secrets set TEAM_ATTACHMENT_CLEANUP_SECRET=<same-long-random-secret>
+   ```
+
+   Enable `pg_cron`, `pg_net`, and Vault if they are not already enabled. Store the same cleanup secret and the function URL in Vault; do not put either value in the website or source code. Replace the project URL below with the Supabase project URL:
+
+   ```sql
+   select vault.create_secret('<same-long-random-secret>', 'team_attachment_cleanup_secret');
+   select vault.create_secret('https://<project-ref>.supabase.co/functions/v1/cleanup-team-message-attachments', 'team_attachment_cleanup_url');
+
+   select cron.schedule(
+     'team-message-attachment-cleanup',
+     '0 * * * *',
+     $$
+       select net.http_post(
+         url := (select decrypted_secret from vault.decrypted_secrets where name = 'team_attachment_cleanup_url'),
+         headers := jsonb_build_object(
+           'Content-Type', 'application/json',
+           'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'team_attachment_cleanup_secret')
+         ),
+         body := '{}'::jsonb
+       );
+     $$
+   );
+   ```
+
+   The portal hides attachments at their 30-day expiry. The hourly job then removes the stored file and its metadata. Verify the scheduled job in Supabase Cron and check its invocation history after the first run.
+
+10. Admins can enable the **24-hour fair assignment fallback** from **Settings**. It is disabled by default. When enabled, an hourly Supabase Cron job assigns a client request that remains in **Request Received** for at least 24 hours and has no project team. It selects a freelancer with the fewest open project steps, then the freelancer assigned least recently, adds them to the project, and assigns the first unfinished step. Each automated assignment and setting change is recorded in the management audit log, and the assignment is visible in the project activity feed.
 
    The migration installs and schedules the job when `pg_cron` is available. If it reports that `pg_cron` is unavailable, enable that extension in the Supabase Dashboard, then schedule the job in the SQL Editor:
 
@@ -73,6 +104,8 @@ The Client Portal is prepared in the static site and Supabase project files. It 
    ```
 
    Do not enable the portal setting until the schedule exists. Staff selection currently considers workload, not skills or leave availability; keep assignment manual when a request requires specialist matching.
+
+11. Apply `202611110004_staff_analytics_and_payment_disputes.sql` for the owner **Analytics & Reports** page, individual staff delivery metrics, and employee-submitted payment queries. Analytics use existing project steps, client profiles, quotes, and invoices; revenue is not attributed to staff because the portal does not track lead or sales ownership. Payment queries record an employee's claimed amount/reference and a management note, but do not calculate payroll or change pay.
 
 Saving a project status or next step automatically adds a dated event to the project timeline. Progress-step updates sync to open portal sessions; other changes appear when the Client Portal is opened or refreshed. These progress changes do not send a separate email or require a message.
 
@@ -98,6 +131,7 @@ Required server secrets:
 - `RESEND_API_KEY`
 - `EMAIL_FROM` (a sender on a verified domain)
 - `INVOICE_DISPATCH_SECRET` (a unique random secret, used only by the scheduler)
+- `TEAM_ATTACHMENT_CLEANUP_SECRET` (the same unique random secret stored in Vault for the hourly attachment cleanup job)
 
 Set these through Supabase's protected function-secret configuration or an approved secret manager. Do not commit them, place them in GitHub Pages configuration, or paste them into chat.
 
@@ -149,6 +183,9 @@ Before using this with real customers:
 - Verify that only the admin can see internal notes, internal checklist items, internal attachments, and billing controls; a freelancer can see only assigned projects and non-internal files/messages.
 - Test account deletion with no projects and with a full project, quote, invoice, message, and file history. Verify login removal, anonymized retained records, blocked access through an existing session, and no further notifications to the old email.
 - Test signed file links expire and unsupported/oversized files are rejected.
+- Confirm staff can tag another staff member in the group channel, only that teammate receives a mention notification, and private attachments are readable only by conversation participants.
+- Verify expired team attachments disappear from the portal at 30 days and are removed from Supabase Storage by the hourly cleanup job.
+- Confirm each freelancer can read and submit only their own payment queries, management can review all queries, and every submission and review appears in the management audit log.
 - Test quote acceptance is customer-owned, unexpired, and bound to a milestone schedule whose sum exactly matches the quote total.
 - Test a payment callback with a wrong amount/currency, invalid signature, duplicate event, and unknown invoice. All must leave the invoice unpaid.
 - Test the scheduler's wrong-token response, retries, duplicate invocations, and delayed invoice send time.

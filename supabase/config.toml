@@ -9,3 +9,6 @@ verify_jwt = false
 
 [functions.delete-client-profile]
 verify_jwt = true
+
+[functions.cleanup-team-message-attachments]
+verify_jwt = false
