@@ -135,6 +135,7 @@
   function portalIcon(name) {
     var icons = {
       home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+      refresh: '<path d="M20 7v5h-5"/><path d="M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.6-2L20 12M4 12l2.8 5a7 7 0 0 0 11.6-2"/>',
       projects: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 4V2m8 2V2M3 9h18"/>',
       messages: '<path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.6L3 21l1.9-5.6A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 11h8m-8 4h5"/>',
       files: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8m-8 4h8"/>',
@@ -598,7 +599,7 @@
     var navigation = portalNavigation(profile);
     var secureLabel = window.isSecureContext ? (profile ? 'Secure session' : 'Secure connection') : 'Connection not secure';
     var secureIndicator = '<span class="client-desk-security-indicator">' + portalIcon('lock') + '<span>' + secureLabel + '</span></span>';
-    var portalHeader = '<header class="client-desk-portal-header"><div class="client-desk-portal-heading"><p class="client-desk-kicker">Private project workspace</p><h1>' + portalTitle + '</h1><p>' + portalDescription + '</p></div>' + secureIndicator + '</header>';
+    var portalHeader = '<header class="client-desk-portal-header"><a class="client-desk-portal-brand" href="#/" aria-label="FixerCtrl home"><img src="assets/fixerctrl-logo.png" alt="FixerCtrl"></a><div class="client-desk-portal-heading"><p class="client-desk-kicker">Private project workspace</p><h1>' + portalTitle + '</h1><p>' + portalDescription + '</p></div>' + secureIndicator + '</header>';
     if (!profile || !navigation.length) {
       portalRoot.innerHTML = '<div class="client-desk-app" data-theme="' + portalTheme + '">' + portalHeader + '<main class="client-desk-main-content">' + content + '</main>' + portalFooter() + '</div>';
       return;
@@ -610,7 +611,7 @@
     var notifications = renderNotifications(profile);
     var currentLabel = portalPageTitle(currentPortalPage);
     var accountMenu = '<details class="client-desk-user-menu" id="clientDeskProfile"><summary><span class="client-desk-avatar" aria-hidden="true">' + escapeHtml(initials(profile)) + '</span><span><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(role) + '</small></span><span class="client-desk-menu-chevron" aria-hidden="true">⌄</span></summary><div class="client-desk-user-popover"><p>' + escapeHtml(profile.email || '') + '</p><button type="button" data-action="theme">' + portalIcon(portalTheme === 'light' ? 'moon' : 'sun') + (portalTheme === 'light' ? 'Use dark appearance' : 'Use light appearance') + '</button><button type="button" data-action="signout">Sign Out</button></div></details>';
-    portalRoot.innerHTML = '<div class="client-desk-app" data-theme="' + portalTheme + '">' + portalHeader + '<nav class="client-desk-workspace-nav" aria-label="Portal sections">' + navLinks + '</nav><div class="client-desk-toolbar">' + search + '<div class="client-desk-top-actions"><div class="client-desk-notification-wrap"><button class="client-desk-icon-button" type="button" data-action="notifications" aria-label="Recent project updates" aria-expanded="false">' + portalIcon('bell') + '<span class="client-desk-notification-count" aria-label="' + recentActivityCount() + ' unread updates">' + (recentActivityCount() || '') + '</span></button>' + notifications + '</div><a class="client-desk-icon-button client-desk-help-button" href="#/contact" aria-label="Contact support">' + portalIcon('help') + '</a>' + accountMenu + '</div></div><div class="client-desk-breadcrumb"><a href="#portal-dashboard" data-portal-page="dashboard" data-back-dashboard' + (currentLabel === 'Dashboard' || currentLabel === 'Overview' ? ' hidden' : '') + '>Back to Dashboard</a><span>Portal</span><span aria-hidden="true">/</span><strong data-current-section>' + escapeHtml(currentLabel) + '</strong></div><main class="client-desk-main-content">' + content + '</main>' + portalFooter() + mobileNav + '</div>';
+    portalRoot.innerHTML = '<div class="client-desk-app has-navigation" data-theme="' + portalTheme + '">' + portalHeader + '<nav class="client-desk-workspace-nav" aria-label="Portal sections">' + navLinks + '</nav><div class="client-desk-toolbar">' + search + '<div class="client-desk-top-actions"><div class="client-desk-notification-wrap"><button class="client-desk-icon-button" type="button" data-action="notifications" aria-label="Recent project updates" aria-expanded="false">' + portalIcon('bell') + '<span class="client-desk-notification-count" aria-label="' + recentActivityCount() + ' unread updates">' + (recentActivityCount() || '') + '</span></button>' + notifications + '</div><a class="client-desk-icon-button client-desk-help-button" href="#/contact" aria-label="Contact support">' + portalIcon('help') + '</a>' + accountMenu + '</div></div><div class="client-desk-breadcrumb"><a href="#portal-dashboard" data-portal-page="dashboard" data-back-dashboard' + (currentLabel === 'Dashboard' || currentLabel === 'Overview' ? ' hidden' : '') + '>Back to Dashboard</a><span>Portal</span><span aria-hidden="true">/</span><strong data-current-section>' + escapeHtml(currentLabel) + '</strong></div><main class="client-desk-main-content">' + content + '</main>' + portalFooter() + mobileNav + '</div>';
   }
 
   function portalFooter() {
@@ -1415,6 +1416,11 @@
     var emptyHeading = owner ? 'No Projects Require Review' : freelancer ? 'No Projects Assigned' : 'No Active Projects';
     var emptyMessage = owner ? 'New client requests will appear here for review.' : freelancer ? 'Projects assigned to you will appear here.' : 'Submit a project request to begin a conversation with FixerCtrl.';
     var displayName = activeProfile.display_name || activeProfile.email || 'Client';
+    var dashboardIntro = owner
+      ? 'Your team’s work, client requests, and next steps at a glance.'
+      : freelancer
+        ? 'Your assignments, upcoming deadlines, and team updates in one place.'
+        : 'A clear view of your project progress, updates, and next steps.';
     var attention = renderAttentionPanel();
     var clientWidget = !owner && !freelancer
       ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="project-progress"><div class="client-desk-section-head"><h2>Project Progress</h2><a href="#portal-projects" data-portal-page="projects">View Projects</a></div>' + (projectCache.length ? projectCache.slice(0, 1).map(function (project) {
@@ -1449,7 +1455,7 @@
       : !owner
         ? '<details class="client-desk-dashboard-tools"><summary>Service Price Guide</summary><ul><li>Landing page: R1,500–R3,000</li><li>Up to five website pages: R3,500–R7,500</li><li>Website updates: R250 per hour</li><li>Setup: from R500</li><li>Features: from R800</li></ul><p class="client-desk-footnote">IT and security work is quoted after review. These prices are estimates, not a quote. <a href="#/freelancer">View service details</a></p></details>'
         : '';
-    var dashboardContent = '<div class="client-desk-dashboard-heading"><div><h2>Welcome back, ' + escapeHtml(displayName) + '</h2><p class="client-desk-footnote">' + escapeHtml(activeProfile.email) + '</p></div><button class="btn ghost" type="button" data-action="refresh" aria-label="Refresh workspace" title="Refresh workspace">Refresh</button></div>' +
+    var dashboardContent = '<div class="client-desk-dashboard-heading"><div><p class="client-desk-kicker">Your FixerCtrl workspace</p><h2>Welcome back, ' + escapeHtml(displayName) + '</h2><p class="client-desk-footnote">' + dashboardIntro + '</p></div><button class="btn ghost" type="button" data-action="refresh" aria-label="Refresh workspace" title="Refresh workspace">' + portalIcon('refresh') + ' Refresh</button></div>' +
       attention + renderSummaryStrip() + '<div class="client-desk-dashboard-widgets">' + clientWidget + clientUpdates + staffWidget + ownerWidget + '</div>' +
       (freelancer ? '<a class="btn" href="#portal-tasks" data-portal-page="tasks">Open My Tasks</a>' : owner ? '<a class="btn" href="#portal-projects" data-portal-page="projects">Review Projects</a>' : '<button class="btn" type="button" data-action="new-request">Submit Project Request</button><div class="client-desk-dashboard-tools">' + buildRequestForm() + '</div>') +
       '<p class="client-desk-form-status" data-portal-status aria-live="polite"></p>';
