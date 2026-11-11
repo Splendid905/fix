@@ -188,7 +188,7 @@
     var navigation = portalNavigation(profile);
     var secureLabel = window.isSecureContext ? (profile ? 'Secure session' : 'Secure connection') : 'Connection not secure';
     var secureIndicator = '<span class="client-desk-security-indicator">' + portalIcon('lock') + '<span>' + secureLabel + '</span></span>';
-    var portalHeader = '<header class="client-desk-portal-header"><a class="client-desk-brand" href="#/" aria-label="FixerCtrl home"><img src="assets/fixerctrl-logo.png" alt="FixerCtrl"></a><div class="client-desk-portal-heading"><p class="client-desk-kicker">Private project workspace</p><h1>' + portalTitle + '</h1><p>' + portalDescription + '</p></div>' + secureIndicator + '</header>';
+    var portalHeader = '<header class="client-desk-portal-header"><div class="client-desk-portal-heading"><p class="client-desk-kicker">Private project workspace</p><h1>' + portalTitle + '</h1><p>' + portalDescription + '</p></div>' + secureIndicator + '</header>';
     if (!profile || !navigation.length) {
       portalRoot.innerHTML = '<div class="client-desk-app" data-theme="' + portalTheme + '">' + portalHeader + '<main class="client-desk-main-content">' + content + '</main>' + portalFooter() + '</div>';
       return;

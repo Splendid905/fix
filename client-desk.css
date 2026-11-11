@@ -54,8 +54,6 @@
   color-scheme: light;
 }
 .client-desk-portal-header { display: flex; align-items: center; gap: clamp(1rem, 3vw, 2rem); padding: 1.25rem 0 1.5rem; border-bottom: 1px solid var(--desk-border); }
-.client-desk-brand { flex: 0 0 auto; display: inline-flex; align-items: center; width: clamp(5rem, 11vw, 8rem); }
-.client-desk-brand img { display: block; width: 100%; height: auto; }
 .client-desk-portal-heading { min-width: 0; flex: 1; }
 .client-desk-portal-heading h1 { margin: 0 0 .45rem; color: var(--desk-text); font: 400 clamp(2rem, 4vw, 3.2rem)/1 var(--heading); letter-spacing: .02em; text-transform: uppercase; }
 .client-desk-portal-heading > p:last-child { max-width: 45rem; margin: 0; color: var(--desk-muted); }
@@ -122,7 +120,6 @@
 .client-desk-user-popover button { display: flex; align-items: center; gap: .5rem; min-height: 2.6rem; padding: .45rem .55rem; border: 0; background: transparent; color: var(--desk-text); text-align: left; cursor: pointer; }
 .client-desk-user-popover button:hover { background: var(--desk-bg); }
 .client-desk-search-empty { padding: .8rem 1rem; border: 1px dashed var(--desk-border); color: var(--desk-muted); }
-.client-desk-app[data-theme="light"] .client-desk-brand { padding: .35rem; background: #0a0a0a; }
 .client-desk-status[data-status="complete"], .client-desk-status[data-status="paid"], .client-desk-status[data-status="accepted"],
 .client-desk-step-state[data-status="done"] { border-color: currentColor; color: var(--desk-success); }
 .client-desk-status[data-status="complete"]::before, .client-desk-status[data-status="paid"]::before { background: var(--desk-success); }
@@ -290,7 +287,6 @@
   .client-desk-sidebar { border-top: 1px solid var(--desk-line); border-left: 0; padding: 1rem 0 0; }
   .client-desk-project-body { grid-template-columns: minmax(0, 1fr); }
   .client-desk-portal-header { align-items: flex-start; flex-wrap: wrap; gap: .8rem 1rem; }
-  .client-desk-brand { width: 5rem; }
   .client-desk-security-indicator { margin-left: auto; }
   .client-desk-workspace-nav { gap: .1rem; }
   .client-desk-nav-link { min-height: 2.4rem; padding: .35rem .45rem; font-size: .75rem; }
@@ -313,10 +309,8 @@
   .client-desk-project-summary-brief { grid-template-columns: minmax(0, 1fr); gap: .55rem; }
   .client-desk-table { min-width: 0; }
   .client-desk-controls { display: grid; grid-template-columns: 1fr 1fr; }
-  .client-desk-portal-heading { flex-basis: calc(100% - 6.5rem); order: 2; }
+  .client-desk-portal-heading { flex-basis: calc(100% - 2rem); }
   .client-desk-portal-heading h1 { font-size: 2rem; }
-  .client-desk-security-indicator { order: 1; }
-  .client-desk-brand { order: 0; }
   .client-desk-breadcrumb { flex-wrap: wrap; }
 }
 @media (max-width: 420px) {
