@@ -1664,8 +1664,7 @@
   function clientDesk() {
     return {
       title: 'Client Portal',
-      html: pageBanner('Private project workspace', 'Client Portal', 'Track project progress, next steps, shared files, and agreed details in one private workspace.') +
-        '<section class="client-desk" aria-label="Client workspace"><div id="clientDeskApp" aria-live="polite"><p>Loading secure workspace...</p></div></section>',
+      html: '<section class="client-desk" aria-label="Client Portal"><div id="clientDeskApp" aria-live="polite"><p>Loading your secure workspace...</p></div></section>',
       after: function () { window.initClientDesk(); }
     };
   }
