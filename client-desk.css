@@ -479,9 +479,11 @@
   .client-desk-app *, .client-desk-app *::before, .client-desk-app *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 .client-desk-stage-tracker { position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .35rem; margin: 1.5rem 0; padding: 0; list-style: none; }
-.client-desk-stage-tracker::before { position: absolute; top: .82rem; right: 6%; left: 6%; height: 1px; background: var(--desk-border); content: ""; }
+.client-desk-stage-tracker::before { display: none; }
 .client-desk-stage-point { position: relative; min-width: 0; text-align: center; }
 .client-desk-stage-point { display: grid; justify-items: center; align-content: start; gap: .35rem; min-height: 5.2rem; text-align: center; }
+.client-desk-stage-point::after { position: absolute; z-index: 0; top: .85rem; left: 50%; width: calc(100% + .35rem); height: 1px; background: var(--desk-border); content: ""; pointer-events: none; }
+.client-desk-stage-point:last-child::after { display: none; }
 .client-desk-stage-point > details { width: 100%; }
 .client-desk-stage-point > details > summary { display: grid; justify-items: center; align-content: start; gap: .35rem; min-height: 5.2rem; cursor: pointer; list-style: none; }
 .client-desk-stage-point summary::-webkit-details-marker { display: none; }
@@ -560,7 +562,8 @@
 .client-desk-stage-tracker .client-desk-stage-point:focus-within { outline: 2px solid var(--focus); outline-offset: 3px; }
 @media (max-width: 760px) {
   .client-desk-stage-tracker { grid-template-columns: minmax(0, 1fr); gap: .15rem; margin: .8rem 0; }
-  .client-desk-stage-tracker::before { top: .9rem; bottom: .9rem; left: .82rem; width: 1px; height: auto; }
+  .client-desk-stage-tracker::before { position: absolute; top: .85rem; bottom: .85rem; left: .82rem; display: block; width: 1px; height: auto; background: var(--desk-border); content: ""; }
+  .client-desk-stage-point::after { display: none; }
   .client-desk-stage-point { text-align: left; }
   .client-desk-stage-point { grid-template-columns: 1.7rem minmax(0, 1fr) auto; justify-items: start; align-items: center; min-height: 2.7rem; gap: .55rem; text-align: left; }
   .client-desk-stage-point > details { grid-column: 1 / -1; }
@@ -607,7 +610,7 @@
 .client-desk-dashboard-widget, .client-desk-owner-progress > div { height: 100%; }
 .client-desk-card, .client-desk-staff-task, .client-desk-payment, .client-desk-progress-panel,
 .client-desk-dashboard-widget, .client-desk-owner-progress > div { border-radius: var(--desk-radius); }
-.client-desk-card { padding: clamp(.85rem, 2vw, 1.15rem); }
+.client-desk-card, .client-desk-dashboard-widget, .client-desk-owner-progress > div { padding: clamp(.85rem, 2vw, 1.15rem); }
 .client-desk-card > :first-child { margin-top: 0; }
 .client-desk-card > :last-child { margin-bottom: 0; }
 .client-desk-section-head { align-items: center; min-width: 0; }
@@ -761,4 +764,16 @@
   .client-desk-project-summary-status .client-desk-stage-tracker { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .client-desk-table tr { grid-template-columns: minmax(0, 1fr); }
   .client-desk-table td:first-child { grid-column: 1; }
+}
+.client-desk-app h1, .client-desk-app h2, .client-desk-app h3,
+.client-desk-app h4, .client-desk-app h5, .client-desk-app h6 { text-align: left; }
+.client-desk-app form:not(.client-desk-chat-compose) .btn { justify-self: start; margin-inline: 0; }
+.client-desk-page-heading { flex-wrap: wrap; }
+.client-desk-project-summary-status { min-width: 0; }
+.client-desk-app :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) { min-width: 0; }
+@media (max-width: 760px) {
+  .client-desk-app form:not(.client-desk-chat-compose) .btn { width: auto; }
+}
+@media (max-width: 540px) {
+  .client-desk-project-summary-status { width: 100%; }
 }
