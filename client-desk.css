@@ -1077,3 +1077,37 @@
   .client-desk-app.has-navigation .btn:active { transform: none; box-shadow: 3px 3px 0 rgba(242, 242, 242, .22); }
   .client-desk-app.has-navigation .btn.ghost:active { transform: none; box-shadow: none; }
 }
+@media (min-width: 761px) {
+  .client-desk-app.has-navigation { display: block; }
+  .client-desk-app.has-navigation .client-desk-portal-header {
+    display: flex;
+    align-items: center;
+    padding-block: 1rem 1.15rem;
+  }
+  .client-desk-app.has-navigation .client-desk-workspace-nav {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: .55rem;
+    margin: 0;
+    padding: .75rem 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .client-desk-app.has-navigation .client-desk-nav-link { width: auto; }
+  .client-desk-app.has-navigation .client-desk-toolbar {
+    min-height: 4.5rem;
+    padding: .75rem 0 .45rem;
+  }
+  .client-desk-app.has-navigation .client-desk-breadcrumb { min-height: 2.5rem; }
+  .client-desk-app.has-navigation .client-desk-main-content {
+    width: 100%;
+    padding: .65rem 0 1.5rem;
+  }
+  .client-desk-app.has-navigation .client-desk-footer { padding-top: 1rem; }
+}
+@media (max-width: 760px) {
+  .client-desk-app.has-navigation { display: block; }
+  .client-desk-app.has-navigation .client-desk-workspace-nav { display: none; }
+}
