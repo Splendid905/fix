@@ -5,7 +5,7 @@ The Client Portal is prepared in the static site and Supabase project files. It 
 ## 1. Create Supabase Project
 
 1. Create a Supabase project in a region appropriate for the business and customer data.
-2. Apply `migrations/202611080001_client_desk.sql`, `migrations/202611090001_client_desk_team.sql`, `migrations/202611090002_customer_profile_deletion.sql`, `migrations/202611090003_reclaim_orphaned_profile_email.sql`, then `migrations/202611100001_project_progress.sql`, using the Supabase CLI or SQL editor. Review the migrations in a non-production project first.
+2. Apply `migrations/202611080001_client_desk.sql`, `migrations/202611090001_client_desk_team.sql`, `migrations/202611090002_customer_profile_deletion.sql`, `migrations/202611090003_reclaim_orphaned_profile_email.sql`, `migrations/202611100001_project_progress.sql`, then `migrations/202611110001_team_communication_and_fair_assignment.sql`, using the Supabase CLI or SQL editor. Review the migrations in a non-production project first.
 3. Enable email-and-password sign-in and customer signups in Supabase Auth, configure email confirmation and Auth rate limits, and set the correct Site URL and allowed redirect URLs. Public registration through the Client Portal creates customer accounts only; it cannot assign admin or freelancer roles.
 4. Customers can create an account from **New customer? Create an account** on the Client Portal sign-in page. They confirm their email if email confirmation is enabled, then sign in with their password. Existing magic-link accounts need a password set before they can use password sign-in.
 5. Create/invite the owner account through Supabase Auth, or register it through the Client Portal, then promote that account's profile in the Supabase SQL editor:
@@ -57,6 +57,20 @@ The Client Portal is prepared in the static site and Supabase project files. It 
 6. The project progress migration seeds a standard workflow (Discovery through Post-launch Support) and its steps for existing and new projects. Project progress is calculated from completed steps. Admins can assign each step to a freelancer already on that project's team and set a due date. Admins and assigned freelancers update work status; customers can approve steps in review or request changes. Each change is recorded in the existing project activity feed and synced to open portal sessions through Supabase Realtime. Apply this migration before relying on the progress tracker. No demo customer or project is created in production.
 
 7. To onboard a freelancer, first create/invite their Auth account in Supabase, then sign in to the Client Portal as Admin. Under **Freelancer accounts**, change their portal access from Customer to Freelancer. Assign them to individual projects under each project's **Project team** controls. Freelancers only see assigned projects and can post client-visible status/next-step updates, messages, and files; they cannot access invoices, quotes, payment settings, private notes, or unassigned projects. Changing a freelancer back to Customer removes their project assignments.
+
+8. The team communication channel is visible only to Admin and Freelancer accounts; clients continue to use project messages. Admins can enable the **24-hour fair assignment fallback** from **Settings**. It is disabled by default. When enabled, an hourly Supabase Cron job assigns a client request that remains in **Request Received** for at least 24 hours and has no project team. It selects a freelancer with the fewest open project steps, then the freelancer assigned least recently, adds them to the project, and assigns the first unfinished step. Each automated assignment and setting change is recorded in the management audit log, and the assignment is visible in the project activity feed.
+
+   The migration installs and schedules the job when `pg_cron` is available. If it reports that `pg_cron` is unavailable, enable that extension in the Supabase Dashboard, then schedule the job in the SQL Editor:
+
+   ```sql
+   select cron.schedule(
+     'client-desk-stale-request-assignment',
+     '0 * * * *',
+     'select public.auto_assign_stale_client_requests()'
+   );
+   ```
+
+   Do not enable the portal setting until the schedule exists. Staff selection currently considers workload, not skills or leave availability; keep assignment manual when a request requires specialist matching.
 
 Saving a project status or next step automatically adds a dated event to the project timeline. Progress-step updates sync to open portal sessions; other changes appear when the Client Portal is opened or refreshed. These progress changes do not send a separate email or require a message.
 

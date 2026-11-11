@@ -54,7 +54,7 @@
     }
     if (activeProfile.role === 'owner') {
       projectCache.filter(function (project) { return ['received', 'awaiting_approval'].indexOf(project.status) !== -1; })
-        .slice(0, 5).forEach(function (project) { addAction(project.id, 'Review request: ' + project.title); });
+        .slice(0, 5).forEach(function (project) { addAction(project.id, 'Review request: ' + project.title, 'management'); });
       (relatedData.steps || []).filter(function (step) { return step.status === 'in_review'; }).forEach(function (step) {
         var project = projectCache.find(function (item) { return item.id === step.project_id; });
         if (project) addAction(project.id, 'Review deliverable: ' + step.title, 'deliverables');
@@ -143,21 +143,20 @@
   function portalNavigation(profile) {
     if (!profile || profile.role === 'deleted') return [];
     if (profile.role === 'owner') return [
-      { group: 'Overview', label: 'Overview', icon: 'home', target: 'clientDeskHome', mobilePrimary: true },
+      { group: 'Overview', label: 'Dashboard', icon: 'home', target: 'clientDeskHome', mobilePrimary: true },
       { group: 'Work', label: 'Projects', icon: 'projects', target: 'clientDeskProjects', mobilePrimary: true },
       { group: 'Work', label: 'Clients', icon: 'team', target: 'clientDeskClients', mobilePrimary: true },
-      { group: 'People', label: 'Team Management', icon: 'team', target: 'team' },
-      { group: 'Money', label: 'Finance', icon: 'finance', target: 'clientDeskFinance', mobilePrimary: true },
-      { group: 'Money', label: 'Payroll', icon: 'billing', disabled: true },
-      { group: 'Insights', label: 'Analytics & Reports', icon: 'billing', disabled: true },
-      { group: 'Admin', label: 'Settings', icon: 'settings', disabled: true }
+      { group: 'Team', label: 'Team Management', icon: 'team', target: 'team' },
+      { group: 'Team', label: 'Team Communication', icon: 'messages', target: 'clientDeskTeamCommunication' },
+      { group: 'Finance', label: 'Finance', icon: 'finance', target: 'clientDeskFinance', mobilePrimary: true },
+      { group: 'Admin', label: 'Settings', icon: 'settings', target: 'clientDeskManagementSettings' }
     ];
     if (profile.role === 'freelancer') return [
       { group: 'Overview', label: 'Dashboard', icon: 'home', target: 'clientDeskHome', mobilePrimary: true },
       { group: 'Work', label: 'My Tasks', icon: 'tasks', target: 'clientDeskProjects', mobilePrimary: true },
       { group: 'Work', label: 'Timesheets', icon: 'tasks', disabled: true },
       { group: 'Work', label: 'Documents', icon: 'files', target: 'files' },
-      { group: 'Communication', label: 'Team Communication', icon: 'messages', target: 'messages', mobilePrimary: true },
+      { group: 'Communication', label: 'Team Communication', icon: 'messages', target: 'clientDeskTeamCommunication', mobilePrimary: true },
       { group: 'Money & Progress', label: 'Performance', icon: 'finance', disabled: true },
       { group: 'Money & Progress', label: 'Earnings & Payouts', icon: 'billing', disabled: true },
       { group: 'Account', label: 'Profile', icon: 'team', target: 'clientDeskProfile' }
@@ -187,12 +186,24 @@
         group = { label: item.group, items: [] };
         groups.push(group);
       }
+
       group.items.push(item);
     });
     return groups.map(function (group) {
       var open = navigationGroupState[group.label] !== false;
       return '<details class="client-desk-nav-group" data-nav-group="' + escapeHtml(group.label) + '"' + (open ? ' open' : '') + '><summary>' + escapeHtml(group.label) + '</summary><div>' + group.items.map(renderPortalNavItem).join('') + '</div></details>';
     }).join('');
+  }
+
+  function renderTeamCommunication() {
+    if (activeProfile.role !== 'owner' && activeProfile.role !== 'freelancer') return '';
+    var messages = relatedData.teamMessages || [];
+    var content = messages.length
+      ? '<ol class="client-desk-team-message-list">' + messages.map(function (message) {
+        return '<li><div><strong>' + escapeHtml(message.author_id === activeProfile.id ? 'You' : message.author_display_name || 'Team member') + '</strong><time datetime="' + escapeHtml(message.created_at) + '">' + escapeHtml(dateLabel(message.created_at)) + '</time></div><p>' + escapeHtml(message.body) + '</p></li>';
+      }).join('') + '</ol>'
+      : '<p class="client-desk-footnote">There are no team updates yet. Use this space to share a project handoff, ask for support, or flag a blocker.</p>';
+    return '<details class="client-desk-dashboard-tools client-desk-team-communication" id="clientDeskTeamCommunication" data-portal-section="teamCommunication" data-ui-state="team-communication"><summary>Team Communication</summary><section><p class="client-desk-footnote">Staff-only updates for coordination across the organization. Client messages remain in each project.</p><h3>Recent Updates</h3>' + content + '<form class="client-desk-message-form" data-action="team-message"><label class="client-desk-label" for="teamMessage">Share an update with the team</label><textarea id="teamMessage" name="body" maxlength="4000" required placeholder="Write a clear handoff, question, or blocker update."></textarea><button class="btn" type="submit">Send Message</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></section></details>';
   }
 
   function renderMobileNavigation(navigation) {
@@ -670,7 +681,7 @@
 
   function renderOwnerTools(project) {
     if (activeProfile.role !== 'owner') return '';
-    return '<div class="client-desk-card"><h3>Project Management</h3><div class="client-desk-field-grid"><div class="field"><label class="client-desk-label" for="status-' + escapeHtml(project.id) + '">Project Status</label><select id="status-' + escapeHtml(project.id) + '" data-action="set-status" data-project="' + escapeHtml(project.id) + '">' + statuses.map(function (entry) { return '<option value="' + entry[0] + '" ' + (project.status === entry[0] ? 'selected' : '') + '>' + entry[1] + '</option>'; }).join('') + '</select></div><div class="field"><label class="client-desk-label" for="next-' + escapeHtml(project.id) + '">Next Action</label><input id="next-' + escapeHtml(project.id) + '" data-action="set-next" data-project="' + escapeHtml(project.id) + '" type="text" maxlength="240" value="' + escapeHtml(project.next_action || '') + '" placeholder="For example: Review the homepage design"></div></div><button class="btn ghost" type="button" data-action="save-project" data-project="' + escapeHtml(project.id) + '">Save project update</button>' +
+    return '<div class="client-desk-card" data-portal-section="management"><h3>Project Management</h3><p class="client-desk-footnote">For a new client request, assign project access under Project Team, then assign each step from Project Timeline &amp; Deliverables.</p><div class="client-desk-field-grid"><div class="field"><label class="client-desk-label" for="status-' + escapeHtml(project.id) + '">Project Status</label><select id="status-' + escapeHtml(project.id) + '" data-action="set-status" data-project="' + escapeHtml(project.id) + '">' + statuses.map(function (entry) { return '<option value="' + entry[0] + '" ' + (project.status === entry[0] ? 'selected' : '') + '>' + entry[1] + '</option>'; }).join('') + '</select></div><div class="field"><label class="client-desk-label" for="next-' + escapeHtml(project.id) + '">Next Action</label><input id="next-' + escapeHtml(project.id) + '" data-action="set-next" data-project="' + escapeHtml(project.id) + '" type="text" maxlength="240" value="' + escapeHtml(project.next_action || '') + '" placeholder="For example: Review the homepage design"></div></div><button class="btn ghost" type="button" data-action="save-project" data-project="' + escapeHtml(project.id) + '">Save project update</button>' +
       '<details><summary>Manage Client Checklist</summary><form class="client-desk-message-form" data-action="checklist-add" data-project="' + escapeHtml(project.id) + '"><label class="client-desk-label">Checklist item</label><input name="title" type="text" required maxlength="240" placeholder="For example: Upload the company logo"><div class="client-desk-field-grid"><div class="field"><label class="client-desk-label">Assigned to</label><select name="owner_kind"><option value="customer">Client</option><option value="owner">FixerCtrl</option></select></div><div class="field"><label class="client-desk-label">Due date (optional)</label><input name="due_at" type="date"></div></div><label class="client-desk-checkline"><input name="internal" type="checkbox"><span>Private management-only item</span></label><button class="btn ghost" type="submit">Add checklist item</button></form></details>' +
       renderQuoteBuilder(project) + '</div>' + renderTeamTools(project);
   }
@@ -736,6 +747,12 @@
       '<div class="field"><label class="client-desk-label" for="eftInstructions">Bank transfer instructions (shown to clients)</label><textarea id="eftInstructions" name="eft_instructions" maxlength="1500">' + escapeHtml((providers.find(function (provider) { return provider.provider === 'eft'; }) || {}).public_instructions || '') + '</textarea></div><button class="btn ghost" type="submit">Save payment settings</button></form></details>';
   }
 
+  function renderAutomaticAssignmentSettings() {
+    if (activeProfile.role !== 'owner') return '';
+    var enabled = Boolean(relatedData.automaticAssignmentEnabled);
+    return '<details class="client-desk-card" id="clientDeskManagementSettings" data-portal-section="settings"><summary><strong>Automatic Request Assignment</strong></summary><p>When enabled, client requests that remain unassigned for 24 hours are checked hourly and assigned to a staff member with the fewest open tasks. Ties go to the person assigned least recently. The system assigns the first project step and records the assignment in the activity log. Assignment stays manual by default.</p><form class="client-desk-message-form" data-action="automatic-assignment"><label class="client-desk-checkline"><input type="checkbox" name="enabled" ' + (enabled ? 'checked' : '') + '><span>Enable the 24-hour fair assignment fallback</span></label><p class="client-desk-footnote">' + (enabled ? 'Automatic assignment is enabled.' : 'Automatic assignment is disabled. Supabase scheduled jobs must be available before enabling it.') + '</p><button class="btn ghost" type="submit">Save Assignment Setting</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></details>';
+  }
+
   function renderQuoteBuilder(project) {
     return '<details><summary>Prepare Quote and Payment Schedule</summary><form class="client-desk-message-form" data-action="quote" data-project="' + escapeHtml(project.id) + '"><div class="field"><label class="client-desk-label">Scope</label><textarea name="scope" required maxlength="5000"></textarea></div><div class="field"><label class="client-desk-label">Deliverables</label><textarea name="deliverables" required maxlength="3000"></textarea></div><div class="field"><label class="client-desk-label">Exclusions and third-party costs</label><textarea name="exclusions" maxlength="3000"></textarea></div><div class="client-desk-field-grid"><div class="field"><label class="client-desk-label">Quote total (ZAR)</label><input name="total" type="number" min="0.01" step="0.01" required></div><div class="field"><label class="client-desk-label">Quote valid until</label><input name="valid_until" type="date" required></div></div><h4>Payment milestones</h4><div data-milestone-list><div class="client-desk-field-grid" data-milestone-row><div class="field"><label class="client-desk-label">Milestone name</label><input name="milestone_description" required maxlength="240" placeholder="For example: Project deposit"></div><div class="field"><label class="client-desk-label">Amount (ZAR)</label><input name="milestone_amount" type="number" min="0.01" step="0.01" required></div><div class="field"><label class="client-desk-label">Payment due</label><input name="milestone_due" type="date" required></div><div class="field"><label class="client-desk-label">Schedule invoice email</label><input name="milestone_send" type="datetime-local" required></div><button class="btn ghost" type="button" data-action="remove-milestone" aria-label="Remove payment milestone">Remove</button></div></div><button class="btn ghost" type="button" data-action="add-milestone">Add payment milestone</button><label class="client-desk-checkline"><input name="confirm" type="checkbox" required><span>Confirm that the scope, total, dates, and payment milestones are clear and add up to the quoted total.</span></label><button class="btn" type="submit">Send quote for client approval</button></form></details>';
   }
@@ -758,6 +775,7 @@
     progressChannel = client.channel('client-desk-progress')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'project_steps' }, queueProgressRefresh)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'project_events' }, queueProgressRefresh)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'team_messages' }, queueProgressRefresh)
       .subscribe(function (status) {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           setStatus('Live updates are temporarily unavailable. Use Refresh to check for project changes.', true);
@@ -784,7 +802,7 @@
     if (projectResult.error) throw projectResult.error;
     projectCache = projectResult.data || [];
     var ids = projectCache.map(function (project) { return project.id; });
-    relatedData = { checklist: [], messages: [], invoices: [], quotes: [], events: [], files: [], profiles: [], providers: [], freelancers: [], teamAssignments: [], stages: [], steps: [] };
+    relatedData = { checklist: [], messages: [], teamMessages: [], invoices: [], quotes: [], events: [], files: [], profiles: [], providers: [], freelancers: [], teamAssignments: [], stages: [], steps: [], automaticAssignmentEnabled: false };
     if (ids.length) {
       var queries = await Promise.all([
         client.from('project_checklist').select('*').in('project_id', ids).order('position'),
@@ -812,6 +830,14 @@
       if (profiles.error) throw profiles.error;
       relatedData.profiles = profiles.data || [];
       relatedData.freelancers = relatedData.profiles.filter(function (profile) { return profile.role === 'freelancer'; });
+      var setting = await client.from('client_desk_settings').select('automatic_assignment_enabled').eq('setting_key', 'portal').single();
+      if (setting.error) throw setting.error;
+      relatedData.automaticAssignmentEnabled = setting.data.automatic_assignment_enabled;
+    }
+    if (activeProfile.role === 'owner' || activeProfile.role === 'freelancer') {
+      var teamMessages = await client.from('team_messages').select('id,author_id,author_display_name,body,created_at').order('created_at', { ascending: false }).limit(100);
+      if (teamMessages.error) throw teamMessages.error;
+      relatedData.teamMessages = teamMessages.data || [];
     }
     var providersQuery = client.from('payment_providers').select('provider,label,is_enabled,public_instructions');
     if (activeProfile.role !== 'owner') providersQuery = providersQuery.eq('is_enabled', true);
@@ -874,7 +900,7 @@
         '<section class="client-desk-dashboard-widget" data-dashboard-widget="team-workload"><div class="client-desk-section-head"><h2>Team Workload</h2><a href="#clientDeskTeam" data-portal-nav data-target="clientDeskTeam">View Team</a></div><p>' + (relatedData.teamAssignments || []).length + ' project assignments</p></section>'
       : '';
     var ownerTools = owner
-      ? '<details class="client-desk-dashboard-tools"><summary>Management Tools</summary>' + renderPaymentSettings() + '<div id="clientDeskClients">' + renderFreelancerAccounts() + '</div></details>'
+      ? '<details class="client-desk-dashboard-tools"><summary>Management Tools</summary>' + renderPaymentSettings() + renderAutomaticAssignmentSettings() + '<div id="clientDeskClients">' + renderFreelancerAccounts() + '</div></details>'
       : '';
     var clientTools = !owner && !freelancer
       ? '<div class="client-desk-dashboard-tools">' + buildRequestForm() + renderAccountDeletion() + '</div>'
@@ -885,7 +911,7 @@
         ? '<details class="client-desk-dashboard-tools"><summary>Service Price Guide</summary><ul><li>Landing page: R1,500–R3,000</li><li>Up to five website pages: R3,500–R7,500</li><li>Website updates: R250 per hour</li><li>Setup: from R500</li><li>Features: from R800</li></ul><p class="client-desk-footnote">IT and security work is quoted after review. These prices are estimates, not a quote. <a href="#/freelancer">View service details</a></p></details>'
         : '';
     var content = '<div id="clientDeskHome" class="client-desk-workspace"><div class="client-desk-main"><div class="client-desk-dashboard-heading"><div><h2>Welcome back, ' + escapeHtml(displayName) + '</h2><p class="client-desk-footnote">' + escapeHtml(activeProfile.email) + '</p></div><button class="btn ghost" type="button" data-action="refresh" aria-label="Refresh projects" title="Refresh projects">Refresh</button></div>' + attention + renderSummaryStrip() +
-      renderDashboardCustomization() + '<div class="client-desk-dashboard-widgets">' + clientWidget + clientApprovalWidget + clientUpdates + staffWidget + ownerWidget + '</div>' +
+      renderDashboardCustomization() + '<div class="client-desk-dashboard-widgets">' + clientWidget + clientApprovalWidget + clientUpdates + staffWidget + ownerWidget + '</div>' + renderTeamCommunication() +
       '<div class="client-desk-section-head"><h2>' + (owner ? 'Projects to Manage' : freelancer ? 'My Tasks' : 'Your Projects') + '</h2>' + (!owner && !freelancer ? '<button class="btn" type="button" data-action="new-request">Submit Project Request</button>' : '') + '</div>' +
       '<p class="client-desk-form-status" data-portal-status aria-live="polite"></p>' + projectsContent + '<p class="client-desk-search-empty" data-portal-search-empty hidden>No matching projects. Try another search.</p>' +
       ownerTools + clientTools + roleGuidance + '</div></div>';
@@ -983,6 +1009,30 @@
     if (result.error) throw result.error;
     await loadWorkspace();
     setStatus('Project team saved.', false);
+  }
+
+  async function submitTeamMessage(form) {
+    if (activeProfile.role !== 'owner' && activeProfile.role !== 'freelancer') {
+      throw new Error('Staff access is required to send a team message.');
+    }
+    var body = String(new FormData(form).get('body') || '').trim();
+    if (!body) throw new Error('Write a message before sending it.');
+    var result = await client.from('team_messages').insert({
+      author_id: activeProfile.id,
+      body: body
+    });
+    if (result.error) throw result.error;
+    await loadWorkspace();
+    setStatus('Your update has been shared with the team.', false);
+  }
+
+  async function submitAutomaticAssignment(form) {
+    if (activeProfile.role !== 'owner') throw new Error('Management access is required.');
+    var enabled = new FormData(form).has('enabled');
+    var result = await client.rpc('owner_set_automatic_assignment', { p_enabled: enabled });
+    if (result.error) throw result.error;
+    await loadWorkspace();
+    setStatus(enabled ? 'The 24-hour fair assignment fallback is enabled.' : 'Automatic assignment is disabled. New work will remain under manual control.', false);
   }
 
   async function submitFile(form) {
@@ -1383,6 +1433,8 @@
       else if (action === 'payment-settings') await submitPaymentSettings(form);
       else if (action === 'freelancer-role') await submitFreelancerRole(form);
       else if (action === 'team') await submitProjectTeam(form);
+      else if (action === 'team-message') await submitTeamMessage(form);
+      else if (action === 'automatic-assignment') await submitAutomaticAssignment(form);
       else if (action === 'delete-profile') {
         var deletionCredentials = new FormData(form);
         if ((activeProfile.role !== 'customer' && activeProfile.role !== 'deleted') || !deletionCredentials.get('confirm')) {
