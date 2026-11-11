@@ -7,6 +7,10 @@
   var progressChannel = null;
   var progressRefreshTimer = null;
   var currentPortalSection = 'Dashboard';
+  var currentPortalPage = 'dashboard';
+  var pendingProjectOpen = '';
+  var selectedTeamConversation = 'group';
+  var calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   var portalTheme = 'dark';
   var projectCache = [];
   var relatedData = {};
@@ -83,7 +87,8 @@
     }
     var actionList = actions.length
       ? '<ul>' + actions.map(function (action) {
-        return '<li><span>' + escapeHtml(action.label) + '</span><a href="#' + escapeHtml(action.target) + '" data-portal-nav data-target="' + escapeHtml(action.target) + '"' + (action.section ? ' data-section="' + escapeHtml(action.section) + '"' : '') + '>Review</a></li>';
+        var projectId = action.target.replace('clientDeskProject-', '');
+        return '<li><span>' + escapeHtml(action.label) + '</span><a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(projectId) + '">Review</a></li>';
       }).join('') + '</ul>'
       : '<p class="client-desk-footnote">You’re all caught up. There are no actions requiring attention.</p>';
     return '<section class="client-desk-attention" aria-labelledby="attention-heading"><div class="client-desk-attention-heading"><span class="client-desk-attention-icon" aria-hidden="true">!</span><h2 id="attention-heading">Requires Your Attention</h2></div>' + actionList + '</section>';
@@ -96,7 +101,9 @@
     var tasks = (relatedData.steps || []).filter(function (step) { return step.owner_id === activeProfile.id && step.status !== 'done'; }).length;
     var thirdLabel = activeProfile.role === 'freelancer' ? 'My Active Tasks' : 'Open Invoices';
     var thirdCount = activeProfile.role === 'freelancer' ? tasks : invoices;
-    return '<div class="client-desk-summary-strip" aria-label="Workspace summary"><a href="#clientDeskProjects" data-portal-nav data-target="clientDeskProjects"><span>Active Projects</span><strong>' + active + '</strong></a><a href="#clientDeskProjects" data-portal-nav data-target="clientDeskProjects" data-section="deliverables"><span>Pending Approvals</span><strong>' + approvals + '</strong></a><a href="#clientDeskProjects" data-portal-nav data-target="clientDeskProjects" data-section="' + (activeProfile.role === 'freelancer' ? 'deliverables' : 'billing') + '"><span>' + thirdLabel + '</span><strong>' + thirdCount + '</strong></a></div>';
+    var projectPage = activeProfile.role === 'freelancer' ? 'tasks' : 'projects';
+    var lastPage = activeProfile.role === 'freelancer' ? 'tasks' : activeProfile.role === 'owner' ? 'finance' : 'billing';
+    return '<div class="client-desk-summary-strip" aria-label="Workspace summary"><a href="#portal-' + projectPage + '" data-portal-page="' + projectPage + '"><span>Active Projects</span><strong>' + active + '</strong></a><a href="#portal-' + projectPage + '" data-portal-page="' + projectPage + '"><span>Pending Approvals</span><strong>' + approvals + '</strong></a><a href="#portal-' + lastPage + '" data-portal-page="' + lastPage + '"><span>' + thirdLabel + '</span><strong>' + thirdCount + '</strong></a></div>';
   }
 
   function money(amount, currency) {
@@ -127,6 +134,7 @@
       support: '<circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 1 1 4.5 1.5c-1.2 1.2-2.1 1.5-2.1 3m0 3h.01"/>',
       tasks: '<path d="m4 7 2 2 4-4M4 17l2 2 4-4"/><path d="M12 7h8m-8 10h8"/>',
       team: '<path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m6-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8-7a4 4 0 0 1 0 8m4 9v-2a4 4 0 0 0-3-3.9"/>',
+      calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18m-13 4h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>',
       finance: '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-4 4"/>',
       settings: '<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2Z"/>',
       lock: '<rect x="4" y="10" width="16" height="11" rx="1"/><path d="M8 10V7a4 4 0 1 1 8 0v3m-4 4v3"/>',
@@ -143,30 +151,29 @@
   function portalNavigation(profile) {
     if (!profile || profile.role === 'deleted') return [];
     if (profile.role === 'owner') return [
-      { group: 'Overview', label: 'Dashboard', icon: 'home', target: 'clientDeskHome', mobilePrimary: true },
-      { group: 'Work', label: 'Projects', icon: 'projects', target: 'clientDeskProjects', mobilePrimary: true },
-      { group: 'Work', label: 'Clients', icon: 'team', target: 'clientDeskClients', mobilePrimary: true },
-      { group: 'Team', label: 'Team Management', icon: 'team', target: 'team' },
-      { group: 'Team', label: 'Team Communication', icon: 'messages', target: 'clientDeskTeamCommunication' },
-      { group: 'Finance', label: 'Finance', icon: 'finance', target: 'clientDeskFinance', mobilePrimary: true },
-      { group: 'Admin', label: 'Settings', icon: 'settings', target: 'clientDeskManagementSettings' }
+      { group: 'Overview', label: 'Dashboard', icon: 'home', page: 'dashboard', mobilePrimary: true },
+      { group: 'Work', label: 'Projects', icon: 'projects', page: 'projects', mobilePrimary: true },
+      { group: 'Work', label: 'Clients', icon: 'team', page: 'clients' },
+      { group: 'Team', label: 'Team Management', icon: 'team', page: 'team' },
+      { group: 'Team', label: 'Team Communication', icon: 'messages', page: 'communication', mobilePrimary: true },
+      { group: 'Team', label: 'Calendar', icon: 'calendar', page: 'calendar' },
+      { group: 'Finance', label: 'Finance', icon: 'finance', page: 'finance' },
+      { group: 'Admin', label: 'Settings', icon: 'settings', page: 'settings' }
     ];
     if (profile.role === 'freelancer') return [
-      { group: 'Overview', label: 'Dashboard', icon: 'home', target: 'clientDeskHome', mobilePrimary: true },
-      { group: 'Work', label: 'My Tasks', icon: 'tasks', target: 'clientDeskProjects', mobilePrimary: true },
-      { group: 'Work', label: 'Timesheets', icon: 'tasks', disabled: true },
-      { group: 'Work', label: 'Documents', icon: 'files', target: 'files' },
-      { group: 'Communication', label: 'Team Communication', icon: 'messages', target: 'clientDeskTeamCommunication', mobilePrimary: true },
-      { group: 'Money & Progress', label: 'Performance', icon: 'finance', disabled: true },
-      { group: 'Money & Progress', label: 'Earnings & Payouts', icon: 'billing', disabled: true },
-      { group: 'Account', label: 'Profile', icon: 'team', target: 'clientDeskProfile' }
+      { group: 'Overview', label: 'Dashboard', icon: 'home', page: 'dashboard', mobilePrimary: true },
+      { group: 'Work', label: 'My Tasks', icon: 'tasks', page: 'tasks', mobilePrimary: true },
+      { group: 'Work', label: 'Documents', icon: 'files', page: 'documents' },
+      { group: 'Team', label: 'Team Communication', icon: 'messages', page: 'communication', mobilePrimary: true },
+      { group: 'Team', label: 'Calendar', icon: 'calendar', page: 'calendar', mobilePrimary: true },
+      { group: 'Account', label: 'Profile', icon: 'team', page: 'profile' }
     ];
     return [
-      { group: 'Overview', label: 'Dashboard', icon: 'home', target: 'clientDeskHome', mobilePrimary: true },
-      { group: 'Work', label: 'Projects', icon: 'projects', target: 'clientDeskProjects', mobilePrimary: true },
-      { group: 'Work', label: 'Documents', icon: 'files', target: 'files' },
-      { group: 'Communication', label: 'Messages', icon: 'messages', target: 'messages', mobilePrimary: true },
-      { group: 'Billing', label: 'Invoices & Payments', icon: 'billing', target: 'billing', mobilePrimary: true },
+      { group: 'Overview', label: 'Dashboard', icon: 'home', page: 'dashboard', mobilePrimary: true },
+      { group: 'Work', label: 'Projects', icon: 'projects', page: 'projects', mobilePrimary: true },
+      { group: 'Work', label: 'Documents', icon: 'files', page: 'documents' },
+      { group: 'Communication', label: 'Messages', icon: 'messages', page: 'messages', mobilePrimary: true },
+      { group: 'Billing', label: 'Invoices & Payments', icon: 'billing', page: 'billing', mobilePrimary: true },
       { group: 'Help', label: 'Support', icon: 'support', href: '#/contact' }
     ];
   }
@@ -174,8 +181,11 @@
   function renderPortalNavItem(item) {
     var primaryClass = item.mobilePrimary ? ' is-mobile-primary' : '';
     if (item.disabled) return '<span class="client-desk-nav-link is-disabled' + primaryClass + '" aria-label="' + escapeHtml(item.label + ', available in a future update') + '" aria-disabled="true" title="Available in a future update">' + portalIcon(item.icon) + '<span>' + escapeHtml(item.label) + '<small>Available in a future update</small></span></span>';
-    var attributes = item.href ? 'href="' + item.href + '"' : 'href="#' + escapeHtml(item.target) + '" data-portal-nav data-target="' + escapeHtml(item.target) + '"';
-    return '<a class="client-desk-nav-link' + primaryClass + '" aria-label="' + escapeHtml(item.label) + '" title="' + escapeHtml(item.label) + '" ' + attributes + (item.target === 'clientDeskHome' ? ' aria-current="page"' : '') + '>' + portalIcon(item.icon) + '<span>' + escapeHtml(item.label) + '</span></a>';
+    var attributes = item.href ? 'href="' + item.href + '"' : item.page
+      ? 'href="#portal-' + escapeHtml(item.page) + '" data-portal-page="' + escapeHtml(item.page) + '"'
+      : 'href="#' + escapeHtml(item.target) + '" data-portal-nav data-target="' + escapeHtml(item.target) + '"';
+    var current = item.page === currentPortalPage ? ' aria-current="page"' : '';
+    return '<a class="client-desk-nav-link' + primaryClass + '" aria-label="' + escapeHtml(item.label) + '" title="' + escapeHtml(item.label) + '" ' + attributes + current + '>' + portalIcon(item.icon) + '<span>' + escapeHtml(item.label) + '</span></a>';
   }
 
   function renderNavigationGroups(navigation) {
@@ -197,13 +207,82 @@
 
   function renderTeamCommunication() {
     if (activeProfile.role !== 'owner' && activeProfile.role !== 'freelancer') return '';
-    var messages = relatedData.teamMessages || [];
-    var content = messages.length
-      ? '<ol class="client-desk-team-message-list">' + messages.map(function (message) {
-        return '<li><div><strong>' + escapeHtml(message.author_id === activeProfile.id ? 'You' : message.author_display_name || 'Team member') + '</strong><time datetime="' + escapeHtml(message.created_at) + '">' + escapeHtml(dateLabel(message.created_at)) + '</time></div><p>' + escapeHtml(message.body) + '</p></li>';
-      }).join('') + '</ol>'
-      : '<p class="client-desk-footnote">There are no team updates yet. Use this space to share a project handoff, ask for support, or flag a blocker.</p>';
-    return '<details class="client-desk-dashboard-tools client-desk-team-communication" id="clientDeskTeamCommunication" data-portal-section="teamCommunication" data-ui-state="team-communication"><summary>Team Communication</summary><section><p class="client-desk-footnote">Staff-only updates for coordination across the organization. Client messages remain in each project.</p><h3>Recent Updates</h3>' + content + '<form class="client-desk-message-form" data-action="team-message"><label class="client-desk-label" for="teamMessage">Share an update with the team</label><textarea id="teamMessage" name="body" maxlength="4000" required placeholder="Write a clear handoff, question, or blocker update."></textarea><button class="btn" type="submit">Send Message</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></section></details>';
+    var directory = relatedData.teamDirectory || [];
+    var conversation = selectedTeamConversation;
+    if (conversation !== 'group' && !directory.some(function (person) { return person.id === conversation; })) conversation = 'group';
+    var person = directory.find(function (entry) { return entry.id === conversation; });
+    var messages = (relatedData.teamMessages || []).filter(function (message) {
+      if (conversation === 'group') return !message.recipient_id;
+      return (message.author_id === activeProfile.id && message.recipient_id === conversation)
+        || (message.author_id === conversation && message.recipient_id === activeProfile.id);
+    });
+    var chatItems = messages.length
+      ? messages.map(function (message) {
+        var own = message.author_id === activeProfile.id;
+        var initialsText = String(message.author_display_name || 'TM').trim().split(/\s+/).slice(0, 2).map(function (part) { return part.charAt(0).toUpperCase(); }).join('');
+        return '<li class="client-desk-chat-message' + (own ? ' is-own' : '') + '"><span class="client-desk-chat-avatar" aria-hidden="true">' + escapeHtml(initialsText || 'TM') + '</span><div class="client-desk-chat-bubble"><div class="client-desk-chat-meta"><strong>' + escapeHtml(own ? 'You' : message.author_display_name || 'Team member') + '</strong><time datetime="' + escapeHtml(message.created_at) + '">' + escapeHtml(new Intl.DateTimeFormat('en-ZA', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(message.created_at))) + '</time></div><p>' + escapeHtml(message.body) + '</p></div></li>';
+      }).join('')
+      : '<li class="client-desk-chat-empty">No messages here yet. Start the conversation with a clear update or question.</li>';
+    var conversations = '<button type="button" class="client-desk-conversation' + (conversation === 'group' ? ' is-selected' : '') + '" data-action="select-conversation" data-conversation="group"><span class="client-desk-chat-avatar" aria-hidden="true">Team</span><span><strong>Everyone</strong><small>Group conversation</small></span></button>' +
+      directory.map(function (entry) {
+        var selected = entry.id === conversation;
+        return '<button type="button" class="client-desk-conversation' + (selected ? ' is-selected' : '') + '" data-action="select-conversation" data-conversation="' + escapeHtml(entry.id) + '"><span class="client-desk-chat-avatar" aria-hidden="true">' + escapeHtml(initials({ display_name: entry.display_name })) + '</span><span><strong>' + escapeHtml(entry.display_name) + '</strong><small>Private conversation</small></span></button>';
+      }).join('');
+    return '<section class="client-desk-team-communication" id="clientDeskTeamCommunication" data-portal-section="teamCommunication"><div class="client-desk-chat-layout"><aside class="client-desk-chat-sidebar"><h2>Conversations</h2>' + conversations + '</aside><div class="client-desk-chat-main"><header><div class="client-desk-chat-avatar" aria-hidden="true">' + (person ? escapeHtml(initials({ display_name: person.display_name })) : 'Team') + '</div><div><h2>' + escapeHtml(person ? person.display_name : 'Everyone') + '</h2><p>' + (person ? 'Private staff conversation' : 'Group conversation for the whole staff team') + '</p></div></header><ol class="client-desk-team-message-list" aria-live="polite">' + chatItems + '</ol><form class="client-desk-message-form client-desk-chat-compose" data-action="team-message" data-recipient="' + (person ? escapeHtml(person.id) : '') + '"><label class="client-desk-label" for="teamMessage">Message ' + escapeHtml(person ? person.display_name : 'the team') + '</label><textarea id="teamMessage" name="body" maxlength="4000" required placeholder="Write a message..." rows="2"></textarea><button class="btn" type="submit">Send Message</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></div></div></section>';
+  }
+
+  function portalPageTitle(page) {
+    var labels = {
+      dashboard: 'Dashboard',
+      projects: activeProfile.role === 'freelancer' ? 'My Tasks' : 'Projects',
+      tasks: 'My Tasks',
+      clients: 'Clients',
+      team: 'Team Management',
+      communication: 'Team Communication',
+      calendar: 'Calendar',
+      finance: 'Finance',
+      settings: 'Settings',
+      documents: 'Documents',
+      messages: 'Messages',
+      billing: 'Invoices & Payments',
+      profile: 'Profile'
+    };
+    return labels[page] || 'Dashboard';
+  }
+
+  function portalPageAllowed(page, role) {
+    var allowed = {
+      owner: ['dashboard', 'projects', 'clients', 'team', 'communication', 'calendar', 'finance', 'settings'],
+      freelancer: ['dashboard', 'tasks', 'documents', 'communication', 'calendar', 'profile'],
+      customer: ['dashboard', 'projects', 'documents', 'messages', 'billing', 'profile']
+    };
+    return Boolean(allowed[role] && allowed[role].indexOf(page) !== -1);
+  }
+
+  function renderCalendar() {
+    var firstDay = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
+    var gridStart = new Date(firstDay);
+    gridStart.setDate(firstDay.getDate() - firstDay.getDay());
+    var lastDay = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0);
+    var gridEnd = new Date(lastDay);
+    gridEnd.setDate(lastDay.getDate() + (6 - lastDay.getDay()));
+    var taskSteps = (relatedData.steps || []).filter(function (step) {
+      if (!step.due_at || step.status === 'done') return false;
+      return activeProfile.role === 'owner' || step.owner_id === activeProfile.id;
+    });
+    var days = [];
+    for (var day = new Date(gridStart); day <= gridEnd; day.setDate(day.getDate() + 1)) {
+      var date = new Date(day);
+      var key = [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+      var due = taskSteps.filter(function (step) { return String(step.due_at).slice(0, 10) === key; });
+      var cells = due.slice(0, 3).map(function (step) {
+        var projectPage = activeProfile.role === 'freelancer' ? 'tasks' : 'projects';
+        return '<a href="#portal-' + projectPage + '" data-portal-page="' + projectPage + '" data-open-project="' + escapeHtml(step.project_id) + '" title="' + escapeHtml(step.title) + '">' + escapeHtml(step.title) + '</a>';
+      }).join('');
+      if (due.length > 3) cells += '<small>+' + (due.length - 3) + ' more</small>';
+      days.push('<div class="client-desk-calendar-day' + (date.getMonth() === calendarMonth.getMonth() ? '' : ' is-outside') + (key === new Date().toISOString().slice(0, 10) ? ' is-today' : '') + '"><strong>' + date.getDate() + '</strong>' + cells + '</div>');
+    }
+    return '<section class="client-desk-calendar"><div class="client-desk-calendar-heading"><button class="btn ghost" type="button" data-action="calendar-prev" aria-label="Previous month">‹</button><h2>' + escapeHtml(new Intl.DateTimeFormat('en-ZA', { month: 'long', year: 'numeric' }).format(calendarMonth)) + '</h2><button class="btn ghost" type="button" data-action="calendar-next" aria-label="Next month">›</button></div><div class="client-desk-calendar-grid" role="grid">' + ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(function (name) { return '<div class="client-desk-calendar-weekday" role="columnheader">' + name + '</div>'; }).join('') + days.join('') + '</div><p class="client-desk-footnote">' + (activeProfile.role === 'owner' ? 'Scheduled project steps across the team.' : 'Your assigned steps with due dates.') + ' Select a task to open its project.</p></section>';
   }
 
   function renderMobileNavigation(navigation) {
@@ -424,9 +503,9 @@
     var mobileNav = renderMobileNavigation(navigation);
     var search = '<label class="client-desk-search">' + portalIcon('search') + '<input type="search" data-portal-search placeholder="Search projects" aria-label="Search projects"><kbd>Ctrl / ⌘ K</kbd></label>';
     var notifications = renderNotifications(profile);
-    var currentLabel = currentPortalSection === 'Dashboard' && profile.role === 'owner' ? 'Overview' : currentPortalSection;
+    var currentLabel = portalPageTitle(currentPortalPage);
     var accountMenu = '<details class="client-desk-user-menu" id="clientDeskProfile"><summary><span class="client-desk-avatar" aria-hidden="true">' + escapeHtml(initials(profile)) + '</span><span><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(role) + '</small></span><span class="client-desk-menu-chevron" aria-hidden="true">⌄</span></summary><div class="client-desk-user-popover"><p>' + escapeHtml(profile.email || '') + '</p><button type="button" data-action="theme">' + portalIcon(portalTheme === 'light' ? 'moon' : 'sun') + (portalTheme === 'light' ? 'Use dark appearance' : 'Use light appearance') + '</button><button type="button" data-action="signout">Sign Out</button></div></details>';
-    portalRoot.innerHTML = '<div class="client-desk-app" data-theme="' + portalTheme + '">' + portalHeader + '<nav class="client-desk-workspace-nav" aria-label="Portal sections">' + navLinks + '</nav><div class="client-desk-toolbar">' + search + '<div class="client-desk-top-actions"><div class="client-desk-notification-wrap"><button class="client-desk-icon-button" type="button" data-action="notifications" aria-label="Recent project updates" aria-expanded="false">' + portalIcon('bell') + '<span class="client-desk-notification-count" aria-label="' + recentActivityCount() + ' unread updates">' + (recentActivityCount() || '') + '</span></button>' + notifications + '</div><a class="client-desk-icon-button client-desk-help-button" href="#/contact" aria-label="Contact support">' + portalIcon('help') + '</a>' + accountMenu + '</div></div><div class="client-desk-breadcrumb"><a href="#clientDeskHome" data-portal-nav data-target="clientDeskHome" data-back-dashboard' + (currentLabel === 'Dashboard' || currentLabel === 'Overview' ? ' hidden' : '') + '>Back to Dashboard</a><span>Portal</span><span aria-hidden="true">/</span><strong data-current-section>' + escapeHtml(currentLabel) + '</strong></div><main class="client-desk-main-content">' + content + '</main>' + portalFooter() + mobileNav + '</div>';
+    portalRoot.innerHTML = '<div class="client-desk-app" data-theme="' + portalTheme + '">' + portalHeader + '<nav class="client-desk-workspace-nav" aria-label="Portal sections">' + navLinks + '</nav><div class="client-desk-toolbar">' + search + '<div class="client-desk-top-actions"><div class="client-desk-notification-wrap"><button class="client-desk-icon-button" type="button" data-action="notifications" aria-label="Recent project updates" aria-expanded="false">' + portalIcon('bell') + '<span class="client-desk-notification-count" aria-label="' + recentActivityCount() + ' unread updates">' + (recentActivityCount() || '') + '</span></button>' + notifications + '</div><a class="client-desk-icon-button client-desk-help-button" href="#/contact" aria-label="Contact support">' + portalIcon('help') + '</a>' + accountMenu + '</div></div><div class="client-desk-breadcrumb"><a href="#portal-dashboard" data-portal-page="dashboard" data-back-dashboard' + (currentLabel === 'Dashboard' || currentLabel === 'Overview' ? ' hidden' : '') + '>Back to Dashboard</a><span>Portal</span><span aria-hidden="true">/</span><strong data-current-section>' + escapeHtml(currentLabel) + '</strong></div><main class="client-desk-main-content">' + content + '</main>' + portalFooter() + mobileNav + '</div>';
   }
 
   function portalFooter() {
@@ -719,10 +798,10 @@
   function renderFreelancerAccounts() {
     if (activeProfile.role !== 'owner') return '';
     var profiles = (relatedData.profiles || []).filter(function (profile) { return profile.role === 'customer' || profile.role === 'freelancer'; });
-    return '<details class="client-desk-card" id="clientDeskTeam" data-portal-section="team"><summary><strong>Staff Accounts</strong></summary><p class="client-desk-footnote">Create an account for each team member, then grant staff access here. Staff can view only projects assigned to them.</p>' +
+    return '<section class="client-desk-card" id="clientDeskTeam" data-portal-section="team"><h3>Staff Access</h3><p class="client-desk-footnote">Set a registered account as Staff, or return it to Client access. Staff can view only projects assigned to them.</p>' +
       (profiles.length ? profiles.map(function (profile) {
         return '<form class="client-desk-account-role" data-action="freelancer-role"><div><strong>' + escapeHtml(profile.display_name || profile.email) + '</strong><span class="client-desk-footnote">' + escapeHtml(profile.email) + '</span></div><label class="client-desk-label" for="role-' + escapeHtml(profile.id) + '">Portal access</label><select id="role-' + escapeHtml(profile.id) + '" name="role"><option value="customer" ' + (profile.role === 'customer' ? 'selected' : '') + '>Client</option><option value="freelancer" ' + (profile.role === 'freelancer' ? 'selected' : '') + '>Staff</option></select><input name="user_id" type="hidden" value="' + escapeHtml(profile.id) + '"><button class="btn ghost" type="submit">Save access</button></form>';
-      }).join('') : '<p class="client-desk-footnote">No client or staff accounts are available yet.</p>') + '</details>';
+      }).join('') : '<p class="client-desk-footnote">No staff accounts are available yet.</p>') + '</section>';
   }
 
   function renderAccountDeletion() {
@@ -740,17 +819,17 @@
   function renderPaymentSettings() {
     if (activeProfile.role !== 'owner') return '';
     var providers = relatedData.providers || [];
-    return '<details class="client-desk-card" id="clientDeskFinance" data-portal-section="finance"><summary><strong>Finance Settings</strong></summary><p class="client-desk-footnote">Payment provider credentials are managed in the secure project settings. Enable a provider here only after its merchant account and server settings are configured.</p><form class="client-desk-message-form" data-action="payment-settings">' +
+    return '<section class="client-desk-card" id="clientDeskFinance" data-portal-section="finance"><h3>Payment Settings</h3><p class="client-desk-footnote">Payment provider credentials are managed in the secure project settings. Enable a provider here only after its merchant account and server settings are configured.</p><form class="client-desk-message-form" data-action="payment-settings">' +
       providers.map(function (provider) {
         return '<label class="client-desk-checkline"><input type="checkbox" name="provider_' + escapeHtml(provider.provider) + '" ' + (provider.is_enabled ? 'checked' : '') + '><span><strong>' + escapeHtml(provider.label) + '</strong> / ' + (provider.is_enabled ? 'Available to customers' : 'Hidden from customers') + '</span></label>';
       }).join('') +
-      '<div class="field"><label class="client-desk-label" for="eftInstructions">Bank transfer instructions (shown to clients)</label><textarea id="eftInstructions" name="eft_instructions" maxlength="1500">' + escapeHtml((providers.find(function (provider) { return provider.provider === 'eft'; }) || {}).public_instructions || '') + '</textarea></div><button class="btn ghost" type="submit">Save payment settings</button></form></details>';
+      '<div class="field"><label class="client-desk-label" for="eftInstructions">Bank transfer instructions (shown to clients)</label><textarea id="eftInstructions" name="eft_instructions" maxlength="1500">' + escapeHtml((providers.find(function (provider) { return provider.provider === 'eft'; }) || {}).public_instructions || '') + '</textarea></div><button class="btn ghost" type="submit">Save payment settings</button></form></section>';
   }
 
   function renderAutomaticAssignmentSettings() {
     if (activeProfile.role !== 'owner') return '';
     var enabled = Boolean(relatedData.automaticAssignmentEnabled);
-    return '<details class="client-desk-card" id="clientDeskManagementSettings" data-portal-section="settings"><summary><strong>Automatic Request Assignment</strong></summary><p>When enabled, client requests that remain unassigned for 24 hours are checked hourly and assigned to a staff member with the fewest open tasks. Ties go to the person assigned least recently. The system assigns the first project step and records the assignment in the activity log. Assignment stays manual by default.</p><form class="client-desk-message-form" data-action="automatic-assignment"><label class="client-desk-checkline"><input type="checkbox" name="enabled" ' + (enabled ? 'checked' : '') + '><span>Enable the 24-hour fair assignment fallback</span></label><p class="client-desk-footnote">' + (enabled ? 'Automatic assignment is enabled.' : 'Automatic assignment is disabled. Supabase scheduled jobs must be available before enabling it.') + '</p><button class="btn ghost" type="submit">Save Assignment Setting</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></details>';
+    return '<section class="client-desk-card" id="clientDeskManagementSettings" data-portal-section="settings"><h3>Automatic Request Assignment</h3><p>When enabled, client requests that remain unassigned for 24 hours are checked hourly and assigned to a staff member with the fewest open tasks. Ties go to the person assigned least recently. The system assigns the first project step and records the assignment in the activity log. Assignment stays manual by default.</p><form class="client-desk-message-form" data-action="automatic-assignment"><label class="client-desk-checkline"><input type="checkbox" name="enabled" ' + (enabled ? 'checked' : '') + '><span>Enable the 24-hour fair assignment fallback</span></label><p class="client-desk-footnote">' + (enabled ? 'Automatic assignment is enabled.' : 'Automatic assignment is disabled. Supabase scheduled jobs must be available before enabling it.') + '</p><button class="btn ghost" type="submit">Save Assignment Setting</button><p class="client-desk-form-status" data-portal-status aria-live="polite"></p></form></section>';
   }
 
   function renderQuoteBuilder(project) {
@@ -798,6 +877,8 @@
       renderPendingDeletion();
       return;
     }
+    var requestedPage = new URLSearchParams(window.location.search).get('portalPage');
+    currentPortalPage = portalPageAllowed(requestedPage, activeProfile.role) ? requestedPage : 'dashboard';
     var projectResult = await client.from('projects').select('*').order('updated_at', { ascending: false });
     if (projectResult.error) throw projectResult.error;
     projectCache = projectResult.data || [];
@@ -835,9 +916,12 @@
       relatedData.automaticAssignmentEnabled = setting.data.automatic_assignment_enabled;
     }
     if (activeProfile.role === 'owner' || activeProfile.role === 'freelancer') {
-      var teamMessages = await client.from('team_messages').select('id,author_id,author_display_name,body,created_at').order('created_at', { ascending: false }).limit(100);
+      var directory = await client.rpc('get_team_directory');
+      if (directory.error) throw directory.error;
+      relatedData.teamDirectory = directory.data || [];
+      var teamMessages = await client.from('team_messages').select('id,author_id,recipient_id,author_display_name,body,created_at').order('created_at', { ascending: false }).limit(200);
       if (teamMessages.error) throw teamMessages.error;
-      relatedData.teamMessages = teamMessages.data || [];
+      relatedData.teamMessages = (teamMessages.data || []).reverse();
     }
     var providersQuery = client.from('payment_providers').select('provider,label,is_enabled,public_instructions');
     if (activeProfile.role !== 'owner') providersQuery = providersQuery.eq('is_enabled', true);
@@ -859,23 +943,15 @@
     var emptyMessage = owner ? 'New client requests will appear here for review.' : freelancer ? 'Projects assigned to you will appear here.' : 'Submit a project request to begin a conversation with FixerCtrl.';
     var displayName = activeProfile.display_name || activeProfile.email || 'Client';
     var attention = renderAttentionPanel();
-    var preview = projectCache.slice(0, 3).map(renderProject).join('');
-    var moreProjects = projectCache.slice(3).map(renderProject).join('');
-    var projectContent = projectCache.length
-      ? preview + (moreProjects ? '<details class="client-desk-list-more" data-ui-state="projects-more"><summary>View ' + (projectCache.length - 3) + ' more projects</summary><div>' + moreProjects + '</div></details>' : '')
-      : '<div class="client-desk-empty"><h3>' + emptyHeading + '</h3><p>' + emptyMessage + '</p></div>';
-    var projectsContent = projectCache.length
-      ? '<details class="client-desk-project-list" data-ui-state="projects-list"><summary>View ' + (freelancer ? 'all assigned tasks' : 'all projects') + ' (' + projectCache.length + ')</summary><div id="clientDeskProjects">' + projectContent + '</div></details>'
-      : '<div id="clientDeskProjects">' + projectContent + '</div>';
     var clientWidget = !owner && !freelancer
-      ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="project-progress"><div class="client-desk-section-head"><h2>Project Progress</h2><a href="#clientDeskProjects" data-portal-nav data-target="clientDeskProjects">View Projects</a></div>' + (projectCache.length ? projectCache.slice(0, 1).map(function (project) {
+      ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="project-progress"><div class="client-desk-section-head"><h2>Project Progress</h2><a href="#portal-projects" data-portal-page="projects">View Projects</a></div>' + (projectCache.length ? projectCache.slice(0, 1).map(function (project) {
         var overview = projectOverview(project);
         return '<p><strong>' + escapeHtml(project.title) + '</strong> / ' + projectProgress(project.id) + '% complete</p><p class="client-desk-footnote">Next milestone: ' + escapeHtml(overview.nextMilestone) + '</p>';
       }).join('') : '<p class="client-desk-footnote">Your project updates will appear here.</p>') + '</section>'
       : '';
     var clientApprovals = !owner && !freelancer
       ? (relatedData.steps || []).filter(function (step) { return step.status === 'in_review'; }).slice(0, 2).map(function (step) {
-        return '<p>' + escapeHtml(step.title) + ' <a href="#clientDeskProject-' + escapeHtml(step.project_id) + '" data-portal-nav data-target="clientDeskProject-' + escapeHtml(step.project_id) + '" data-section="deliverables">Review</a></p>';
+        return '<p>' + escapeHtml(step.title) + ' <a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(step.project_id) + '">Review</a></p>';
       }).join('')
       : '';
     var latestEvent = notificationEvents()[0];
@@ -884,10 +960,10 @@
       ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="latest-update"><h2>Latest Update</h2>' + (latestEvent ? '<p>' + escapeHtml(latestEvent.title) + '</p><p class="client-desk-footnote">' + escapeHtml(latestProject ? latestProject.title : 'Project update') + ' / ' + escapeHtml(dateLabel(latestEvent.created_at)) + '</p>' : '<p class="client-desk-footnote">Project updates will appear here.</p>') + '</section>'
       : '';
     var clientApprovalWidget = !owner && !freelancer
-      ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="upcoming-approvals"><div class="client-desk-section-head"><h2>Upcoming Approvals</h2><a href="#clientDeskProjects" data-portal-nav data-target="clientDeskProjects" data-section="deliverables">View</a></div>' + (clientApprovals || '<p class="client-desk-footnote">No approvals are waiting for you.</p>') + '</section>'
+      ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="upcoming-approvals"><div class="client-desk-section-head"><h2>Upcoming Approvals</h2><a href="#portal-projects" data-portal-page="projects">View</a></div>' + (clientApprovals || '<p class="client-desk-footnote">No approvals are waiting for you.</p>') + '</section>'
       : '';
     var staffWidget = freelancer
-      ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="today-tasks"><div class="client-desk-section-head"><h2>Today’s Tasks</h2><a href="#clientDeskProjects" data-portal-nav data-target="clientDeskProjects" data-section="deliverables">View Tasks</a></div><p>' + (relatedData.steps || []).filter(function (step) { return step.owner_id === activeProfile.id && step.status !== 'done' && step.due_at && new Date(step.due_at).toDateString() === new Date().toDateString(); }).length + ' tasks due today</p><p class="client-desk-footnote">Assigned tasks are listed in My Tasks.</p></section>' +
+      ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="today-tasks"><div class="client-desk-section-head"><h2>Today’s Tasks</h2><a href="#portal-tasks" data-portal-page="tasks">View Tasks</a></div><p>' + (relatedData.steps || []).filter(function (step) { return step.owner_id === activeProfile.id && step.status !== 'done' && step.due_at && new Date(step.due_at).toDateString() === new Date().toDateString(); }).length + ' tasks due today</p><p class="client-desk-footnote">Assigned tasks are listed in My Tasks.</p></section>' +
         '<section class="client-desk-dashboard-widget" data-dashboard-widget="deadlines-week"><h2>Deadlines This Week</h2><p>' + (relatedData.steps || []).filter(function (step) {
           if (step.owner_id !== activeProfile.id || step.status === 'done' || !step.due_at) return false;
           var days = (new Date(step.due_at).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86400000;
@@ -897,24 +973,37 @@
       : '';
     var ownerWidget = owner
       ? '<section class="client-desk-dashboard-widget" data-dashboard-widget="invoice-overview"><h2>Invoice Overview</h2><p>' + (relatedData.invoices || []).filter(function (invoice) { return ['sent', 'overdue'].indexOf(invoice.status) !== -1; }).length + ' invoices awaiting payment</p><p class="client-desk-footnote">Expense and cash-flow data are not available in the portal yet.</p></section>' +
-        '<section class="client-desk-dashboard-widget" data-dashboard-widget="team-workload"><div class="client-desk-section-head"><h2>Team Workload</h2><a href="#clientDeskTeam" data-portal-nav data-target="clientDeskTeam">View Team</a></div><p>' + (relatedData.teamAssignments || []).length + ' project assignments</p></section>'
-      : '';
-    var ownerTools = owner
-      ? '<details class="client-desk-dashboard-tools"><summary>Management Tools</summary>' + renderPaymentSettings() + renderAutomaticAssignmentSettings() + '<div id="clientDeskClients">' + renderFreelancerAccounts() + '</div></details>'
+        '<section class="client-desk-dashboard-widget" data-dashboard-widget="team-workload"><div class="client-desk-section-head"><h2>Team Workload</h2><a href="#portal-team" data-portal-page="team">View Team</a></div><p>' + (relatedData.teamAssignments || []).length + ' project assignments</p></section>'
       : '';
     var clientTools = !owner && !freelancer
-      ? '<div class="client-desk-dashboard-tools">' + buildRequestForm() + renderAccountDeletion() + '</div>'
+      ? renderAccountDeletion()
       : '';
     var roleGuidance = freelancer
       ? '<details class="client-desk-dashboard-tools"><summary>Access and Permissions</summary><p>You can view assigned projects, share client-visible progress updates, and add project files. Invoices, payment settings, private notes, and unassigned projects are not available to staff accounts.</p></details>'
       : !owner
         ? '<details class="client-desk-dashboard-tools"><summary>Service Price Guide</summary><ul><li>Landing page: R1,500–R3,000</li><li>Up to five website pages: R3,500–R7,500</li><li>Website updates: R250 per hour</li><li>Setup: from R500</li><li>Features: from R800</li></ul><p class="client-desk-footnote">IT and security work is quoted after review. These prices are estimates, not a quote. <a href="#/freelancer">View service details</a></p></details>'
         : '';
-    var content = '<div id="clientDeskHome" class="client-desk-workspace"><div class="client-desk-main"><div class="client-desk-dashboard-heading"><div><h2>Welcome back, ' + escapeHtml(displayName) + '</h2><p class="client-desk-footnote">' + escapeHtml(activeProfile.email) + '</p></div><button class="btn ghost" type="button" data-action="refresh" aria-label="Refresh projects" title="Refresh projects">Refresh</button></div>' + attention + renderSummaryStrip() +
-      renderDashboardCustomization() + '<div class="client-desk-dashboard-widgets">' + clientWidget + clientApprovalWidget + clientUpdates + staffWidget + ownerWidget + '</div>' + renderTeamCommunication() +
-      '<div class="client-desk-section-head"><h2>' + (owner ? 'Projects to Manage' : freelancer ? 'My Tasks' : 'Your Projects') + '</h2>' + (!owner && !freelancer ? '<button class="btn" type="button" data-action="new-request">Submit Project Request</button>' : '') + '</div>' +
-      '<p class="client-desk-form-status" data-portal-status aria-live="polite"></p>' + projectsContent + '<p class="client-desk-search-empty" data-portal-search-empty hidden>No matching projects. Try another search.</p>' +
-      ownerTools + clientTools + roleGuidance + '</div></div>';
+    var dashboardContent = '<div class="client-desk-dashboard-heading"><div><h2>Welcome back, ' + escapeHtml(displayName) + '</h2><p class="client-desk-footnote">' + escapeHtml(activeProfile.email) + '</p></div><button class="btn ghost" type="button" data-action="refresh" aria-label="Refresh workspace" title="Refresh workspace">Refresh</button></div>' +
+      attention + renderSummaryStrip() + '<div class="client-desk-dashboard-widgets">' + clientWidget + clientApprovalWidget + clientUpdates + staffWidget + ownerWidget + '</div>' +
+      (freelancer ? '<a class="btn" href="#portal-tasks" data-portal-page="tasks">Open My Tasks</a>' : owner ? '<a class="btn" href="#portal-projects" data-portal-page="projects">Review Projects</a>' : '<button class="btn" type="button" data-action="new-request">Submit Project Request</button><div class="client-desk-dashboard-tools">' + buildRequestForm() + '</div>') +
+      '<p class="client-desk-form-status" data-portal-status aria-live="polite"></p>';
+    var projectPageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">' + (freelancer ? 'Assigned work' : 'Project workspace') + '</p><h2>' + (freelancer ? 'My Tasks' : 'Projects') + '</h2><p class="client-desk-footnote">' + (freelancer ? 'Open an assigned project to update work, due dates, and client progress.' : owner ? 'Review incoming requests, coordinate delivery, and keep each client informed.' : 'Track progress, open deliverables, and find your project updates.') + '</p></div>' + (!owner && !freelancer ? '<button class="btn" type="button" data-action="new-request">Submit Project Request</button>' : '') + '</div><p class="client-desk-form-status" data-portal-status aria-live="polite"></p><div id="clientDeskProjects">' + (projectCache.length ? projectCache.map(renderProject).join('') : '<div class="client-desk-empty"><h3>' + emptyHeading + '</h3><p>' + emptyMessage + '</p></div>') + '</div><p class="client-desk-search-empty" data-portal-search-empty hidden>No matching projects. Try another search.</p>';
+    var pageContent = dashboardContent;
+    if (currentPortalPage === 'projects' || currentPortalPage === 'tasks') pageContent = projectPageContent;
+    else if (currentPortalPage === 'communication') pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Staff workspace</p><h2>Team Communication</h2><p class="client-desk-footnote">Coordinate work in the group channel or continue a private conversation with a colleague.</p></div></div>' + renderTeamCommunication();
+    else if (currentPortalPage === 'calendar') pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Delivery schedule</p><h2>Calendar</h2><p class="client-desk-footnote">Due dates from scheduled project steps, in one place.</p></div></div>' + renderCalendar();
+    else if (currentPortalPage === 'team' && owner) pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">People and access</p><h2>Team Management</h2><p class="client-desk-footnote">Manage staff portal access and assign people to project teams.</p></div></div>' + renderFreelancerAccounts() + '<p><a href="#portal-communication" data-portal-page="communication">Open Team Communication</a></p>';
+    else if (currentPortalPage === 'clients' && owner) pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Client relationships</p><h2>Clients</h2><p class="client-desk-footnote">Find a client and open their project workspace.</p></div></div>' + ((relatedData.profiles || []).filter(function (profile) { return profile.role === 'customer'; }).map(function (profile) {
+      var projects = projectCache.filter(function (project) { return project.customer_id === profile.id; });
+      return '<article class="client-desk-card"><h3>' + escapeHtml(profile.display_name || profile.email) + '</h3><p class="client-desk-footnote">' + escapeHtml(profile.email) + ' / ' + projects.length + ' projects</p>' + projects.map(function (project) { return '<a href="#portal-projects" data-portal-page="projects" data-open-project="' + escapeHtml(project.id) + '">' + escapeHtml(project.title) + '</a>'; }).join('<br>') + '</article>';
+    }).join('') || '<p class="client-desk-empty">Client accounts and projects will appear here.</p>');
+    else if (currentPortalPage === 'finance' && owner) pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Payments and invoices</p><h2>Finance</h2><p class="client-desk-footnote">Review outstanding invoices and payment-provider settings.</p></div></div>' + renderPaymentSettings() + '<section class="client-desk-finance-list"><h3>Project Invoices</h3>' + projectCache.map(function (project) { return '<article class="client-desk-card"><h4>' + escapeHtml(project.title) + '</h4>' + renderInvoices(project) + '</article>'; }).join('') + '</section>';
+    else if (currentPortalPage === 'settings' && owner) pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Workspace preferences</p><h2>Settings</h2><p class="client-desk-footnote">Control when the system may assign unclaimed requests automatically.</p></div></div>' + renderAutomaticAssignmentSettings() + renderDashboardCustomization();
+    else if (currentPortalPage === 'documents') pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Shared files</p><h2>Documents</h2><p class="client-desk-footnote">Files shared on your projects.</p></div></div>' + projectCache.map(function (project) { return '<article class="client-desk-card"><h3>' + escapeHtml(project.title) + '</h3>' + renderFiles(project) + '</article>'; }).join('') || '<p class="client-desk-empty">No project documents are available yet.</p>';
+    else if (currentPortalPage === 'messages' && !owner && !freelancer) pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Project conversations</p><h2>Messages</h2><p class="client-desk-footnote">Messages are kept with the project they relate to.</p></div></div>' + projectCache.map(function (project) { return '<article class="client-desk-card"><h3>' + escapeHtml(project.title) + '</h3>' + renderMessages(project) + '</article>'; }).join('') || '<p class="client-desk-empty">Project messages will appear here when available.</p>';
+    else if (currentPortalPage === 'billing' && !owner && !freelancer) pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Payment clarity</p><h2>Invoices &amp; Payments</h2><p class="client-desk-footnote">Review approved quotes, payment dates, and invoice status.</p></div></div>' + projectCache.map(function (project) { return '<article class="client-desk-card"><h3>' + escapeHtml(project.title) + '</h3>' + renderQuotes(project) + renderInvoices(project) + '</article>'; }).join('') || '<p class="client-desk-empty">Quotes and invoices will appear here.</p>';
+    else if (currentPortalPage === 'profile') pageContent = '<div class="client-desk-page-heading"><div><p class="client-desk-kicker">Account</p><h2>Profile</h2><p class="client-desk-footnote">' + escapeHtml(activeProfile.display_name || activeProfile.email) + ' / ' + escapeHtml(activeProfile.email) + '</p></div></div>' + renderDashboardCustomization() + roleGuidance + clientTools;
+    var content = '<div id="clientDeskHome" class="client-desk-workspace"><div class="client-desk-main">' + pageContent + '</div></div>';
     renderShell(content, activeProfile);
     applyDashboardPreferences();
     openProjectIds.forEach(function (projectId) {
@@ -929,6 +1018,18 @@
       });
       if (details) details.open = true;
     });
+    if (pendingProjectOpen) {
+      var selectedProject = portalRoot.querySelector('[data-project-id="' + pendingProjectOpen + '"]');
+      if (selectedProject) {
+        selectedProject.open = true;
+        selectedProject.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      pendingProjectOpen = '';
+    }
+    if (currentPortalPage === 'communication') {
+      var messageList = portalRoot.querySelector('.client-desk-team-message-list');
+      if (messageList) messageList.scrollTop = messageList.scrollHeight;
+    }
   }
 
   async function submitRequest(form) {
@@ -1019,11 +1120,12 @@
     if (!body) throw new Error('Write a message before sending it.');
     var result = await client.from('team_messages').insert({
       author_id: activeProfile.id,
+      recipient_id: form.dataset.recipient || null,
       body: body
     });
     if (result.error) throw result.error;
     await loadWorkspace();
-    setStatus('Your update has been shared with the team.', false);
+    setStatus(form.dataset.recipient ? 'Your private message has been sent.' : 'Your update has been shared with the team.', false);
   }
 
   async function submitAutomaticAssignment(form) {
@@ -1102,7 +1204,13 @@
     if (!target || !client) return;
     var action = target.dataset.action;
     try {
-      if (action === 'signout') {
+      if (action === 'select-conversation') {
+        selectedTeamConversation = target.dataset.conversation || 'group';
+        renderDashboard();
+      } else if (action === 'calendar-prev' || action === 'calendar-next') {
+        calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + (action === 'calendar-prev' ? -1 : 1), 1);
+        renderDashboard();
+      } else if (action === 'signout') {
         await client.auth.signOut();
         activeProfile = null;
         notificationStorageKey = '';
@@ -1305,6 +1413,29 @@
       setStatus(error.message || 'This action could not be completed. Please retry.', true);
       target.disabled = false;
     }
+  }
+
+  function handlePortalPageNavigation(event) {
+    var link = event.target.closest('[data-portal-page]');
+    if (!link || link.getAttribute('aria-disabled') === 'true') return;
+    event.preventDefault();
+    currentPortalPage = link.dataset.portalPage;
+    currentPortalSection = portalPageTitle(currentPortalPage);
+    pendingProjectOpen = link.dataset.openProject || '';
+    var nextState = Object.assign({}, window.history.state || {}, { clientDeskPage: currentPortalPage });
+    var pageUrl = new URL(window.location.href);
+    pageUrl.searchParams.set('portalPage', currentPortalPage);
+    window.history.pushState(nextState, '', pageUrl.pathname + pageUrl.search + pageUrl.hash);
+    renderDashboard();
+    portalRoot.querySelectorAll('.client-desk-mobile-more[open]').forEach(function (menu) { menu.open = false; });
+  }
+
+  function handlePortalPagePopState(event) {
+    if (!activeProfile) return;
+    var requestedPage = event.state && event.state.clientDeskPage || new URLSearchParams(window.location.search).get('portalPage') || 'dashboard';
+    currentPortalPage = portalPageAllowed(requestedPage, activeProfile.role) ? requestedPage : 'dashboard';
+    currentPortalSection = portalPageTitle(currentPortalPage);
+    renderDashboard();
   }
 
   function handlePortalNavigation(event) {
@@ -1516,6 +1647,8 @@
     if (!session) {
       unsubscribeProgressUpdates();
       activeProfile = null;
+      currentPortalPage = 'dashboard';
+      selectedTeamConversation = 'group';
       notificationStorageKey = '';
       navigationStorageKey = '';
       notificationState = { read: [], archived: [], showEarlier: false, showAll: false };
@@ -1563,6 +1696,7 @@
   };
 
   document.addEventListener('click', handleAction);
+  document.addEventListener('click', handlePortalPageNavigation);
   document.addEventListener('click', handlePortalNavigation);
   document.addEventListener('click', handleOutsideClick);
   document.addEventListener('submit', handleSubmit);
@@ -1570,4 +1704,5 @@
   document.addEventListener('input', handlePortalSearch);
   document.addEventListener('keydown', handlePortalKeydown);
   document.addEventListener('toggle', handleNavigationGroupToggle, true);
+  window.addEventListener('popstate', handlePortalPagePopState);
 })();
