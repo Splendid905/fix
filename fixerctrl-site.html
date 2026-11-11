@@ -649,6 +649,25 @@
     .footer-nav ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 
+  .page-banner,
+  .project,
+  .feature-card,
+  .quick-find-link,
+  .post-row,
+  .episode-card {
+    border: 0;
+    box-shadow: none;
+  }
+  .episode-card::before { content: none; }
+  @media (hover: none) {
+    .btn:hover { border-color: var(--btn-border); transform: none; box-shadow: 3px 3px 0 rgba(242, 242, 242, 0.22); }
+    .btn:active { transform: none; box-shadow: 3px 3px 0 rgba(242, 242, 242, 0.22); }
+    .btn.ghost:hover { border-color: var(--line); }
+    .btn.ghost:active { box-shadow: none; }
+    .quick-find-link:hover { border-color: transparent; transform: none; }
+    .social-icon:hover { transform: none; }
+  }
+
   @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
 </style>
 </head>

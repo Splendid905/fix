@@ -989,3 +989,91 @@
   .client-desk-app.has-navigation .client-desk-dashboard-heading h2 { font-size: 1.45rem; }
   .client-desk-app.has-navigation .client-desk-dashboard-heading > button { padding: .45rem .55rem; }
 }
+.client-desk-app.has-navigation .client-desk-workspace-nav,
+.client-desk-app.has-navigation .client-desk-dashboard-heading,
+.client-desk-app.has-navigation .client-desk-attention,
+.client-desk-app.has-navigation .client-desk-summary-strip > a,
+.client-desk-app.has-navigation .client-desk-summary-strip > div,
+.client-desk-app.has-navigation .client-desk-dashboard-widget,
+.client-desk-app.has-navigation .client-desk-card,
+.client-desk-app.has-navigation .client-desk-project,
+.client-desk-app.has-navigation .client-desk-progress-panel,
+.client-desk-app.has-navigation .client-desk-payment,
+.client-desk-app.has-navigation .client-desk-empty,
+.client-desk-app.has-navigation .client-desk-staff-task,
+.client-desk-app.has-navigation .client-desk-owner-progress > div,
+.client-desk-app.has-navigation .client-desk-table-wrap {
+  border: 0;
+  box-shadow: none;
+}
+.client-desk-app.has-navigation .client-desk-workspace-nav { padding: 1rem; }
+.client-desk-app.has-navigation .client-desk-dashboard-heading { padding: clamp(1.35rem, 3vw, 2rem); }
+.client-desk-app.has-navigation .client-desk-attention {
+  padding: 1.1rem 1.25rem;
+  background: transparent;
+}
+.client-desk-app.has-navigation .client-desk-attention li { padding-block: .6rem; border-top: 0; }
+.client-desk-app.has-navigation .client-desk-attention-icon {
+  border: 0;
+  color: var(--desk-accent-text);
+}
+.client-desk-app.has-navigation .client-desk-summary-strip > a,
+.client-desk-app.has-navigation .client-desk-summary-strip > div { padding: .95rem 1.1rem; }
+.client-desk-app.has-navigation .client-desk-dashboard-widget,
+.client-desk-app.has-navigation .client-desk-card { padding: 1.25rem; }
+.client-desk-app.has-navigation .client-desk-project { padding-inline: 1.25rem; }
+.client-desk-app.has-navigation .client-desk-project-summary-brief { padding-block: .85rem; }
+.client-desk-app.has-navigation .client-desk-step,
+.client-desk-app.has-navigation .client-desk-chat-layout { border: 0; }
+@media (max-width: 760px) {
+  .client-desk-app.has-navigation .client-desk-main-content { text-align: left; }
+  .client-desk-app.has-navigation .client-desk-dashboard-widgets { grid-template-columns: minmax(0, 1fr); gap: .75rem; }
+  .client-desk-app.has-navigation .client-desk-summary-strip:not([aria-label]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .client-desk-app.has-navigation .client-desk-dashboard-widget,
+  .client-desk-app.has-navigation .client-desk-card { padding: 1rem; }
+  .client-desk-app.has-navigation .client-desk-project { padding-inline: .85rem; }
+  .client-desk-app.has-navigation .client-desk-dashboard-heading { padding: 1.1rem; }
+}
+@media (max-width: 540px) {
+  .client-desk-app.has-navigation { font-size: 1rem; line-height: 1.6; }
+  .client-desk-app.has-navigation .client-desk-portal-header { align-items: flex-start; }
+  .client-desk-app.has-navigation .client-desk-portal-brand { padding-top: .2rem; }
+  .client-desk-app.has-navigation .client-desk-portal-heading { align-self: center; }
+  .client-desk-app.has-navigation .client-desk-portal-heading h1 { font-size: 1.35rem; }
+  .client-desk-app.has-navigation .client-desk-portal-heading > p:last-child { font-size: .82rem; }
+  .client-desk-app.has-navigation .client-desk-security-indicator { margin-left: auto; }
+  .client-desk-app.has-navigation .client-desk-toolbar { gap: .65rem; }
+  .client-desk-app.has-navigation .client-desk-search { flex-basis: 100%; }
+  .client-desk-app.has-navigation .client-desk-top-actions { width: 100%; justify-content: flex-end; }
+  .client-desk-app.has-navigation .client-desk-breadcrumb { justify-content: flex-start; }
+  .client-desk-app.has-navigation .client-desk-dashboard-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .75rem; padding: 1rem; }
+  .client-desk-app.has-navigation .client-desk-dashboard-heading > div { min-width: 0; }
+  .client-desk-app.has-navigation .client-desk-dashboard-heading h2 { overflow-wrap: anywhere; font-size: 1.35rem; }
+  .client-desk-app.has-navigation .client-desk-dashboard-heading .client-desk-footnote { font-size: .85rem; }
+  .client-desk-app.has-navigation .client-desk-summary-strip[aria-label] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .client-desk-app.has-navigation .client-desk-summary-strip[aria-label] > a:last-child { grid-column: auto; }
+  .client-desk-app.has-navigation .client-desk-summary-strip > a,
+  .client-desk-app.has-navigation .client-desk-summary-strip > div { min-height: 4.25rem; padding: .7rem; }
+  .client-desk-app.has-navigation .client-desk-attention { padding: .75rem 0; }
+  .client-desk-app.has-navigation .client-desk-attention li { align-items: flex-start; }
+  .client-desk-app.has-navigation .client-desk-page-heading { align-items: flex-start; text-align: left; }
+  .client-desk-app.has-navigation .client-desk-page-heading p { max-width: 100%; }
+}
+@media (hover: none) {
+  .client-desk-app.has-navigation .client-desk-nav-link:hover,
+  .client-desk-app.has-navigation .client-desk-summary-strip > a:hover,
+  .client-desk-app.has-navigation .client-desk-icon-button:hover,
+  .client-desk-app.has-navigation .client-desk-card:hover {
+    border-color: transparent;
+    background-color: inherit;
+    transform: none;
+  }
+  .client-desk-app.has-navigation .btn:hover,
+  .client-desk-app.has-navigation .btn.ghost:hover {
+    border-color: var(--btn-border);
+    transform: none;
+  }
+  .client-desk-app.has-navigation .btn.ghost:hover { border-color: var(--desk-border); }
+  .client-desk-app.has-navigation .btn:active { transform: none; box-shadow: 3px 3px 0 rgba(242, 242, 242, .22); }
+  .client-desk-app.has-navigation .btn.ghost:active { transform: none; box-shadow: none; }
+}
