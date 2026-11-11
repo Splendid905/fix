@@ -175,12 +175,11 @@
 .client-desk-head h2 { margin: 0; font-size: clamp(2rem, 3.5vw, 3.6rem); }
 .client-desk-head p { max-width: 42rem; margin: .6rem 0 0; color: var(--muted); }
 .client-desk-account { display: flex; align-items: center; gap: .75rem; }
-.client-desk-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 18rem; gap: 2rem; padding-top: 1.5rem; }
-.client-desk-workspace--wide { grid-template-columns: minmax(0, 1fr); }
+.client-desk-workspace { display: block; min-width: 0; padding-top: 1.5rem; }
 .client-desk-main { min-width: 0; }
-.client-desk-sidebar { border-left: 1px solid var(--desk-line); padding-left: 1.25rem; }
-.client-desk-sidebar h2 { font-size: 1.15rem; }
-.client-desk-sidebar p, .client-desk-sidebar li { color: var(--muted); font-size: .9rem; }
+.client-desk-secondary-info { margin-top: 1.5rem; padding-top: .75rem; border-top: 1px solid var(--desk-border); color: var(--desk-muted); font-size: .85rem; }
+.client-desk-secondary-info summary { width: fit-content; color: var(--desk-accent-text); cursor: pointer; font-weight: 600; }
+.client-desk-secondary-info > :not(summary) { max-width: 56rem; }
 .client-desk-label { display: block; margin: 0 0 .35rem; color: var(--muted); font: 500 .72rem var(--mono); letter-spacing: .06em; text-transform: uppercase; }
 .client-desk-form { display: grid; gap: 1rem; width: min(100%, 34rem); margin: 2rem auto; padding: clamp(1.25rem, 4vw, 2rem); border: 1px solid var(--desk-line); background: var(--desk-panel); box-shadow: 5px 5px 0 rgba(242,242,242,.07); }
 .client-desk-form h2 { margin: 0; }
@@ -286,10 +285,11 @@
 .client-desk fieldset legend { padding: 0 .35rem; }
 .client-desk-footnote { color: var(--muted); font-size: .78rem; }
 .client-desk [hidden] { display: none !important; }
-@media (max-width: 760px) {
-  .client-desk-workspace { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
-  .client-desk-sidebar { border-top: 1px solid var(--desk-line); border-left: 0; padding: 1rem 0 0; }
+@media (max-width: 900px) {
   .client-desk-project-body { grid-template-columns: minmax(0, 1fr); }
+  .client-desk-project-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
   .client-desk-portal-header { align-items: flex-start; flex-wrap: wrap; gap: .8rem 1rem; }
   .client-desk-security-indicator { margin-left: auto; }
   .client-desk-workspace-nav { gap: .1rem; }
@@ -300,12 +300,14 @@
   .client-desk-top-actions { margin-left: auto; }
   .client-desk-main-content { padding-top: .2rem; }
   .client-desk-footer span { margin-left: 0; }
+  .client-desk-stage-head { grid-template-columns: minmax(0, 1fr); }
+  .client-desk-project-summary-brief { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 540px) {
   .client-desk-grid, .client-desk-field-grid { grid-template-columns: minmax(0, 1fr); }
   .client-desk-section-head { align-items: flex-start; flex-direction: column; }
   .client-desk-account-role { grid-template-columns: minmax(0, 1fr); }
-  .client-desk-project-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .client-desk-project-summary { grid-template-columns: minmax(0, 1fr); }
   .client-desk-step { grid-template-columns: minmax(0, 1fr); }
   .client-desk-step-assignment { grid-template-columns: minmax(0, 1fr); }
   .client-desk-step-review { grid-column: 1; }
@@ -316,10 +318,18 @@
   .client-desk-portal-heading { flex-basis: calc(100% - 2rem); }
   .client-desk-portal-heading h1 { font-size: 2rem; }
   .client-desk-breadcrumb { flex-wrap: wrap; }
+  .client-desk-search kbd { display: none; }
+  .client-desk-summary-strip { grid-template-columns: minmax(0, 1fr); }
+  .client-desk-summary-strip a { min-height: 2.8rem; }
+  .client-desk-attention { align-items: flex-start; }
+  .client-desk-section-head { gap: .75rem; }
+  .client-desk-project-heading { min-width: 0; }
+  .client-desk-project-summary-status { width: 100%; justify-items: start; }
+  .client-desk-project-summary-brief { grid-template-columns: minmax(0, 1fr); }
+  .client-desk-project-body { gap: .5rem; }
+  .client-desk-footer { column-gap: .85rem; }
 }
 @media (max-width: 420px) {
-  .client-desk-project-summary { grid-template-columns: minmax(0, 1fr); }
-  .client-desk-project-summary-status { justify-items: start; width: 100%; }
   .client-desk-top-actions { gap: 0; }
   .client-desk-icon-button { width: 2.35rem; }
   .client-desk-user-menu summary { padding: 0; }
