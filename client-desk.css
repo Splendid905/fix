@@ -588,3 +588,177 @@
 @media (prefers-reduced-motion: reduce) {
   .client-desk-app .client-desk-stage-point.is-current .client-desk-stage-icon { animation: none; }
 }
+.client-desk-app,
+.client-desk-app *,
+.client-desk-app *::before,
+.client-desk-app *::after { box-sizing: border-box; }
+.client-desk-app { width: 100%; max-width: 100%; overflow-wrap: anywhere; }
+.client-desk-app img, .client-desk-app video, .client-desk-app canvas { max-width: 100%; }
+.client-desk-main-content, .client-desk-workspace, .client-desk-main, .client-desk-project-body,
+.client-desk-card, .client-desk-dashboard-widget, .client-desk-project-section { min-width: 0; }
+.client-desk-main-content > * { margin-inline: 0; }
+.client-desk-page-heading { align-items: center; min-width: 0; padding: .35rem 0 .85rem; border-bottom: 1px solid color-mix(in srgb, var(--desk-border) 55%, transparent); }
+.client-desk-page-heading > div { min-width: 0; }
+.client-desk-page-heading .btn { flex: 0 0 auto; }
+.client-desk-page-heading p { max-width: 62ch; }
+.client-desk-dashboard-heading { min-width: 0; padding: .35rem 0 .75rem; border-bottom: 1px solid color-mix(in srgb, var(--desk-border) 55%, transparent); }
+.client-desk-dashboard-heading > div { min-width: 0; }
+.client-desk-dashboard-widgets { align-items: stretch; grid-auto-rows: minmax(min-content, auto); }
+.client-desk-dashboard-widget, .client-desk-owner-progress > div { height: 100%; }
+.client-desk-card, .client-desk-staff-task, .client-desk-payment, .client-desk-progress-panel,
+.client-desk-dashboard-widget, .client-desk-owner-progress > div { border-radius: var(--desk-radius); }
+.client-desk-card { padding: clamp(.85rem, 2vw, 1.15rem); }
+.client-desk-card > :first-child { margin-top: 0; }
+.client-desk-card > :last-child { margin-bottom: 0; }
+.client-desk-section-head { align-items: center; min-width: 0; }
+.client-desk-section-head > * { min-width: 0; }
+.client-desk-section-head h2, .client-desk-section-head h3 { margin: 0; }
+.client-desk-summary-strip { align-items: stretch; }
+.client-desk-summary-strip > a, .client-desk-summary-strip > div { min-height: 3.4rem; }
+.client-desk-summary-strip > a > span, .client-desk-summary-strip > div > span { min-width: 0; overflow-wrap: anywhere; }
+.client-desk-attention, .client-desk-notice { min-width: 0; border-radius: var(--desk-radius); }
+.client-desk-attention li { align-items: center; }
+.client-desk-attention li > span { overflow-wrap: anywhere; }
+.client-desk-project { min-width: 0; border: 1px solid var(--desk-border); border-radius: var(--desk-radius); background: var(--desk-surface); }
+.client-desk-project > summary { min-width: 0; }
+.client-desk-project-heading { display: grid; gap: .15rem; }
+.client-desk-project-heading .client-desk-label { margin: 0; }
+.client-desk-project-heading strong { overflow-wrap: anywhere; }
+.client-desk-project-summary-status { max-width: 100%; }
+.client-desk-project-summary-status .client-desk-stage-tracker { width: min(100%, 38rem); margin: .4rem 0 0; }
+.client-desk-project-body { gap: .75rem; }
+.client-desk-project-section > summary { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.client-desk-project-section > summary::after { flex: 0 0 auto; color: var(--desk-muted); content: "+"; font: 1rem var(--mono); }
+.client-desk-project-section[open] > summary::after { content: "−"; }
+.client-desk-progress-panel { padding: clamp(.85rem, 2.5vw, 1.25rem); }
+.client-desk-progress-panel, .client-desk-project-section > section, .client-desk-project-section > div { overflow-wrap: anywhere; }
+.client-desk-step, .client-desk-payment, .client-desk-staff-task { border-radius: var(--desk-radius); }
+.client-desk-field-grid, .client-desk-message-form, .client-desk-form { min-width: 0; }
+.client-desk-field-grid > *, .client-desk-message-form > *, .client-desk-form > * { min-width: 0; }
+.client-desk-field-grid input, .client-desk-field-grid select, .client-desk-message-form input,
+.client-desk-message-form select, .client-desk-message-form textarea,
+.client-desk-step-control select, .client-desk-step-control input,
+.client-desk-step-review textarea { max-width: 100%; }
+.client-desk-app input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.client-desk-app select, .client-desk-app textarea { border-radius: var(--desk-radius); }
+.client-desk-app button, .client-desk-app .btn, .client-desk-project-section > summary,
+.client-desk-dashboard-tools > summary, .client-desk-project-list > summary { max-width: 100%; }
+.client-desk-app button, .client-desk-app a, .client-desk-app summary { touch-action: manipulation; }
+.client-desk-table-wrap { width: 100%; max-width: 100%; border-radius: var(--desk-radius); }
+.client-desk-table th, .client-desk-table td { min-width: 0; overflow-wrap: anywhere; }
+.client-desk-calendar { overflow: hidden; border-radius: var(--desk-radius); }
+.client-desk-calendar-day { min-width: 0; }
+.client-desk-calendar-day > a { max-width: 100%; }
+.client-desk-finance-list, .client-desk-payment-list, .client-desk-task-group > div { display: grid; gap: .65rem; }
+.client-desk-finance-list > h3 { margin-bottom: 0; }
+.client-desk-owner-progress { align-items: stretch; }
+.client-desk-owner-progress li > span { min-width: 0; overflow-wrap: anywhere; }
+.client-desk-footer { align-items: center; }
+.client-desk-footer a { min-height: 2rem; display: inline-flex; align-items: center; }
+.client-desk-chat-layout { min-width: 0; overflow: hidden; border-radius: var(--desk-radius); }
+.client-desk-chat-main > header > div:last-child { min-width: 0; }
+.client-desk-chat-main > header h2, .client-desk-chat-main > header p { overflow-wrap: anywhere; }
+.client-desk-team-message-list, .client-desk-message-list { overscroll-behavior: contain; scrollbar-gutter: stable; }
+.client-desk-project-chat-message { max-width: min(88%, 44rem); }
+.client-desk-chat-compose-row textarea { min-width: 0; min-height: 2.8rem; max-height: 8rem; resize: vertical; }
+.client-desk-app :where(button, input, select, textarea, a, summary) { scroll-margin-block: 1rem; }
+@media (max-width: 900px) {
+  .client-desk-workspace-nav { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+  .client-desk-page-heading { align-items: flex-start; }
+  .client-desk-project-summary-status { justify-items: start; }
+}
+@media (max-width: 760px) {
+  .client-desk-app { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
+  .client-desk-portal-header { padding-block: 1rem; }
+  .client-desk-toolbar { gap: .5rem; }
+  .client-desk-search { min-width: 0; }
+  .client-desk-main-content { padding-inline: 0; }
+  .client-desk-page-heading { flex-wrap: wrap; }
+  .client-desk-page-heading .btn { width: 100%; }
+  .client-desk-dashboard-heading { align-items: center; }
+  .client-desk-summary-strip:not([aria-label]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .client-desk-summary-strip > div, .client-desk-summary-strip a { min-height: 3.25rem; }
+  .client-desk-summary-strip[aria-label] > a:last-child { grid-column: 1 / -1; }
+  .client-desk-project { margin-inline: 0; padding-inline: .75rem; }
+  .client-desk-project summary { gap: .65rem; padding-right: 1.35rem; }
+  .client-desk-project-heading { flex-basis: 100%; }
+  .client-desk-project-summary-status { width: 100%; min-width: 0; }
+  .client-desk-project-summary-status .client-desk-stage-tracker { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .client-desk-project-summary-status .client-desk-stage-tracker::before { display: none; }
+  .client-desk-project-summary-status .client-desk-stage-point { min-height: 3.5rem; }
+  .client-desk-project-summary-status .client-desk-stage-state { display: none; }
+  .client-desk-chat-sidebar { overflow: hidden; }
+  .client-desk-chat-layout { height: min(76dvh, 56rem); min-height: min(30rem, 68dvh); }
+  .client-desk-chat-main { min-height: 0; }
+  .client-desk-team-message-list { flex: 1 1 0; min-height: 0; }
+  .client-desk-chat-compose { padding-bottom: max(.55rem, env(safe-area-inset-bottom)); }
+  .client-desk-chat-compose-row .btn { width: auto; }
+  .client-desk-chat-more { max-height: 30dvh; overflow-y: auto; }
+  .client-desk-table-wrap { overflow: visible; border: 0; }
+  .client-desk-table, .client-desk-table tbody { display: grid; gap: .65rem; }
+  .client-desk-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+  .client-desk-table tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem .8rem; padding: .75rem; border: 1px solid var(--desk-border); border-radius: var(--desk-radius); background: var(--desk-surface); }
+  .client-desk-table td { display: grid; gap: .1rem; padding: .2rem 0; border: 0; font-size: .82rem; }
+  .client-desk-table td:first-child { grid-column: 1 / -1; padding-bottom: .45rem; border-bottom: 1px solid var(--desk-border); font-weight: 700; }
+  .client-desk-table td::before { color: var(--desk-muted); content: attr(data-label); font-size: .65rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+}
+@media (max-width: 540px) {
+  .client-desk { padding-top: 1rem; }
+  .client-desk-portal-heading h1 { font-size: clamp(1.7rem, 8vw, 2rem); line-height: 1.08; }
+  .client-desk-security-indicator { min-height: 2rem; padding: .3rem .45rem; font-size: .65rem; }
+  .client-desk-breadcrumb { gap: .35rem; min-height: 2.25rem; font-size: .75rem; }
+  .client-desk-dashboard-heading { align-items: flex-start; }
+  .client-desk-dashboard-heading h2 { font-size: 1.35rem; }
+  .client-desk-dashboard-heading > button { min-height: 2.5rem; }
+  .client-desk-dashboard-widgets { grid-template-columns: minmax(0, 1fr); gap: .6rem; }
+  .client-desk-dashboard-widget { padding: .8rem; }
+  .client-desk-summary-strip { gap: .4rem; }
+  .client-desk-summary-strip > a, .client-desk-summary-strip > div { align-items: flex-start; flex-direction: column; padding: .55rem; }
+  .client-desk-summary-strip strong { text-align: left; }
+  .client-desk-summary-strip:not([aria-label]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .client-desk-attention { padding: .75rem; }
+  .client-desk-attention li { align-items: flex-start; flex-direction: column; gap: .35rem; }
+  .client-desk-attention li a { min-height: 2.5rem; }
+  .client-desk-page-heading { gap: .5rem; margin-bottom: .65rem; }
+  .client-desk-page-heading h2 { font-size: 1.55rem; }
+  .client-desk-page-heading .btn { width: 100%; }
+  .client-desk-card { padding: .8rem; }
+  .client-desk-section-head { align-items: flex-start; }
+  .client-desk-payment { align-items: stretch; flex-direction: column; }
+  .client-desk-checkout-options > .btn { flex: 1 1 100%; }
+  .client-desk-owner-tools > .btn { width: 100%; }
+  .client-desk-step-assignment { align-items: stretch; }
+  .client-desk-project-summary { gap: .5rem; }
+  .client-desk-project-summary-brief { gap: .5rem; }
+  .client-desk-project-history li { grid-template-columns: minmax(0, 1fr); gap: .05rem; }
+  .client-desk-stage-tracker { padding-left: .1rem; }
+  .client-desk-client-action { width: 100%; }
+  .client-desk-client-action > .btn, .client-desk-client-action > a.btn { width: 100%; justify-content: center; }
+  .client-desk-task-tracker { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .client-desk-staff-task > .btn { width: 100%; }
+  .client-desk-calendar-heading { justify-content: space-between; gap: .4rem; }
+  .client-desk-calendar-heading h2 { min-width: 0; font-size: 1.1rem; }
+  .client-desk-calendar-day { min-height: 3.4rem; }
+  .client-desk-calendar-day > a { font-size: .58rem; }
+  .client-desk-chat-layout { height: min(72dvh, 52rem); min-height: 26rem; }
+  .client-desk-chat-main > header { gap: .45rem; padding-inline: .55rem; }
+  .client-desk-chat-main > header h2 { font-size: .98rem; }
+  .client-desk-chat-main > header p { font-size: .7rem; }
+  .client-desk-chat-message, .client-desk-project-chat-message { max-width: 94%; }
+  .client-desk-chat-message .client-desk-chat-avatar { width: 1.7rem; height: 1.7rem; }
+  .client-desk-chat-bubble { padding: .5rem .65rem; }
+  .client-desk-chat-compose-row { grid-template-columns: minmax(0, 1fr) auto; gap: .35rem; }
+  .client-desk-chat-compose-row .btn { min-width: 3.5rem; padding-inline: .65rem; }
+  .client-desk-chat-compose-row textarea { font-size: 16px; }
+  .client-desk-footer { gap: .3rem .8rem; padding-bottom: .6rem; }
+  .client-desk-footer span { width: 100%; }
+  .client-desk-table tr { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 360px) {
+  .client-desk-top-actions { flex: 0 0 auto; }
+  .client-desk-icon-button { width: 2.2rem; }
+  .client-desk-summary-strip:not([aria-label]) { grid-template-columns: minmax(0, 1fr); }
+  .client-desk-project-summary-status .client-desk-stage-tracker { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .client-desk-table tr { grid-template-columns: minmax(0, 1fr); }
+  .client-desk-table td:first-child { grid-column: 1; }
+}
