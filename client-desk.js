@@ -6,6 +6,8 @@
   var activeProfile = null;
   var progressChannel = null;
   var progressRefreshTimer = null;
+  var currentPortalSection = 'Home';
+  var portalTheme = 'light';
   var projectCache = [];
   var relatedData = {};
   var categories = [
@@ -56,12 +58,109 @@
     status.classList.toggle('is-error', Boolean(isError));
   }
 
+  function portalIcon(name) {
+    var icons = {
+      home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+      projects: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 4V2m8 2V2M3 9h18"/>',
+      messages: '<path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.6L3 21l1.9-5.6A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 11h8m-8 4h5"/>',
+      files: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8m-8 4h8"/>',
+      billing: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18m-14 5h4"/>',
+      support: '<circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 1 1 4.5 1.5c-1.2 1.2-2.1 1.5-2.1 3m0 3h.01"/>',
+      tasks: '<path d="m4 7 2 2 4-4M4 17l2 2 4-4"/><path d="M12 7h8m-8 10h8"/>',
+      team: '<path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m6-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8-7a4 4 0 0 1 0 8m4 9v-2a4 4 0 0 0-3-3.9"/>',
+      finance: '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-4 4"/>',
+      settings: '<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2Z"/>',
+      search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+      bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 12a2 2 0 0 0 4 0"/>',
+      help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4.5 1.5c-1.2 1.2-2 1.5-2 3m0 3h.01"/>',
+      sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>',
+      moon: '<path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/>',
+      more: '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>'
+    };
+    return '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (icons[name] || icons.home) + '</svg>';
+  }
+
+  function portalNavigation(profile) {
+    if (!profile || profile.role === 'deleted') return [];
+    if (profile.role === 'owner') return [
+      { label: 'Home', icon: 'home', target: 'clientDeskHome' },
+      { label: 'Projects', icon: 'projects', target: 'clientDeskProjects' },
+      { label: 'Clients', icon: 'team', target: 'clientDeskClients' },
+      { label: 'Team', icon: 'team', target: 'team' },
+      { label: 'Payments', icon: 'billing', target: 'clientDeskFinance' },
+      { label: 'Finance', icon: 'finance', disabled: true },
+      { label: 'Analytics', icon: 'billing', disabled: true },
+    ];
+    if (profile.role === 'freelancer') return [
+      { label: 'Home', icon: 'home', target: 'clientDeskHome' },
+      { label: 'My tasks', icon: 'tasks', target: 'clientDeskProjects' },
+      { label: 'Messages', icon: 'messages', target: 'messages' },
+      { label: 'Files', icon: 'files', target: 'files' },
+      { label: 'My earnings', icon: 'billing', disabled: true },
+      { label: 'Profile', icon: 'team', target: 'clientDeskProfile' }
+    ];
+    return [
+      { label: 'Home', icon: 'home', target: 'clientDeskHome' },
+      { label: 'My projects', icon: 'projects', target: 'clientDeskProjects' },
+      { label: 'Messages', icon: 'messages', target: 'messages' },
+      { label: 'Files', icon: 'files', target: 'files' },
+      { label: 'Billing', icon: 'billing', target: 'billing' },
+      { label: 'Support', icon: 'support', href: '#/contact' }
+    ];
+  }
+
+  function renderPortalNavItem(item) {
+    if (item.disabled) return '<span class="client-desk-nav-link is-disabled" aria-label="' + escapeHtml(item.label + ', coming later') + '" aria-disabled="true" title="Available in a later phase">' + portalIcon(item.icon) + '<span>' + escapeHtml(item.label) + '<small>Coming later</small></span></span>';
+    var attributes = item.href ? 'href="' + item.href + '"' : 'href="#' + escapeHtml(item.target) + '" data-portal-nav data-target="' + escapeHtml(item.target) + '"';
+    return '<a class="client-desk-nav-link" aria-label="' + escapeHtml(item.label) + '" title="' + escapeHtml(item.label) + '" ' + attributes + (item.target === 'clientDeskHome' ? ' aria-current="page"' : '') + '>' + portalIcon(item.icon) + '<span>' + escapeHtml(item.label) + '</span></a>';
+  }
+
+  function initials(profile) {
+    var words = String(profile && (profile.display_name || profile.email) || 'FC').trim().split(/[\s@._-]+/).filter(Boolean);
+    return words.slice(0, 2).map(function (word) { return word.charAt(0).toUpperCase(); }).join('') || 'FC';
+  }
+
+  function renderNotifications(profile) {
+    if (!profile) return '';
+    var events = (relatedData.events || []).slice().sort(function (left, right) {
+      return new Date(right.created_at) - new Date(left.created_at);
+    }).slice(0, 6);
+    var items = events.length ? events.map(function (event) {
+      var project = projectCache.find(function (item) { return item.id === event.project_id; });
+      return '<li><strong>' + escapeHtml(event.title) + '</strong><span>' + escapeHtml(project ? project.title : 'Project update') + '</span><small>' + escapeHtml(dateLabel(event.created_at)) + '</small></li>';
+    }).join('') : '<li class="client-desk-notification-empty">Your project updates will appear here.</li>';
+    return '<div class="client-desk-popover" data-notification-panel hidden><div class="client-desk-popover-head"><strong>Recent updates</strong><span>Project activity</span></div><ul>' + items + '</ul></div>';
+  }
+
+  function recentActivityCount() {
+    return Math.min((relatedData.events || []).length, 6);
+  }
+
+  function applyPortalTheme() {
+    var app = portalRoot && portalRoot.querySelector('.client-desk-app');
+    if (app) app.dataset.theme = portalTheme;
+  }
+
   function renderShell(content, profile) {
     var name = profile ? (profile.display_name || profile.email || 'Customer') : 'Private workspace';
     var role = profile ? (profile.role === 'owner' ? 'Admin' : profile.role === 'freelancer' ? 'Freelancer' : profile.role === 'deleted' ? 'Deletion pending' : 'Customer') : '';
-    portalRoot.innerHTML = '<header class="client-desk-head"><div><p class="client-desk-kicker">FixerCtrl / Client Portal</p><h2>Project control room</h2><p>Clear scope, visible progress, and payment details in one private workspace.</p></div>' +
-      (profile ? '<div class="client-desk-account"><span><span class="client-desk-label">' + escapeHtml(role) + '</span><strong>' + escapeHtml(name) + '</strong></span><button class="btn ghost" type="button" data-action="signout">Sign out</button></div>' : '') +
-      '</header>' + content;
+    var navigation = portalNavigation(profile);
+    var brand = '<a class="client-desk-brand" href="#/" aria-label="FixerCtrl home"><img src="assets/fixerctrl-logo.png" alt="FixerCtrl"></a>';
+    if (!profile || !navigation.length) {
+      portalRoot.innerHTML = '<div class="client-desk-app" data-theme="' + portalTheme + '"><header class="client-desk-guest-header">' + brand + '<span>Private project workspace</span>' + (profile ? '<button class="btn ghost" type="button" data-action="signout">Sign out</button>' : '') + '</header><main class="client-desk-guest-main">' + content + '</main></div>';
+      return;
+    }
+
+    var navLinks = navigation.map(renderPortalNavItem).join('');
+    var mobileNav = navigation.filter(function (item) { return !item.disabled; }).slice(0, 4)
+      .map(renderPortalNavItem).join('');
+    var rest = navigation.filter(function (item) { return !item.disabled; }).slice(4);
+    var disabledItems = navigation.filter(function (item) { return item.disabled; });
+    var search = '<label class="client-desk-search">' + portalIcon('search') + '<input type="search" data-portal-search placeholder="Search projects" aria-label="Search projects"><kbd>Ctrl / ⌘ K</kbd></label>';
+    var notifications = renderNotifications(profile);
+    var currentLabel = currentPortalSection;
+    var accountMenu = '<details class="client-desk-user-menu" id="clientDeskProfile"><summary><span class="client-desk-avatar" aria-hidden="true">' + escapeHtml(initials(profile)) + '</span><span><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(role) + '</small></span><span class="client-desk-menu-chevron" aria-hidden="true">⌄</span></summary><div class="client-desk-user-popover"><p>' + escapeHtml(profile.email || '') + '</p><button type="button" data-action="theme">' + portalIcon(portalTheme === 'light' ? 'moon' : 'sun') + (portalTheme === 'light' ? 'Switch to dark mode' : 'Switch to light mode') + '</button><button type="button" data-action="signout">Sign out</button></div></details>';
+    portalRoot.innerHTML = '<div class="client-desk-app" data-theme="' + portalTheme + '"><aside class="client-desk-sidebar-nav" aria-label="Workspace navigation">' + brand + '<span class="client-desk-nav-caption">Workspace</span><nav>' + navLinks + '</nav><div class="client-desk-sidebar-help"><span>Need a hand?</span><a href="#/contact" aria-label="Contact FixerCtrl" title="Contact FixerCtrl">' + portalIcon('help') + '<span>Contact FixerCtrl</span></a></div></aside><div class="client-desk-shell"><header class="client-desk-topbar"><div class="client-desk-topbar-title"><span class="client-desk-topbar-kicker">FixerCtrl / Portal</span><strong>' + escapeHtml(currentLabel) + '</strong></div>' + search + '<div class="client-desk-top-actions"><div class="client-desk-notification-wrap"><button class="client-desk-icon-button" type="button" data-action="notifications" aria-label="Recent project updates" aria-expanded="false">' + portalIcon('bell') + '<span class="client-desk-notification-count" aria-label="' + recentActivityCount() + ' recent updates">' + (recentActivityCount() || '') + '</span></button>' + notifications + '</div><a class="client-desk-icon-button client-desk-help-button" href="#/contact" aria-label="Get help">' + portalIcon('help') + '</a>' + accountMenu + '</div></header><div class="client-desk-breadcrumb"><span>Workspace</span><span aria-hidden="true">/</span><strong data-current-section>' + escapeHtml(currentLabel) + '</strong></div><main class="client-desk-main-content">' + content + '</main></div><nav class="client-desk-mobile-nav" aria-label="Mobile workspace navigation">' + mobileNav + (rest.length || disabledItems.length ? '<details class="client-desk-mobile-more"><summary>' + portalIcon('more') + '<span>More</span></summary><div class="client-desk-mobile-more-panel">' + rest.map(renderPortalNavItem).join('') + disabledItems.map(renderPortalNavItem).join('') + '<a href="#/contact" class="client-desk-nav-link" aria-label="Help" title="Help">' + portalIcon('help') + '<span>Help</span></a></div></details>' : '') + '</nav></div>';
   }
 
   function showSetupRequired(message) {
@@ -258,11 +357,11 @@
 
   function renderFiles(project) {
     var files = (relatedData.files || []).filter(function (file) { return file.project_id === project.id; });
-    return '<div class="client-desk-section-head"><h2>Files and materials</h2></div>' +
+    return '<section data-portal-section="files"><div class="client-desk-section-head"><h2>Files and materials</h2></div>' +
       (files.length ? '<ul class="client-desk-checklist">' + files.map(function (file) {
         return '<li><span aria-hidden="true">FILE</span><span><a href="' + escapeHtml(file.signed_url || '#') + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(file.file_name) + '</a> / ' + escapeHtml(dateLabel(file.created_at)) + (file.is_internal ? ' / INTERNAL' : '') + '</span></li>';
       }).join('') + '</ul>' : '<p class="client-desk-footnote">No files have been shared yet.</p>') +
-      '<form class="client-desk-message-form" data-action="upload" data-project="' + escapeHtml(project.id) + '"><label class="client-desk-label" for="upload-' + escapeHtml(project.id) + '">Add a file (JPG, PNG, WebP, or PDF; 10 MB max)</label><input id="upload-' + escapeHtml(project.id) + '" name="file" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required>' + (activeProfile.role === 'owner' ? '<label class="client-desk-checkline"><input name="internal" type="checkbox"><span>Private file (only visible to FixerCtrl)</span></label>' : '') + '<button class="btn ghost" type="submit">Upload file</button></form>';
+      '<form class="client-desk-message-form" data-action="upload" data-project="' + escapeHtml(project.id) + '"><label class="client-desk-label" for="upload-' + escapeHtml(project.id) + '">Add a file (JPG, PNG, WebP, or PDF; 10 MB max)</label><input id="upload-' + escapeHtml(project.id) + '" name="file" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required>' + (activeProfile.role === 'owner' ? '<label class="client-desk-checkline"><input name="internal" type="checkbox"><span>Private file (only visible to FixerCtrl)</span></label>' : '') + '<button class="btn ghost" type="submit">Upload file</button></form></section>';
   }
 
   function renderInvoices(project) {
@@ -321,7 +420,7 @@
     var overview = projectOverview(project);
     return '<details class="client-desk-project" data-project-details data-project-id="' + escapeHtml(project.id) + '"><summary><span class="client-desk-project-heading"><span class="client-desk-label">' + escapeHtml(project.reference || project.id.slice(0, 8)) + ' / ' + escapeHtml(project.service_category.replace('_', ' ')) + '</span><strong>' + escapeHtml(project.title) + '</strong></span><div class="client-desk-project-summary-status"><span class="client-desk-status">' + escapeHtml(status ? status[1] : project.status) + '</span><span class="client-desk-project-percent">' + projectProgress(project.id) + '% complete</span>' + renderProgressBar(projectProgress(project.id), project.title + ' progress') + '</div><span class="client-desk-project-summary-brief"><span><strong>Next milestone</strong>' + escapeHtml(overview.nextMilestone) + '</span><span><strong>Action from you</strong>' + escapeHtml(overview.clientAction) + '</span><span><strong>Last update</strong>' + escapeHtml(overview.lastEvent ? overview.lastEvent.title + ' / ' + dateLabel(overview.lastEvent.created_at) : 'No updates yet') + '</span></span></summary>' +
       renderProjectProgress(project) + '<div class="client-desk-project-body"><div><div class="client-desk-section-head"><h2>Activity</h2><span class="client-desk-footnote">Updated ' + escapeHtml(dateLabel(project.updated_at)) + '</span></div>' + (project.next_action ? '<div class="client-desk-notice"><div><strong>Next step</strong><p>' + escapeHtml(project.next_action) + '</p></div></div>' : '') + renderTimeline(project) +
-      '<div class="client-desk-section-head"><h2>Conversation</h2></div>' + renderMessages(project) + '</div><div><h3>What is needed</h3>' + renderChecklist(project) + renderFiles(project) + (freelancer ? '' : '<div class="client-desk-section-head"><h2>Quote</h2></div>' + renderQuotes(project) + '<div class="client-desk-section-head"><h2>Payments</h2></div>' + renderInvoices(project)) + '</div></div>' + renderOwnerTools(project) + renderFreelancerTools(project) + '</details>';
+      '<section data-portal-section="messages"><div class="client-desk-section-head"><h2>Conversation</h2></div>' + renderMessages(project) + '</section></div><div><h3>What is needed</h3>' + renderChecklist(project) + renderFiles(project) + (freelancer ? '' : '<section data-portal-section="billing"><div class="client-desk-section-head"><h2>Quote</h2></div>' + renderQuotes(project) + '<div class="client-desk-section-head"><h2>Payments</h2></div>' + renderInvoices(project) + '</section>') + '</div></div>' + renderOwnerTools(project) + renderFreelancerTools(project) + '</details>';
   }
 
   function renderOwnerSummary() {
@@ -338,7 +437,7 @@
   function renderFreelancerAccounts() {
     if (activeProfile.role !== 'owner') return '';
     var profiles = (relatedData.profiles || []).filter(function (profile) { return profile.role === 'customer' || profile.role === 'freelancer'; });
-    return '<details class="client-desk-card"><summary><strong>Freelancer accounts</strong></summary><p class="client-desk-footnote">Create or invite accounts in Supabase Auth first. Enabling freelancer access here limits each account to projects you assign.</p>' +
+    return '<details class="client-desk-card" id="clientDeskTeam" data-portal-section="team"><summary><strong>Freelancer accounts</strong></summary><p class="client-desk-footnote">Create or invite accounts in Supabase Auth first. Enabling freelancer access here limits each account to projects you assign.</p>' +
       (profiles.length ? profiles.map(function (profile) {
         return '<form class="client-desk-account-role" data-action="freelancer-role"><div><strong>' + escapeHtml(profile.display_name || profile.email) + '</strong><span class="client-desk-footnote">' + escapeHtml(profile.email) + '</span></div><label class="client-desk-label" for="role-' + escapeHtml(profile.id) + '">Portal access</label><select id="role-' + escapeHtml(profile.id) + '" name="role"><option value="customer" ' + (profile.role === 'customer' ? 'selected' : '') + '>Customer</option><option value="freelancer" ' + (profile.role === 'freelancer' ? 'selected' : '') + '>Freelancer</option></select><input name="user_id" type="hidden" value="' + escapeHtml(profile.id) + '"><button class="btn ghost" type="submit">Save access</button></form>';
       }).join('') : '<p class="client-desk-footnote">No other accounts have signed in yet. Create an account in Supabase Auth first.</p>') + '</details>';
@@ -359,7 +458,7 @@
   function renderPaymentSettings() {
     if (activeProfile.role !== 'owner') return '';
     var providers = relatedData.providers || [];
-    return '<details class="client-desk-card"><summary><strong>Payment methods</strong></summary><p class="client-desk-footnote">Gateway secrets belong in Supabase Edge Function secrets. Enable a provider here only after its merchant account and server settings are configured.</p><form class="client-desk-message-form" data-action="payment-settings">' +
+    return '<details class="client-desk-card" id="clientDeskFinance" data-portal-section="finance"><summary><strong>Payment methods</strong></summary><p class="client-desk-footnote">Gateway secrets belong in Supabase Edge Function secrets. Enable a provider here only after its merchant account and server settings are configured.</p><form class="client-desk-message-form" data-action="payment-settings">' +
       providers.map(function (provider) {
         return '<label class="client-desk-checkline"><input type="checkbox" name="provider_' + escapeHtml(provider.provider) + '" ' + (provider.is_enabled ? 'checked' : '') + '><span><strong>' + escapeHtml(provider.label) + '</strong> / ' + (provider.is_enabled ? 'Available to customers' : 'Hidden from customers') + '</span></label>';
       }).join('') +
@@ -459,9 +558,9 @@
     var heading = owner ? 'Admin work queue' : freelancer ? 'Assigned work' : 'Your projects';
     var emptyHeading = owner ? 'No requests yet' : freelancer ? 'No projects assigned' : 'Nothing in progress';
     var emptyMessage = owner ? 'New customer requests will appear here.' : freelancer ? 'Projects assigned to you by the FixerCtrl admin will appear here.' : 'Send a request to start a conversation about your project.';
-    var content = '<div class="client-desk-workspace"><div class="client-desk-main"><div class="client-desk-section-head"><div><h2>' + heading + '</h2><p class="client-desk-footnote">' + escapeHtml(activeProfile.email) + '</p></div><div class="client-desk-owner-tools"><button class="btn ghost" type="button" data-action="refresh" aria-label="Refresh projects"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5.5 9A7 7 0 0 1 18 6l2 2M4 16l2 2a7 7 0 0 0 12.5-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' + (!owner && !freelancer ? '<button class="btn" type="button" data-action="new-request">New request</button>' : '') + '</div></div>' +
-      (owner ? renderOwnerSummary() + renderPaymentSettings() + renderFreelancerAccounts() : freelancer ? renderFreelancerSummary() + '<div class="client-desk-notice"><div><strong>Keep the client dashboard current</strong><p>Save a status or next step when work progresses. These updates are added to the client’s project timeline without requiring a message.</p></div></div>' : buildRequestForm() + renderAccountDeletion()) + '<p class="client-desk-form-status" data-portal-status aria-live="polite"></p>' +
-      (projectCache.length ? projectCache.map(renderProject).join('') : '<div class="client-desk-empty"><h3>' + emptyHeading + '</h3><p>' + emptyMessage + '</p></div>') +
+    var content = '<div id="clientDeskHome" class="client-desk-workspace"><div class="client-desk-main"><div class="client-desk-section-head"><div><h2>' + heading + '</h2><p class="client-desk-footnote">' + escapeHtml(activeProfile.email) + '</p></div><div class="client-desk-owner-tools"><button class="btn ghost" type="button" data-action="refresh" aria-label="Refresh projects"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5.5 9A7 7 0 0 1 18 6l2 2M4 16l2 2a7 7 0 0 0 12.5-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' + (!owner && !freelancer ? '<button class="btn" type="button" data-action="new-request">New request</button>' : '') + '</div></div>' +
+      (owner ? renderOwnerSummary() + renderPaymentSettings() + '<div id="clientDeskClients">' + renderFreelancerAccounts() + '</div>' : freelancer ? renderFreelancerSummary() + '<div class="client-desk-notice"><div><strong>Keep the client dashboard current</strong><p>Save a status or next step when work progresses. These updates are added to the client’s project timeline without requiring a message.</p></div></div>' : buildRequestForm() + renderAccountDeletion()) + '<p class="client-desk-form-status" data-portal-status aria-live="polite"></p>' +
+      '<div id="clientDeskProjects">' + (projectCache.length ? projectCache.map(renderProject).join('') : '<div class="client-desk-empty"><h3>' + emptyHeading + '</h3><p>' + emptyMessage + '</p></div>') + '</div><p class="client-desk-search-empty" data-portal-search-empty hidden>No matching projects. Try another search.</p>' +
       '</div><aside class="client-desk-sidebar">' + (freelancer ? '<h2>Assigned access</h2><p>You can view the projects assigned to your account, post client-visible progress and conversation updates, and share project files.</p><p>You cannot access client invoices, payment settings, private owner notes, or unassigned projects.</p>' : '<h2>Payment clarity</h2><p>Every quote states the agreed scope, total, due conditions, and any third-party costs before work begins.</p><p>Invoices are sent on the date shown in your agreed schedule. A project status change never charges you by itself.</p><p class="client-desk-footnote">Payments are processed by the selected provider. FixerCtrl does not store card details.</p>') + (!owner && !freelancer ? '<h2>Indicative service guide</h2><ul><li>Landing page: R1,500–R3,000</li><li>Up to 5 website pages: R3,500–R7,500</li><li>Website updates: R250/hour</li><li>Setup: from R500</li><li>Features: from R800</li></ul><p class="client-desk-footnote">IT and security work is quoted after review. These are guides, not your quote. <a href="#/freelancer">Full pricing details</a></p>' : '') + '</aside></div>';
     renderShell(content, activeProfile);
     openProjectIds.forEach(function (projectId) {
@@ -623,6 +722,15 @@
         await client.auth.signOut();
         activeProfile = null;
         renderSignIn();
+      } else if (action === 'notifications') {
+        var panel = portalRoot.querySelector('[data-notification-panel]');
+        var open = panel && panel.hidden;
+        if (panel) panel.hidden = !open;
+        target.setAttribute('aria-expanded', open ? 'true' : 'false');
+      } else if (action === 'theme') {
+        portalTheme = portalTheme === 'light' ? 'dark' : 'light';
+        applyPortalTheme();
+        target.innerHTML = portalIcon(portalTheme === 'light' ? 'moon' : 'sun') + (portalTheme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
       } else if (action === 'step-review') {
         target.disabled = true;
         var feedbackField = portalRoot.querySelector('[data-review-feedback="' + target.dataset.step + '"]');
@@ -723,6 +831,71 @@
       setStatus(error.message || 'This action could not be completed. Please retry.', true);
       target.disabled = false;
     }
+  }
+
+  function handlePortalNavigation(event) {
+    var link = event.target.closest('[data-portal-nav]');
+    if (!link || link.getAttribute('aria-disabled') === 'true') return;
+    event.preventDefault();
+    var targetName = link.dataset.target;
+    var target = document.getElementById(targetName);
+    if (!target && ['messages', 'files', 'billing', 'finance', 'team'].indexOf(targetName) !== -1) {
+      target = portalRoot.querySelector('[data-portal-section="' + targetName + '"]');
+    }
+    if (!target) return;
+    var project = target.closest('details[data-project-details]');
+    if (project) project.open = true;
+    var expandable = target.matches('details') ? target : null;
+    if (expandable) expandable.open = true;
+    var label = link.querySelector('span');
+    currentPortalSection = label ? label.textContent.trim() : 'Workspace';
+    portalRoot.querySelectorAll('[data-portal-nav]').forEach(function (item) {
+      if (item.querySelector('span') && item.querySelector('span').textContent.trim() === currentPortalSection) item.setAttribute('aria-current', 'page');
+      else item.removeAttribute('aria-current');
+    });
+    var breadcrumb = portalRoot.querySelector('[data-current-section]');
+    var title = portalRoot.querySelector('.client-desk-topbar-title > strong');
+    if (breadcrumb) breadcrumb.textContent = currentPortalSection;
+    if (title) title.textContent = currentPortalSection;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var moreMenu = portalRoot.querySelector('.client-desk-mobile-more');
+    if (moreMenu) moreMenu.open = false;
+  }
+
+  function handlePortalSearch(event) {
+    var input = event.target.closest('[data-portal-search]');
+    if (!input) return;
+    var query = input.value.trim().toLowerCase();
+    var projects = portalRoot.querySelectorAll('[data-project-details]');
+    var visibleCount = 0;
+    projects.forEach(function (project) {
+      project.hidden = Boolean(query) && !project.textContent.toLowerCase().includes(query);
+      if (!project.hidden) visibleCount++;
+    });
+    var empty = portalRoot.querySelector('[data-portal-search-empty]');
+    if (empty) empty.hidden = !query || visibleCount > 0;
+  }
+
+  function handlePortalKeydown(event) {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      var search = portalRoot && portalRoot.querySelector('[data-portal-search]');
+      if (search) search.focus();
+    } else if (event.key === 'Escape' && portalRoot) {
+      var panel = portalRoot.querySelector('[data-notification-panel]');
+      var button = portalRoot.querySelector('[data-action="notifications"]');
+      if (panel) panel.hidden = true;
+      if (button) button.setAttribute('aria-expanded', 'false');
+      portalRoot.querySelectorAll('.client-desk-user-menu, .client-desk-mobile-more').forEach(function (menu) { menu.open = false; });
+    }
+  }
+
+  function handleOutsideClick(event) {
+    if (!portalRoot || event.target.closest('.client-desk-notification-wrap')) return;
+    var panel = portalRoot.querySelector('[data-notification-panel]');
+    var button = portalRoot.querySelector('[data-action="notifications"]');
+    if (panel) panel.hidden = true;
+    if (button) button.setAttribute('aria-expanded', 'false');
   }
 
   async function handleSubmit(event) {
@@ -875,6 +1048,10 @@
   };
 
   document.addEventListener('click', handleAction);
+  document.addEventListener('click', handlePortalNavigation);
+  document.addEventListener('click', handleOutsideClick);
   document.addEventListener('submit', handleSubmit);
   document.addEventListener('change', handleChange);
+  document.addEventListener('input', handlePortalSearch);
+  document.addEventListener('keydown', handlePortalKeydown);
 })();
