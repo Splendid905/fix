@@ -686,10 +686,9 @@
   .client-desk-project summary { gap: .65rem; padding-right: 1.35rem; }
   .client-desk-project-heading { flex-basis: 100%; }
   .client-desk-project-summary-status { width: 100%; min-width: 0; }
-  .client-desk-project-summary-status .client-desk-stage-tracker { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .client-desk-project-summary-status .client-desk-stage-tracker::before { display: none; }
+  .client-desk-project-summary-status .client-desk-stage-tracker { grid-template-columns: minmax(0, 1fr); }
+  .client-desk-project-summary-status .client-desk-stage-tracker::before { display: block; }
   .client-desk-project-summary-status .client-desk-stage-point { min-height: 3.5rem; }
-  .client-desk-project-summary-status .client-desk-stage-state { display: none; }
   .client-desk-chat-sidebar { overflow: hidden; }
   .client-desk-chat-layout { height: min(76dvh, 56rem); min-height: min(30rem, 68dvh); }
   .client-desk-chat-main { min-height: 0; }
@@ -761,7 +760,7 @@
   .client-desk-top-actions { flex: 0 0 auto; }
   .client-desk-icon-button { width: 2.2rem; }
   .client-desk-summary-strip:not([aria-label]) { grid-template-columns: minmax(0, 1fr); }
-  .client-desk-project-summary-status .client-desk-stage-tracker { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .client-desk-project-summary-status .client-desk-stage-tracker { grid-template-columns: minmax(0, 1fr); }
   .client-desk-table tr { grid-template-columns: minmax(0, 1fr); }
   .client-desk-table td:first-child { grid-column: 1; }
 }
