@@ -6,7 +6,7 @@
 <title>FixerCtrl | IT Support, Web &amp; Security</title>
 <meta name="description" content="Practical IT support, web development and security-focused help for individuals and small businesses in South Africa.">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-af1ZgMcm8RVDvvttfO/Z3V2TfyedfnfULoMrbLpRpxU=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; form-action 'self' https://www.payfast.co.za https://sandbox.payfast.co.za">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-w6G4AZg+BBggmIm4TRFl6tJI8cVnDdXBiI/X+i3YaTQ=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; form-action 'self' https://www.payfast.co.za https://sandbox.payfast.co.za">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Permanent+Marker&family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
@@ -1674,7 +1674,7 @@
       title: 'Contact',
       html:
         pageBanner('', 'Get in touch', 'For IT support, security setup, website work, or a project quote, send me a message.') +
-        '<div class="client-desk-notice"><div><strong>Already working with FixerCtrl?</strong><p>Use the <a href="#/client-desk">Client Portal</a> to follow progress, review shared project details, and upload files. New customers can contact me here to discuss a project and request account access.</p></div></div>' +
+        '<aside class="client-desk-notice" aria-label="Client Portal information"><div><strong>Already working with FixerCtrl?</strong><p>Use the <a href="#/client-desk">Client Portal</a> to follow progress, review shared project details, and upload files. New customers can contact me here to discuss a project and request account access.</p></div></aside>' +
         '<div class="contact-grid">' +
           '<div><h2>Find me online</h2>' + socialIconLinks(true, 'Social media and contact links') + '</div>' +
           '<div><h2>Send a message</h2>' +
@@ -2183,6 +2183,30 @@
   $('#footerTop').addEventListener('click', function () {
     window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
   });
+
+  function makeNoticeDismissible(notice) {
+    if (notice.dataset.dismissible === 'true') return;
+    notice.dataset.dismissible = 'true';
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'client-desk-notice-dismiss';
+    button.setAttribute('aria-label', 'Dismiss notification');
+    button.textContent = '×';
+    button.addEventListener('click', function () { notice.remove(); });
+    notice.appendChild(button);
+  }
+  function enhanceNotices(node) {
+    if (node.nodeType !== 1) return;
+    if (node.matches('.client-desk-notice')) makeNoticeDismissible(node);
+    node.querySelectorAll('.client-desk-notice').forEach(makeNoticeDismissible);
+  }
+  document.querySelectorAll('.client-desk-notice').forEach(makeNoticeDismissible);
+  var noticeObserver = new MutationObserver(function (records) {
+    records.forEach(function (record) {
+      record.addedNodes.forEach(enhanceNotices);
+    });
+  });
+  noticeObserver.observe(document.body, { childList: true, subtree: true });
 
   window.addEventListener('scroll', updateReadingProgress, { passive: true });
   window.addEventListener('resize', updateReadingProgress);

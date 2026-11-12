@@ -285,9 +285,12 @@
 .client-desk-form p { margin: 0; color: var(--muted); }
 .client-desk-form .field { margin: 0; }
 .client-desk-form-status { min-height: 1.5em; margin: 0; color: var(--desk-accent-text); font-size: .9rem; }
-.client-desk-notice { display: flex; align-items: flex-start; gap: .85rem; margin: 1.25rem 0; padding: 1rem; border: 1px solid rgba(29,155,240,.42); border-left: 3px solid var(--accent); background: rgba(29,155,240,.07); }
+.client-desk-notice { display: flex; align-items: flex-start; gap: .85rem; margin: 1.25rem 0; padding: 1rem; border: 1px solid rgba(29,155,240,.42); background: rgba(29,155,240,.07); }
 .client-desk-notice p { margin: 0; }
 .client-desk-notice strong { display: block; margin-bottom: .2rem; }
+.client-desk-notice > div { min-width: 0; flex: 1; }
+.client-desk-notice-dismiss { display: inline-grid; flex: 0 0 auto; place-items: center; width: 2.75rem; height: 2.75rem; margin: -.35rem -.35rem 0 0; padding: 0; border: 1px solid transparent; border-radius: 2px; background: transparent; color: var(--muted); font: 1.4rem/1 var(--mono); cursor: pointer; }
+.client-desk-notice-dismiss:hover { border-color: var(--line); color: var(--fg); }
 .client-desk-tabs { display: flex; flex-wrap: wrap; gap: .4rem; margin: 1.5rem 0; border-bottom: 1px solid var(--desk-line); }
 .client-desk-tab { min-height: 2.8rem; padding: .55rem .9rem; border: 1px solid transparent; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font: 600 .82rem var(--mono); text-transform: uppercase; cursor: pointer; }
 .client-desk-tab:hover, .client-desk-tab[aria-current="page"] { border-color: var(--desk-line); border-bottom-color: var(--accent); color: var(--fg); }
