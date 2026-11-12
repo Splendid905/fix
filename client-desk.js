@@ -23,9 +23,7 @@
   var relatedData = {};
   var notificationState = { read: [], archived: [], showEarlier: false, showAll: false };
   var notificationStorageKey = '';
-  var navigationStorageKey = '';
   var dashboardStorageKey = '';
-  var navigationGroupState = {};
   var dashboardPreferences = { order: [], hidden: [] };
   var categories = [
     ['web', 'Web development'],
@@ -159,32 +157,32 @@
   function portalNavigation(profile) {
     if (!profile || profile.role === 'deleted') return [];
     if (profile.role === 'owner') return [
-      { group: 'Overview', label: 'Dashboard', icon: 'home', page: 'dashboard', mobilePrimary: true },
-      { group: 'Work', label: 'Projects', icon: 'projects', page: 'projects', mobilePrimary: true },
-      { group: 'Work', label: 'Clients', icon: 'team', page: 'clients' },
-      { group: 'Team', label: 'Team Management', icon: 'team', page: 'team' },
-      { group: 'Team', label: 'Team Communication', icon: 'messages', page: 'communication', mobilePrimary: true },
-      { group: 'Team', label: 'Calendar', icon: 'calendar', page: 'calendar' },
-      { group: 'Insights', label: 'Analytics & Reports', icon: 'finance', page: 'analytics' },
-      { group: 'Finance', label: 'Finance', icon: 'finance', page: 'finance' },
-      { group: 'Admin', label: 'Settings', icon: 'settings', page: 'settings' }
+      { label: 'Dashboard', icon: 'home', page: 'dashboard', mobilePrimary: true },
+      { label: 'Projects', icon: 'projects', page: 'projects', mobilePrimary: true },
+      { label: 'Clients', icon: 'team', page: 'clients' },
+      { label: 'Team Management', icon: 'team', page: 'team' },
+      { label: 'Team Communication', icon: 'messages', page: 'communication', mobilePrimary: true },
+      { label: 'Calendar', icon: 'calendar', page: 'calendar' },
+      { label: 'Analytics & Reports', icon: 'finance', page: 'analytics' },
+      { label: 'Finance', icon: 'finance', page: 'finance' },
+      { label: 'Settings', icon: 'settings', page: 'settings' }
     ];
     if (profile.role === 'freelancer') return [
-      { group: 'Overview', label: 'Dashboard', icon: 'home', page: 'dashboard', mobilePrimary: true },
-      { group: 'Work', label: 'My Tasks', icon: 'tasks', page: 'tasks', mobilePrimary: true },
-      { group: 'Work', label: 'Performance', icon: 'finance', page: 'performance' },
-      { group: 'Work', label: 'Documents', icon: 'files', page: 'documents' },
-      { group: 'Team', label: 'Team Communication', icon: 'messages', page: 'communication', mobilePrimary: true },
-      { group: 'Team', label: 'Calendar', icon: 'calendar', page: 'calendar', mobilePrimary: true },
-      { group: 'Account', label: 'Profile', icon: 'team', page: 'profile' }
+      { label: 'Dashboard', icon: 'home', page: 'dashboard', mobilePrimary: true },
+      { label: 'My Tasks', icon: 'tasks', page: 'tasks', mobilePrimary: true },
+      { label: 'Performance', icon: 'finance', page: 'performance' },
+      { label: 'Documents', icon: 'files', page: 'documents' },
+      { label: 'Team Communication', icon: 'messages', page: 'communication', mobilePrimary: true },
+      { label: 'Calendar', icon: 'calendar', page: 'calendar', mobilePrimary: true },
+      { label: 'Profile', icon: 'team', page: 'profile' }
     ];
     return [
-      { group: 'Overview', label: 'Dashboard', icon: 'home', page: 'dashboard', mobilePrimary: true },
-      { group: 'Work', label: 'Projects', icon: 'projects', page: 'projects', mobilePrimary: true },
-      { group: 'Work', label: 'Documents', icon: 'files', page: 'documents' },
-      { group: 'Communication', label: 'Messages', icon: 'messages', page: 'messages', mobilePrimary: true },
-      { group: 'Billing', label: 'Invoices & Payments', icon: 'billing', page: 'billing', mobilePrimary: true },
-      { group: 'Help', label: 'Support', icon: 'support', href: '#/contact' }
+      { label: 'Dashboard', icon: 'home', page: 'dashboard', mobilePrimary: true },
+      { label: 'Projects', icon: 'projects', page: 'projects', mobilePrimary: true },
+      { label: 'Documents', icon: 'files', page: 'documents' },
+      { label: 'Messages', icon: 'messages', page: 'messages', mobilePrimary: true },
+      { label: 'Invoices & Payments', icon: 'billing', page: 'billing', mobilePrimary: true },
+      { label: 'Support', icon: 'support', href: '#/contact' }
     ];
   }
 
@@ -198,21 +196,8 @@
     return '<a class="client-desk-nav-link' + primaryClass + '" aria-label="' + escapeHtml(item.label) + '" title="' + escapeHtml(item.label) + '" ' + attributes + current + '>' + portalIcon(item.icon) + '<span>' + escapeHtml(item.label) + '</span></a>';
   }
 
-  function renderNavigationGroups(navigation) {
-    var groups = [];
-    navigation.forEach(function (item) {
-      var group = groups.find(function (entry) { return entry.label === item.group; });
-      if (!group) {
-        group = { label: item.group, items: [] };
-        groups.push(group);
-      }
-
-      group.items.push(item);
-    });
-    return groups.map(function (group) {
-      var open = navigationGroupState[group.label] !== false;
-      return '<details class="client-desk-nav-group" data-nav-group="' + escapeHtml(group.label) + '"' + (open ? ' open' : '') + '><summary>' + escapeHtml(group.label) + '</summary><div>' + group.items.map(renderPortalNavItem).join('') + '</div></details>';
-    }).join('');
+  function renderNavigationLinks(navigation) {
+    return navigation.map(renderPortalNavItem).join('');
   }
 
   function renderTeamCommunication() {
@@ -345,7 +330,7 @@
     var primary = navigation.filter(function (item) { return item.mobilePrimary; });
     var secondary = navigation.filter(function (item) { return !item.mobilePrimary; });
     return '<nav class="client-desk-mobile-nav" aria-label="Main portal navigation">' + primary.map(renderPortalNavItem).join('') +
-      (secondary.length ? '<details class="client-desk-mobile-more"><summary class="client-desk-nav-link">' + portalIcon('more') + '<span>More</span></summary><div class="client-desk-mobile-more-sheet"><button type="button" data-action="close-mobile-more">Close</button>' + renderNavigationGroups(secondary) + '</div></details>' : '') + '</nav>';
+      (secondary.length ? '<details class="client-desk-mobile-more"><summary class="client-desk-nav-link">' + portalIcon('more') + '<span>More</span></summary><div class="client-desk-mobile-more-sheet"><header><h2>More sections</h2><button type="button" data-action="close-mobile-more">Close</button></header><nav class="client-desk-mobile-more-links" aria-label="More portal sections">' + renderNavigationLinks(secondary) + '</nav></div></details>' : '') + '</nav>';
   }
 
   function initials(profile) {
@@ -417,7 +402,6 @@
 
   function loadPortalPreferences(profileId) {
     notificationStorageKey = 'fixerctrl.portal.notifications.' + profileId;
-    navigationStorageKey = 'fixerctrl.portal.navigation.' + profileId;
     dashboardStorageKey = 'fixerctrl.portal.dashboard.' + profileId;
     var savedNotifications = localStorage.getItem(notificationStorageKey);
     if (savedNotifications) {
@@ -433,15 +417,6 @@
         notificationState = { read: [], archived: [], showEarlier: false, showAll: false };
       }
     } else notificationState = { read: [], archived: [], showEarlier: false, showAll: false };
-    var savedNavigation = localStorage.getItem(navigationStorageKey);
-    if (savedNavigation) {
-      try {
-        var parsedNavigation = JSON.parse(savedNavigation);
-        navigationGroupState = parsedNavigation && typeof parsedNavigation === 'object' && !Array.isArray(parsedNavigation) ? parsedNavigation : {};
-      } catch (_error) {
-        navigationGroupState = {};
-      }
-    } else navigationGroupState = {};
     var savedDashboard = localStorage.getItem(dashboardStorageKey);
     if (savedDashboard) {
       try {
@@ -509,13 +484,6 @@
         if (input) input.checked = dashboardPreferences.hidden.indexOf(definition[0]) === -1;
       });
     }
-  }
-
-  function handleNavigationGroupToggle(event) {
-    var group = event.target.closest('[data-nav-group]');
-    if (!group || !navigationStorageKey) return;
-    navigationGroupState[group.dataset.navGroup] = group.open;
-    localStorage.setItem(navigationStorageKey, JSON.stringify(navigationGroupState));
   }
 
   function renderNotificationPanel() {
@@ -604,9 +572,10 @@
       return;
     }
 
-    var navLinks = renderNavigationGroups(navigation);
+    var navLinks = renderNavigationLinks(navigation);
     var mobileNav = renderMobileNavigation(navigation);
-    var search = '<label class="client-desk-search">' + portalIcon('search') + '<input type="search" data-portal-search placeholder="Search projects" aria-label="Search projects"><kbd>Ctrl / ⌘ K</kbd></label>';
+    var searchLabel = currentPortalPage === 'tasks' ? 'Search tasks' : 'Search projects';
+    var search = '<div class="field search client-desk-toolbar-search"><label for="portalSearch">' + searchLabel + '</label><div class="search-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="5.5"></circle><path d="M16 16L21 21"></path></svg><input id="portalSearch" type="search" data-portal-search placeholder="' + searchLabel + '"></div></div>';
     var notifications = renderNotifications(profile);
     var currentLabel = portalPageTitle(currentPortalPage);
     var accountMenu = '<details class="client-desk-user-menu" id="clientDeskProfile"><summary><span class="client-desk-avatar" aria-hidden="true">' + escapeHtml(initials(profile)) + '</span><span><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(role) + '</small></span><span class="client-desk-menu-chevron" aria-hidden="true">⌄</span></summary><div class="client-desk-user-popover"><p>' + escapeHtml(profile.email || '') + '</p><button type="button" data-action="theme">' + portalIcon(portalTheme === 'light' ? 'moon' : 'sun') + (portalTheme === 'light' ? 'Use dark appearance' : 'Use light appearance') + '</button><button type="button" data-action="signout">Sign Out</button></div></details>';
@@ -2351,9 +2320,7 @@
       currentPortalPage = 'dashboard';
       selectedTeamConversation = 'group';
       notificationStorageKey = '';
-      navigationStorageKey = '';
       notificationState = { read: [], archived: [], showEarlier: false, showAll: false };
-      navigationGroupState = {};
       renderSignIn();
       return;
     }
@@ -2404,6 +2371,5 @@
   document.addEventListener('change', handleChange);
   document.addEventListener('input', handlePortalSearch);
   document.addEventListener('keydown', handlePortalKeydown);
-  document.addEventListener('toggle', handleNavigationGroupToggle, true);
   window.addEventListener('popstate', handlePortalPagePopState);
 })();
